@@ -41,6 +41,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }),
       );
 
+      const playerIds = players.map((player) => player.id);
+
+      if (playerIds.length > 0) {
+        await tx.sessionPlayer.deleteMany({
+          where: { sessionId, playerId: { notIn: playerIds } },
+        });
+      } else {
+        await tx.sessionPlayer.deleteMany({ where: { sessionId } });
+      }
+
       for (const player of players) {
         await tx.sessionPlayer.upsert({
           where: { sessionId_playerId: { sessionId, playerId: player.id } },

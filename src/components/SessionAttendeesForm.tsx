@@ -6,6 +6,8 @@ import { AttendeePicker } from "@/components/AttendeePicker";
 
 type KnownPlayer = { email: string; name: string | null };
 
+type SaveStatus = "idle" | "saving" | "saved";
+
 export function SessionAttendeesForm({
   sessionId,
   knownPlayers,
@@ -17,10 +19,12 @@ export function SessionAttendeesForm({
 }) {
   const router = useRouter();
   const [players, setPlayers] = useState(initialAttendees);
-  const [status, setStatus] = useState<"idle" | "saving">("idle");
+  const [status, setStatus] = useState<SaveStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  async function submit() {
+  async function save(nextPlayers: string[]) {
+    const previousPlayers = players;
+    setPlayers(nextPlayers);
     setError(null);
     setStatus("saving");
 
@@ -28,15 +32,17 @@ export function SessionAttendeesForm({
       const response = await fetch(`/api/sessions/${sessionId}/attendees`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ attendeeEmails: players }),
+        body: JSON.stringify({ attendeeEmails: nextPlayers }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Could not save players");
+      setStatus("saved");
       router.refresh();
+      window.setTimeout(() => setStatus("idle"), 1200);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save players");
-    } finally {
+      setPlayers(previousPlayers);
       setStatus("idle");
+      setError(err instanceof Error ? err.message : "Could not save players");
     }
   }
 
@@ -44,13 +50,13 @@ export function SessionAttendeesForm({
     <div className="card stack">
       <div className="row">
         <h2>Players</h2>
-        <button className="btn dark" onClick={submit} disabled={status === "saving"}>
-          {status === "saving" ? "Saving…" : "Save"}
-        </button>
+        {status !== "idle" ? (
+          <span className="save-status">{status === "saving" ? "Saving…" : "Saved"}</span>
+        ) : null}
       </div>
 
       {error ? <div className="error">{error}</div> : null}
-      <AttendeePicker knownPlayers={knownPlayers} value={players} onChange={setPlayers} />
+      <AttendeePicker knownPlayers={knownPlayers} value={players} onChange={save} />
     </div>
   );
 }

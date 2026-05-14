@@ -52,14 +52,17 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       <AppHeader userName={user.player?.name ?? user.name} userEmail={user.email} />
 
       <section className="page-heading compact-heading">
-        <h1>
-          {[
-            formatDate(session.playedAt),
-            session.venue,
-            session.courtNumber ? `Court ${session.courtNumber}` : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
+        <h1 className="session-title-line">
+          <span>{formatDate(session.playedAt)}</span>
+          {[session.venue, session.courtNumber ? `Court ${session.courtNumber}` : null].filter(
+            Boolean,
+          ).length > 0 ? (
+            <span className="session-title-meta">
+              {[session.venue, session.courtNumber ? `Court ${session.courtNumber}` : null]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          ) : null}
         </h1>
       </section>
 

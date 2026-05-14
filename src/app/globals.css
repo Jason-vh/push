@@ -186,6 +186,18 @@ h3 {
 .compact-heading h1 {
   margin-top: 0;
 }
+.session-title-line {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.session-title-meta {
+  color: var(--muted);
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
 
 .grid {
   display: grid;
@@ -339,6 +351,11 @@ h3 {
   border-radius: 16px;
   padding: 10px 12px;
   font-size: 13px;
+}
+.save-status {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .leaderboard-row {
