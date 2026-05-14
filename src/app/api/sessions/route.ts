@@ -9,7 +9,6 @@ const sessionSchema = z.object({
   playedAt: z.string().min(1),
   venue: z.string().trim().max(120).optional(),
   courtNumber: z.string().trim().max(40).optional(),
-  notes: z.string().trim().max(500).optional(),
   attendeeEmails: z.array(z.string().email()).default([]),
 });
 
@@ -46,7 +45,6 @@ export async function POST(request: Request) {
           playedAt: new Date(input.playedAt),
           venue: input.venue || null,
           courtNumber: input.courtNumber || null,
-          notes: input.notes || null,
           createdById: user.id,
           players: {
             create: players.map((player) => ({ playerId: player.id })),

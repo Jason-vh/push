@@ -12,14 +12,9 @@ export function AppHeader({
 
   return (
     <header className="header">
-      <Link className="brand brand-link" href="/">
+      <Link className="brand brand-link" href="/" aria-label="Dashboard">
         <div className="logo">P</div>
-        <strong>Push Padel</strong>
       </Link>
-      <nav className="nav-links">
-        <Link href="/">Dashboard</Link>
-        <Link href="/sessions/new">New session</Link>
-      </nav>
       <AvatarMenu initial={initial} />
     </header>
   );

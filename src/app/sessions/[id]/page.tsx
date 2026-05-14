@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AddMatchForm } from "@/components/AddMatchForm";
 import { AppHeader } from "@/components/AppHeader";
@@ -52,16 +51,16 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     <main className="shell">
       <AppHeader userName={user.player?.name ?? user.name} userEmail={user.email} />
 
-      <section className="page-heading">
-        <Link className="pill" href="/">
-          ← Dashboard
-        </Link>
-        <h1>{formatDate(session.playedAt)}</h1>
-        <p className="lede">
-          {[session.venue, session.courtNumber ? `Court ${session.courtNumber}` : null]
+      <section className="page-heading compact-heading">
+        <h1>
+          {[
+            formatDate(session.playedAt),
+            session.venue,
+            session.courtNumber ? `Court ${session.courtNumber}` : null,
+          ]
             .filter(Boolean)
-            .join(" · ") || "Session"}
-        </p>
+            .join(" · ")}
+        </h1>
       </section>
 
       <section className="dashboard-grid">
@@ -74,23 +73,11 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             }))}
             initialAttendees={attendees.map((attendee) => attendee.email)}
           />
-          {session.notes ? <SessionNotes notes={session.notes} /> : null}
           <MatchHistory matches={session.matches} />
         </div>
         <AddMatchForm sessionId={session.id} attendees={attendees} />
       </section>
     </main>
-  );
-}
-
-function SessionNotes({ notes }: { notes: string }) {
-  return (
-    <div className="card">
-      <h2>Notes</h2>
-      <p className="muted" style={{ marginBottom: 0 }}>
-        {notes}
-      </p>
-    </div>
   );
 }
 
@@ -105,10 +92,7 @@ type MatchWithPlayers = Awaited<ReturnType<typeof prisma.match.findMany>>[number
 function MatchHistory({ matches }: { matches: MatchWithPlayers[] }) {
   return (
     <div className="card stack">
-      <div className="row">
-        <h2>Matches</h2>
-        <span className="pill">Played order</span>
-      </div>
+      <h2>Matches</h2>
       {matches.length === 0 ? <div className="empty">No matches logged yet.</div> : null}
       {matches.map((match) => {
         const teamA = `${label(match.teamAPlayer1)} / ${label(match.teamAPlayer2)}`;

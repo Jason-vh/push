@@ -53,7 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not save attendees" },
+      { error: error instanceof Error ? error.message : "Could not save players" },
       { status: 400 },
     );
   }

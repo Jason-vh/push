@@ -11,8 +11,7 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
   const [playedAt, setPlayedAt] = useState(new Date().toISOString().slice(0, 10));
   const [venue, setVenue] = useState("");
   const [courtNumber, setCourtNumber] = useState("");
-  const [notes, setNotes] = useState("");
-  const [attendees, setAttendees] = useState<string[]>(
+  const [players, setPlayers] = useState<string[]>(
     knownPlayers.slice(0, 4).map((player) => player.email),
   );
   const [status, setStatus] = useState<"idle" | "saving">("idle");
@@ -30,8 +29,7 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
           playedAt,
           venue,
           courtNumber,
-          notes,
-          attendeeEmails: attendees,
+          attendeeEmails: players,
         }),
       });
       const data = await response.json();
@@ -46,15 +44,7 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
 
   return (
     <div className="card stack">
-      <div className="row">
-        <div>
-          <span className="pill">Session</span>
-          <h2 style={{ marginTop: 14 }}>Create session</h2>
-        </div>
-        <button className="btn dark" onClick={submit} disabled={status === "saving"}>
-          {status === "saving" ? "Saving…" : "Create session"}
-        </button>
-      </div>
+      <h2>Create session</h2>
 
       {error ? <div className="error">{error}</div> : null}
 
@@ -86,21 +76,16 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
             placeholder="3"
           />
         </label>
-        <label className="label">
-          Notes
-          <input
-            className="input"
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            placeholder="Optional"
-          />
-        </label>
       </div>
 
       <div className="label">
-        Attendees
-        <AttendeePicker knownPlayers={knownPlayers} value={attendees} onChange={setAttendees} />
+        Players
+        <AttendeePicker knownPlayers={knownPlayers} value={players} onChange={setPlayers} />
       </div>
+
+      <button className="btn dark full" onClick={submit} disabled={status === "saving"}>
+        {status === "saving" ? "Creating…" : "Create"}
+      </button>
     </div>
   );
 }

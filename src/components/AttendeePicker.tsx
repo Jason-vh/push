@@ -111,7 +111,7 @@ export function AttendeePicker({
           })}
         </div>
       ) : (
-        <div className="empty compact">No attendees yet.</div>
+        <div className="empty compact">No players yet.</div>
       )}
     </div>
   );

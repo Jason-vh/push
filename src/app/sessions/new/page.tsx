@@ -18,10 +18,6 @@ export default async function NewSessionPage() {
   return (
     <main className="shell">
       <AppHeader userName={user.player?.name ?? user.name} userEmail={user.email} />
-      <section className="page-heading">
-        <span className="pill">Session</span>
-        <h1>Create session</h1>
-      </section>
       <CreateSessionForm
         knownPlayers={players.map((player) => ({ email: player.email, name: player.name }))}
       />
