@@ -79,8 +79,7 @@ export function AuthPanel() {
     setError(null);
     setMode("signin");
     try {
-      const body = email ? { email } : {};
-      const { challengeId, options } = await postJson("/api/auth/login/options", body);
+      const { challengeId, options } = await postJson("/api/auth/login/options", {});
       const response = await startAuthentication({ optionsJSON: options });
       await postJson("/api/auth/login/verify", { challengeId, response });
       window.location.reload();
@@ -97,34 +96,36 @@ export function AuthPanel() {
 
       {error ? <div className="error">{error}</div> : null}
 
-      <label className="label">
-        Email
-        <input
-          className="input"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@example.com"
-          autoComplete={authView === "signin" ? "username webauthn" : "email"}
-        />
-      </label>
-
       {authView === "signup" ? (
-        <label className="label">
-          Name
-          <input
-            className="input"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Your name"
-          />
-        </label>
+        <>
+          <label className="label">
+            Email
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </label>
+
+          <label className="label">
+            Name
+            <input
+              className="input"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Your name"
+            />
+          </label>
+        </>
       ) : null}
 
       {authView === "signin" ? (
         <div className="stack">
           <button className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
-            {mode === "signin" ? "Signing in…" : "Sign in"}
+            {mode === "signin" ? "Logging in…" : "Log in"}
           </button>
           <button
             className="btn secondary full"
