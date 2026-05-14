@@ -6,7 +6,6 @@ import {
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
-import { queueDashboardReveal } from "@/components/DashboardReveal";
 
 async function postJson(url: string, body: unknown) {
   const response = await fetch(url, {
@@ -33,7 +32,6 @@ export function AuthPanel() {
   const [error, setError] = useState<string | null>(null);
 
   function enterApp() {
-    queueDashboardReveal();
     window.location.href = "/";
   }
 

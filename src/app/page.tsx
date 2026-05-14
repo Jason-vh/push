@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { AuthPanel } from "@/components/AuthPanel";
-import { DashboardReveal } from "@/components/DashboardReveal";
 import { prisma } from "@/lib/db";
 import { displayDelta, displayRating } from "@/lib/elo";
 import { getCurrentUser } from "@/lib/session";
@@ -46,7 +45,6 @@ export default async function Home() {
 
   return (
     <main className="shell">
-      <DashboardReveal />
       <AppHeader userName={currentPlayer?.name ?? user.name} userEmail={user.email} />
 
       <section className="dashboard-grid">
