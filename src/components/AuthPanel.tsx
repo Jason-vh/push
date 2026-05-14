@@ -30,6 +30,14 @@ export function AuthPanel() {
   const [name, setName] = useState("");
   const [mode, setMode] = useState<"idle" | "signup" | "signin">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [isEntering, setIsEntering] = useState(false);
+
+  function enterApp() {
+    setIsEntering(true);
+    window.setTimeout(() => {
+      window.location.href = "/";
+    }, 1150);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +55,7 @@ export function AuthPanel() {
 
         if (cancelled) return;
         await postJson("/api/auth/login/verify", { challengeId, response });
-        window.location.reload();
+        enterApp();
       } catch (err) {
         const errorName = err instanceof Error ? err.name : null;
         if (errorName !== "AbortError" && errorName !== "NotAllowedError") {
@@ -73,7 +81,7 @@ export function AuthPanel() {
       });
       const response = await startRegistration({ optionsJSON: options });
       await postJson("/api/auth/register/verify", { challengeId, response });
-      window.location.reload();
+      enterApp();
     } catch (err) {
       if (!isCanceledAuthDialog(err)) {
         setError(err instanceof Error ? err.message : "Could not sign up");
@@ -90,7 +98,7 @@ export function AuthPanel() {
       const { challengeId, options } = await postJson("/api/auth/login/options", {});
       const response = await startAuthentication({ optionsJSON: options });
       await postJson("/api/auth/login/verify", { challengeId, response });
-      window.location.reload();
+      enterApp();
     } catch (err) {
       if (!isCanceledAuthDialog(err)) {
         setError(err instanceof Error ? err.message : "Could not sign in");
@@ -101,75 +109,95 @@ export function AuthPanel() {
   }
 
   return (
-    <div className="card stack">
-      <h2>{authView === "signin" ? "Sign in" : "Create account"}</h2>
+    <>
+      {isEntering ? <CourtReveal /> : null}
+      <div className="card stack">
+        <h2>{authView === "signin" ? "Sign in" : "Create account"}</h2>
 
-      {error ? <div className="error">{error}</div> : null}
+        {error ? <div className="error">{error}</div> : null}
 
-      {authView === "signup" ? (
-        <>
-          <label className="label">
-            Email
-            <input
-              className="input"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </label>
+        {authView === "signup" ? (
+          <>
+            <label className="label">
+              Email
+              <input
+                className="input"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+              />
+            </label>
 
-          <label className="label">
-            Name
-            <input
-              className="input"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Your name"
-            />
-          </label>
-        </>
-      ) : null}
+            <label className="label">
+              Name
+              <input
+                className="input"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Your name"
+              />
+            </label>
+          </>
+        ) : null}
 
-      {authView === "signin" ? (
-        <div className="stack">
-          <button className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
-            {mode === "signin" ? <span className="button-spinner" aria-hidden="true" /> : null}
-            {mode === "signin" ? "Logging in…" : "Log in"}
-          </button>
-          <button
-            className="btn secondary full"
-            onClick={() => {
-              setError(null);
-              setAuthView("signup");
-            }}
-            disabled={mode !== "idle"}
-          >
-            Create account
-          </button>
-        </div>
-      ) : (
-        <div className="stack">
-          <button
-            className="btn dark full"
-            onClick={signUp}
-            disabled={!email || !name || mode !== "idle"}
-          >
-            {mode === "signup" ? "Creating account…" : "Create account"}
-          </button>
-          <button
-            className="btn secondary full"
-            onClick={() => {
-              setError(null);
-              setAuthView("signin");
-            }}
-            disabled={mode !== "idle"}
-          >
-            Sign in instead
-          </button>
-        </div>
-      )}
+        {authView === "signin" ? (
+          <div className="stack">
+            <button className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
+              {mode === "signin" ? <span className="button-spinner" aria-hidden="true" /> : null}
+              {mode === "signin" ? "Logging in…" : "Log in"}
+            </button>
+            <button
+              className="btn secondary full"
+              onClick={() => {
+                setError(null);
+                setAuthView("signup");
+              }}
+              disabled={mode !== "idle"}
+            >
+              Create account
+            </button>
+          </div>
+        ) : (
+          <div className="stack">
+            <button
+              className="btn dark full"
+              onClick={signUp}
+              disabled={!email || !name || mode !== "idle"}
+            >
+              {mode === "signup" ? "Creating account…" : "Create account"}
+            </button>
+            <button
+              className="btn secondary full"
+              onClick={() => {
+                setError(null);
+                setAuthView("signin");
+              }}
+              disabled={mode !== "idle"}
+            >
+              Sign in instead
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function CourtReveal() {
+  return (
+    <div className="court-reveal" aria-hidden="true">
+      <div className="court-reveal__mark">P</div>
+      <svg className="court-reveal__court" viewBox="0 0 320 520">
+        <rect x="34" y="34" width="252" height="452" rx="18" />
+        <path d="M34 260H286" />
+        <path d="M160 34V486" />
+        <path d="M34 146H286" />
+        <path d="M34 374H286" />
+        <path d="M98 146V374" />
+        <path d="M222 146V374" />
+      </svg>
     </div>
   );
 }
