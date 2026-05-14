@@ -18,6 +18,12 @@ async function postJson(url: string, body: unknown) {
   return data;
 }
 
+function isCanceledAuthDialog(error: unknown) {
+  if (!(error instanceof Error)) return false;
+
+  return error.name === "AbortError" || error.name === "NotAllowedError";
+}
+
 export function AuthPanel() {
   const [authView, setAuthView] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -69,7 +75,9 @@ export function AuthPanel() {
       await postJson("/api/auth/register/verify", { challengeId, response });
       window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sign up");
+      if (!isCanceledAuthDialog(err)) {
+        setError(err instanceof Error ? err.message : "Could not sign up");
+      }
     } finally {
       setMode("idle");
     }
@@ -84,7 +92,9 @@ export function AuthPanel() {
       await postJson("/api/auth/login/verify", { challengeId, response });
       window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sign in");
+      if (!isCanceledAuthDialog(err)) {
+        setError(err instanceof Error ? err.message : "Could not sign in");
+      }
     } finally {
       setMode("idle");
     }
@@ -125,6 +135,7 @@ export function AuthPanel() {
       {authView === "signin" ? (
         <div className="stack">
           <button className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
+            {mode === "signin" ? <span className="button-spinner" aria-hidden="true" /> : null}
             {mode === "signin" ? "Logging in…" : "Log in"}
           </button>
           <button
