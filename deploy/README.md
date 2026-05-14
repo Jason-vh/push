@@ -56,7 +56,7 @@ nano .env.production
 Start the app manually once:
 
 ```bash
-docker compose up -d --build
+docker compose --env-file .env.production up -d --build
 ```
 
 ## exe.dev proxy and custom domain
@@ -109,14 +109,14 @@ After that, every push to `main` runs `.github/workflows/deploy.yml`, writes `.e
 
 ```bash
 # logs
-docker compose logs -f app
+docker compose --env-file .env.production logs -f app
 
 # database logs
-docker compose logs -f db
+docker compose --env-file .env.production logs -f db
 
 # restart
-docker compose restart app
+docker compose --env-file .env.production restart app
 
 # run migrations manually if needed
-docker compose exec app npx prisma migrate deploy
+docker compose --env-file .env.production exec app npx prisma migrate deploy
 ```
