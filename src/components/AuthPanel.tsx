@@ -19,6 +19,7 @@ async function postJson(url: string, body: unknown) {
 }
 
 export function AuthPanel() {
+  const [authView, setAuthView] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [mode, setMode] = useState<"idle" | "signup" | "signin">("idle");
@@ -92,7 +93,7 @@ export function AuthPanel() {
 
   return (
     <div className="card stack">
-      <h2>Sign in</h2>
+      <h2>{authView === "signin" ? "Sign in" : "Create account"}</h2>
 
       {error ? <div className="error">{error}</div> : null}
 
@@ -104,28 +105,59 @@ export function AuthPanel() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@example.com"
-          autoComplete="username webauthn"
+          autoComplete={authView === "signin" ? "username webauthn" : "email"}
         />
       </label>
 
-      <label className="label">
-        Name
-        <input
-          className="input"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Your name"
-        />
-      </label>
+      {authView === "signup" ? (
+        <label className="label">
+          Name
+          <input
+            className="input"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Your name"
+          />
+        </label>
+      ) : null}
 
-      <div className="row wrap">
-        <button className="btn dark" onClick={signUp} disabled={!email || mode !== "idle"}>
-          {mode === "signup" ? "Creating account…" : "Create account"}
-        </button>
-        <button className="btn secondary" onClick={signIn} disabled={mode !== "idle"}>
-          {mode === "signin" ? "Signing in…" : "Sign in"}
-        </button>
-      </div>
+      {authView === "signin" ? (
+        <div className="stack">
+          <button className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
+            {mode === "signin" ? "Signing in…" : "Sign in"}
+          </button>
+          <button
+            className="btn secondary full"
+            onClick={() => {
+              setError(null);
+              setAuthView("signup");
+            }}
+            disabled={mode !== "idle"}
+          >
+            Create account
+          </button>
+        </div>
+      ) : (
+        <div className="stack">
+          <button
+            className="btn dark full"
+            onClick={signUp}
+            disabled={!email || !name || mode !== "idle"}
+          >
+            {mode === "signup" ? "Creating account…" : "Create account"}
+          </button>
+          <button
+            className="btn secondary full"
+            onClick={() => {
+              setError(null);
+              setAuthView("signin");
+            }}
+            disabled={mode !== "idle"}
+          >
+            Sign in instead
+          </button>
+        </div>
+      )}
     </div>
   );
 }
