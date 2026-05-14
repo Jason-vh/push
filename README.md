@@ -7,7 +7,9 @@ Private padel tracker for a friend group: passkey signup, post-session match log
 - Next.js + TypeScript
 - Prisma + Postgres
 - Passkey auth via WebAuthn (`@simplewebauthn/*`)
-- Railway-ready start script: `prisma migrate deploy && next start`
+- Docker Compose in production
+- exe.dev VM deployment with Caddy reverse proxy
+- Start script: `prisma migrate deploy && next start`
 
 ## Local setup
 
@@ -38,9 +40,15 @@ Lefthook then runs `oxlint` and `oxfmt --check` on `pre-push`.
 
 ## Deployment
 
-Production deployment is configured for the existing exe.dev VM `vhtm-eu`.
+Production is live at:
 
-See [`deploy/README.md`](deploy/README.md).
+```text
+https://push.vhtm.eu
+```
+
+Production deployment is configured for the existing exe.dev VM `vhtm-eu`. Pushes to `main` deploy automatically through the self-hosted GitHub Actions runner on that VM.
+
+See [`deploy/README.md`](deploy/README.md) for architecture, VM paths, Caddy config, secrets, deploy flow, and ops commands.
 
 ## Current MVP scope
 
