@@ -74,8 +74,8 @@ a {
   letter-spacing: -0.04em;
 }
 .header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   gap: 20px;
   align-items: center;
   margin-bottom: 26px;
@@ -84,6 +84,64 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.brand-link {
+  text-decoration: none;
+}
+.nav-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.nav-links a {
+  border-radius: 999px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 850;
+  padding: 9px 12px;
+  text-decoration: none;
+}
+.nav-links a:hover {
+  background: var(--green-soft);
+}
+.avatar-menu {
+  justify-self: end;
+  position: relative;
+}
+.avatar-button {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+  font-weight: 950;
+  box-shadow: 0 12px 30px rgba(31, 93, 58, 0.24);
+}
+.avatar-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 10;
+  min-width: 130px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: white;
+  box-shadow: var(--shadow);
+  padding: 8px;
+}
+.avatar-dropdown button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 850;
+  padding: 10px 12px;
+  text-align: left;
+}
+.avatar-dropdown button:hover {
+  background: var(--green-soft);
 }
 .logo {
   width: 44px;
@@ -131,6 +189,12 @@ h3 {
   font-size: 18px;
   line-height: 1.45;
   max-width: 650px;
+}
+.page-heading {
+  margin-bottom: 24px;
+}
+.page-heading h1 {
+  margin-top: 14px;
 }
 
 .grid {
@@ -339,6 +403,14 @@ h3 {
   padding: 14px;
   background: #fffef9;
 }
+.match-link {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+.match-link:hover {
+  border-color: rgba(31, 93, 58, 0.28);
+}
 .match-result {
   display: grid;
   gap: 8px;
@@ -381,6 +453,19 @@ h3 {
   color: var(--muted);
   text-align: center;
 }
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.email-chip {
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 850;
+  background: var(--green-soft);
+  color: var(--green);
+}
 
 @media (max-width: 900px) {
   .grid,
@@ -389,6 +474,15 @@ h3 {
     grid-template-columns: 1fr;
   }
   .header {
+    grid-template-columns: 1fr auto;
     align-items: flex-start;
+  }
+  .nav-links {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+  .match-form-grid {
+    grid-template-columns: 1fr;
   }
 }

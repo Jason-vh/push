@@ -1,6 +1,6 @@
+import Link from "next/link";
+import { AppHeader } from "@/components/AppHeader";
 import { AuthPanel } from "@/components/AuthPanel";
-import { AddSessionForm } from "@/components/AddSessionForm";
-import { LogoutButton } from "@/components/LogoutButton";
 import { prisma } from "@/lib/db";
 import { displayDelta, displayRating } from "@/lib/elo";
 import { getCurrentUser } from "@/lib/session";
@@ -42,11 +42,10 @@ export default async function Home() {
   const currentRank = currentPlayer
     ? players.findIndex((player) => player.id === currentPlayer.id) + 1
     : null;
-  const knownPlayers = players.map((player) => ({ email: player.email, name: player.name }));
 
   return (
     <main className="shell">
-      <Header signedInAs={user.email} />
+      <AppHeader userName={currentPlayer?.name ?? user.name} userEmail={user.email} />
 
       <section className="dashboard-grid">
         <div className="stack">
@@ -71,10 +70,9 @@ export default async function Home() {
           </div>
 
           <Leaderboard players={players} />
-          <RecentSessions sessions={recentSessions} />
         </div>
 
-        <AddSessionForm knownPlayers={knownPlayers} />
+        <RecentSessions sessions={recentSessions} />
       </section>
     </main>
   );
@@ -94,23 +92,6 @@ function Landing() {
   );
 }
 
-function Header({ signedInAs }: { signedInAs?: string }) {
-  return (
-    <header className="header">
-      <div className="brand">
-        <div className="logo">P</div>
-        <strong>Push Padel</strong>
-      </div>
-      {signedInAs ? (
-        <div className="row wrap">
-          <span className="pill">{signedInAs}</span>
-          <LogoutButton />
-        </div>
-      ) : null}
-    </header>
-  );
-}
-
 type PlayerWithStats = Awaited<ReturnType<typeof prisma.player.findMany>>[number] & {
   ratingChanges: { delta: number }[];
 };
@@ -122,9 +103,7 @@ function Leaderboard({ players }: { players: PlayerWithStats[] }) {
         <h2>Leaderboard</h2>
         <span className="pill">Lifetime ELO</span>
       </div>
-      {players.length === 0 ? (
-        <div className="empty">No players yet. Log the first session.</div>
-      ) : null}
+      {players.length === 0 ? <div className="empty">No players yet. Create a session.</div> : null}
       {players.map((player, index) => {
         const wins = player.ratingChanges.filter((change) => change.delta > 0).length;
         const losses = player.ratingChanges.filter((change) => change.delta < 0).length;
@@ -164,11 +143,13 @@ function RecentSessions({ sessions }: { sessions: RecentSession[] }) {
     <div className="card stack">
       <div className="row">
         <h2>Recent sessions</h2>
-        <span className="pill">Played order</span>
+        <Link className="btn secondary" href="/sessions/new">
+          + New session
+        </Link>
       </div>
       {sessions.length === 0 ? <div className="empty">No sessions logged yet.</div> : null}
       {sessions.map((session) => (
-        <div className="match" key={session.id}>
+        <Link className="match match-link" href={`/sessions/${session.id}`} key={session.id}>
           <div className="row">
             <strong>
               {formatDate(session.playedAt)}
@@ -177,6 +158,9 @@ function RecentSessions({ sessions }: { sessions: RecentSession[] }) {
             <span className="pill">{session.matches.length} matches</span>
           </div>
           <div className="match-result" style={{ marginTop: 12 }}>
+            {session.matches.length === 0 ? (
+              <span className="muted">No matches logged yet.</span>
+            ) : null}
             {session.matches.map((match) => {
               const teamA = `${label(match.teamAPlayer1)} / ${label(match.teamAPlayer2)}`;
               const teamB = `${label(match.teamBPlayer1)} / ${label(match.teamBPlayer2)}`;
@@ -197,7 +181,7 @@ function RecentSessions({ sessions }: { sessions: RecentSession[] }) {
               );
             })}
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
