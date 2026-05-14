@@ -129,7 +129,7 @@ export function AuthPanel() {
             onClick={signIn}
             disabled={mode !== "idle"}
           >
-            <span>{mode === "signin" ? "Opening court…" : "Log in"}</span>
+            <span>{mode === "signin" ? "Logging in…" : "Log in"}</span>
           </button>
           <button
             className="btn secondary full"

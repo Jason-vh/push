@@ -303,39 +303,20 @@ h3 {
   box-shadow: 0 18px 46px rgba(31, 93, 58, 0.28);
   transform: translateY(-1px);
 }
-.login-button.is-loading::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    linear-gradient(90deg, transparent 20%, rgba(255, 255, 255, 0.24) 50%, transparent 80%),
-    linear-gradient(90deg, transparent 49%, rgba(255, 255, 255, 0.32) 50%, transparent 51%),
-    linear-gradient(0deg, transparent 31%, rgba(255, 255, 255, 0.18) 32%, transparent 33%),
-    linear-gradient(0deg, transparent 67%, rgba(255, 255, 255, 0.18) 68%, transparent 69%);
-  background-size:
-    200% 100%,
-    100% 100%,
-    100% 100%,
-    100% 100%;
-  animation: court-sweep 1.5s ease-in-out infinite;
-  opacity: 0.95;
-}
 .login-button.is-loading::after {
   content: "";
   position: absolute;
-  left: 16%;
+  left: 20px;
   top: 50%;
   z-index: 2;
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--yellow);
   box-shadow:
-    0 0 0 3px rgba(255, 207, 77, 0.22),
-    0 0 18px rgba(255, 207, 77, 0.7);
-  transform: translateY(-50%);
-  animation: court-ball 1.5s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+    0 0 0 3px rgba(255, 207, 77, 0.18),
+    0 8px 18px rgba(16, 32, 21, 0.22);
+  animation: login-ball-bounce 1.05s cubic-bezier(0.42, 0, 0.2, 1) infinite;
 }
 .btn.full {
   width: 100%;
@@ -517,40 +498,19 @@ h3 {
   color: var(--green);
 }
 
-@keyframes court-sweep {
-  0% {
-    background-position:
-      140% 0,
-      0 0,
-      0 0,
-      0 0;
-  }
+@keyframes login-ball-bounce {
+  0%,
   100% {
-    background-position:
-      -60% 0,
-      0 0,
-      0 0,
-      0 0;
+    transform: translate(0, -50%);
   }
-}
-
-@keyframes court-ball {
-  0% {
-    left: 16%;
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
+  25% {
+    transform: translate(calc(min(390px, 100vw) * 0.18), -145%);
   }
   50% {
-    top: 32%;
+    transform: translate(calc(min(390px, 100vw) * 0.38), -50%);
   }
-  88% {
-    opacity: 1;
-  }
-  100% {
-    left: 84%;
-    opacity: 0;
+  75% {
+    transform: translate(calc(min(390px, 100vw) * 0.58), 45%);
   }
 }
 
