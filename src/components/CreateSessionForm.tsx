@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { parseEmailList } from "@/lib/email";
+import { AttendeePicker } from "@/components/AttendeePicker";
 
 type KnownPlayer = { email: string; name: string | null };
 
@@ -12,11 +12,8 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
   const [venue, setVenue] = useState("");
   const [courtNumber, setCourtNumber] = useState("");
   const [notes, setNotes] = useState("");
-  const [attendees, setAttendees] = useState(
-    knownPlayers
-      .slice(0, 4)
-      .map((player) => player.email)
-      .join("\n"),
+  const [attendees, setAttendees] = useState<string[]>(
+    knownPlayers.slice(0, 4).map((player) => player.email),
   );
   const [status, setStatus] = useState<"idle" | "saving">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +31,7 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
           venue,
           courtNumber,
           notes,
-          attendeeEmails: parseEmailList(attendees),
+          attendeeEmails: attendees,
         }),
       });
       const data = await response.json();
@@ -100,15 +97,10 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
         </label>
       </div>
 
-      <label className="label">
-        Attendees by email
-        <textarea
-          className="textarea"
-          value={attendees}
-          onChange={(event) => setAttendees(event.target.value)}
-          placeholder="alice@example.com&#10;bob@example.com"
-        />
-      </label>
+      <div className="label">
+        Attendees
+        <AttendeePicker knownPlayers={knownPlayers} value={attendees} onChange={setAttendees} />
+      </div>
     </div>
   );
 }

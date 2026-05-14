@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AddMatchForm } from "@/components/AddMatchForm";
 import { AppHeader } from "@/components/AppHeader";
+import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
 import { displayDelta } from "@/lib/elo";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -13,25 +14,31 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   if (!user) redirect("/");
 
   const { id } = await params;
-  const session = await prisma.gameSession.findUnique({
-    where: { id },
-    include: {
-      players: {
-        include: { player: true },
-        orderBy: { player: { email: "asc" } },
-      },
-      matches: {
-        orderBy: { orderIndex: "asc" },
-        include: {
-          teamAPlayer1: true,
-          teamAPlayer2: true,
-          teamBPlayer1: true,
-          teamBPlayer2: true,
-          ratingChanges: { include: { player: true } },
+  const [session, knownPlayers] = await Promise.all([
+    prisma.gameSession.findUnique({
+      where: { id },
+      include: {
+        players: {
+          include: { player: true },
+          orderBy: { player: { email: "asc" } },
+        },
+        matches: {
+          orderBy: { orderIndex: "asc" },
+          include: {
+            teamAPlayer1: true,
+            teamAPlayer2: true,
+            teamBPlayer1: true,
+            teamBPlayer2: true,
+            ratingChanges: { include: { player: true } },
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.player.findMany({
+      where: { active: true },
+      orderBy: [{ name: "asc" }, { email: "asc" }],
+    }),
+  ]);
 
   if (!session) notFound();
 
@@ -59,7 +66,15 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
       <section className="dashboard-grid">
         <div className="stack">
-          <SessionSummary attendees={attendees} notes={session.notes} />
+          <SessionAttendeesForm
+            sessionId={session.id}
+            knownPlayers={knownPlayers.map((player) => ({
+              email: player.email,
+              name: player.name,
+            }))}
+            initialAttendees={attendees.map((attendee) => attendee.email)}
+          />
+          {session.notes ? <SessionNotes notes={session.notes} /> : null}
           <MatchHistory matches={session.matches} />
         </div>
         <AddMatchForm sessionId={session.id} attendees={attendees} />
@@ -68,27 +83,13 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   );
 }
 
-function SessionSummary({
-  attendees,
-  notes,
-}: {
-  attendees: Array<{ id: string; email: string; name: string | null }>;
-  notes: string | null;
-}) {
+function SessionNotes({ notes }: { notes: string }) {
   return (
-    <div className="card stack">
-      <div className="row">
-        <h2>Attendees</h2>
-        <span className="pill">{attendees.length} players</span>
-      </div>
-      <div className="chip-list">
-        {attendees.map((attendee) => (
-          <span className="email-chip" key={attendee.id}>
-            {attendee.name ?? attendee.email}
-          </span>
-        ))}
-      </div>
-      {notes ? <p className="muted">{notes}</p> : null}
+    <div className="card">
+      <h2>Notes</h2>
+      <p className="muted" style={{ marginBottom: 0 }}>
+        {notes}
+      </p>
     </div>
   );
 }

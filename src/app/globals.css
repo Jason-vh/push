@@ -466,13 +466,78 @@ h3 {
   flex-wrap: wrap;
   gap: 8px;
 }
-.email-chip {
+.email-chip,
+.attendee-chip {
   border-radius: 999px;
   padding: 8px 10px;
   font-size: 12px;
   font-weight: 850;
   background: var(--green-soft);
   color: var(--green);
+}
+.attendee-picker {
+  display: grid;
+  gap: 12px;
+}
+.attendee-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+.attendee-autocomplete-group {
+  min-width: 0;
+}
+.attendee-positioner {
+  z-index: 20;
+}
+.attendee-popup {
+  width: var(--anchor-width);
+  max-height: min(280px, var(--available-height));
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
+  box-shadow: var(--shadow);
+  padding: 6px;
+}
+.attendee-option {
+  display: grid;
+  gap: 2px;
+  border-radius: 13px;
+  cursor: pointer;
+  padding: 10px 11px;
+}
+.attendee-option span,
+.attendee-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+.attendee-option[data-highlighted],
+.attendee-option:hover {
+  background: var(--green-soft);
+}
+.attendee-empty {
+  padding: 10px 11px;
+}
+.attendee-chip {
+  align-items: center;
+  display: inline-flex;
+  gap: 7px;
+}
+.attendee-chip button {
+  width: 19px;
+  height: 19px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(31, 93, 58, 0.13);
+  color: var(--green);
+  font-weight: 950;
+  line-height: 1;
+  padding: 0;
+}
+.empty.compact {
+  padding: 14px;
+  text-align: left;
 }
 
 @keyframes button-spinner-spin {
