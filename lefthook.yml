@@ -1,0 +1,6 @@
+pre-push:
+  commands:
+    oxlint:
+      run: npm run lint
+    oxfmt:
+      run: npm run format:check

@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Padel Tracker — Design Directions</title>
+    <style>
+      :root {
+        --page: #f3f0e8;
+        --ink: #111827;
+        --muted: #6b7280;
+        --line: rgba(17, 24, 39, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(123, 190, 118, 0.22), transparent 30%),
+          radial-gradient(circle at 85% 5%, rgba(64, 112, 244, 0.16), transparent 26%), var(--page);
+        color: var(--ink);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      .canvas {
+        width: 1680px;
+        min-height: 1120px;
+        padding: 44px;
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 30px;
+      }
+
+      .eyebrow {
+        color: #256b45;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 42px;
+        letter-spacing: -0.05em;
+        line-height: 0.95;
+      }
+
+      .subtitle {
+        width: 560px;
+        color: #4b5563;
+        line-height: 1.45;
+        font-size: 15px;
+        margin: 0;
+      }
+
+      .directions {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 22px;
+        align-items: start;
+      }
+
+      .direction {
+        border-radius: 34px;
+        min-height: 940px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 28px 80px rgba(17, 24, 39, 0.16);
+      }
+
+      .label {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        z-index: 5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.8;
+      }
+
+      .phone {
+        width: calc(100% - 26px);
+        height: 850px;
+        margin: 62px 13px 18px;
+        border-radius: 38px;
+        overflow: hidden;
+        position: relative;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.32),
+          0 18px 45px rgba(0, 0, 0, 0.22);
+      }
+
+      .phone::before {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 92px;
+        height: 25px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.18);
+        z-index: 20;
+      }
+
+      .screen {
+        height: 100%;
+        padding: 54px 18px 18px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+      .tiny {
+        font-size: 11px;
+        opacity: 0.7;
+      }
+      .muted {
+        opacity: 0.66;
+      }
+      .pill {
+        border-radius: 999px;
+        padding: 7px 10px;
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .btn {
+        border-radius: 18px;
+        padding: 12px 14px;
+        font-weight: 900;
+        text-align: center;
+        font-size: 13px;
+      }
+      .card {
+        border-radius: 24px;
+        padding: 16px;
+      }
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        font-size: 12px;
+      }
+      .mini-chart {
+        height: 44px;
+        display: flex;
+        align-items: flex-end;
+        gap: 5px;
+      }
+      .mini-chart span {
+        flex: 1;
+        border-radius: 7px 7px 2px 2px;
+        opacity: 0.9;
+      }
+      .score {
+        font-variant-numeric: tabular-nums;
+        font-weight: 950;
+      }
+      .vs {
+        font-size: 10px;
+        opacity: 0.55;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+      }
+
+      /* Direction 1: clean clubhouse */
+      .d1 {
+        background: #dfeee3;
+        color: #102015;
+      }
+      .d1 .phone {
+        background: #fbfaf4;
+      }
+      .d1 .screen {
+        background: linear-gradient(#fbfaf4 0%, #f1f7ed 100%);
+      }
+      .d1 .hero {
+        background: #1f5d3a;
+        color: white;
+        border-radius: 28px;
+        padding: 20px;
+        margin-bottom: 14px;
+      }
+      .d1 .card {
+        background: white;
+        border: 1px solid rgba(31, 93, 58, 0.1);
+      }
+      .d1 .pill {
+        background: #e7f4df;
+        color: #1f5d3a;
+      }
+      .d1 .btn {
+        background: #ffcf4d;
+        color: #102015;
+      }
+      .d1 .avatar {
+        background: #d9f99d;
+        color: #1f5d3a;
+      }
+      .d1 .mini-chart span {
+        background: #1f5d3a;
+      }
+
+      /* Direction 2: neon night */
+      .d2 {
+        background: #070b18;
+        color: #e5f7ff;
+      }
+      .d2 .phone {
+        background: #08111f;
+      }
+      .d2 .screen {
+        background:
+          linear-gradient(135deg, rgba(24, 244, 193, 0.16), transparent 30%),
+          radial-gradient(circle at 80% 5%, rgba(130, 87, 255, 0.26), transparent 32%), #08111f;
+      }
+      .d2 .card {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(132, 255, 221, 0.18);
+        backdrop-filter: blur(10px);
+      }
+      .d2 .pill {
+        background: rgba(25, 245, 193, 0.16);
+        color: #19f5c1;
+        border: 1px solid rgba(25, 245, 193, 0.3);
+      }
+      .d2 .btn {
+        background: linear-gradient(90deg, #19f5c1, #7c5cff);
+        color: #06111a;
+        box-shadow: 0 0 24px rgba(25, 245, 193, 0.35);
+      }
+      .d2 .avatar {
+        background: #151f32;
+        color: #19f5c1;
+        border: 1px solid rgba(25, 245, 193, 0.28);
+      }
+      .d2 .mini-chart span {
+        background: linear-gradient(#19f5c1, #7c5cff);
+      }
+      .d2 .score {
+        color: #19f5c1;
+      }
+
+      /* Direction 3: warm editorial */
+      .d3 {
+        background: #c96d3a;
+        color: #2c160f;
+      }
+      .d3 .phone {
+        background: #f6ead7;
+      }
+      .d3 .screen {
+        background:
+          linear-gradient(90deg, rgba(44, 22, 15, 0.06) 1px, transparent 1px),
+          linear-gradient(rgba(44, 22, 15, 0.05) 1px, transparent 1px), #f6ead7;
+        background-size: 22px 22px;
+      }
+      .d3 h2,
+      .d3 .serif {
+        font-family: Georgia, "Times New Roman", serif;
+        letter-spacing: -0.04em;
+      }
+      .d3 .card {
+        background: #fff8ea;
+        border: 1px solid rgba(44, 22, 15, 0.15);
+        box-shadow: 5px 5px 0 rgba(44, 22, 15, 0.12);
+      }
+      .d3 .pill {
+        background: #2c160f;
+        color: #fff8ea;
+      }
+      .d3 .btn {
+        background: #e74f2f;
+        color: #fff8ea;
+        border: 2px solid #2c160f;
+        box-shadow: 4px 4px 0 #2c160f;
+      }
+      .d3 .avatar {
+        background: #f7c948;
+        color: #2c160f;
+        border: 2px solid #2c160f;
+      }
+      .d3 .mini-chart span {
+        background: #e74f2f;
+      }
+
+      /* Direction 4: scoreboard/stat heavy */
+      .d4 {
+        background: #111827;
+        color: #f8fafc;
+      }
+      .d4 .phone {
+        background: #eff6ff;
+      }
+      .d4 .screen {
+        background: #f8fafc;
+        color: #111827;
+      }
+      .d4 .scoreboard {
+        background: #101827;
+        color: #d9ff65;
+        border-radius: 24px;
+        padding: 16px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .d4 .card {
+        background: white;
+        border: 1px solid #dbeafe;
+      }
+      .d4 .pill {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .d4 .btn {
+        background: #111827;
+        color: #d9ff65;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .d4 .avatar {
+        background: #111827;
+        color: #d9ff65;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .d4 .mini-chart span {
+        background: #2563eb;
+      }
+
+      /* Direction 5: social playful */
+      .d5 {
+        background: #8b5cf6;
+        color: #20143b;
+      }
+      .d5 .phone {
+        background: #fff7fb;
+      }
+      .d5 .screen {
+        background:
+          radial-gradient(circle at 10% 8%, #fed7aa 0 12%, transparent 13%),
+          radial-gradient(circle at 90% 14%, #bbf7d0 0 10%, transparent 11%), #fff7fb;
+      }
+      .d5 .card {
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(139, 92, 246, 0.18);
+        box-shadow: 0 12px 30px rgba(139, 92, 246, 0.12);
+      }
+      .d5 .pill {
+        background: #ede9fe;
+        color: #6d28d9;
+      }
+      .d5 .btn {
+        background: #fb7185;
+        color: white;
+      }
+      .d5 .avatar {
+        background: #a7f3d0;
+        color: #20143b;
+      }
+      .d5 .mini-chart span {
+        background: #8b5cf6;
+      }
+
+      .concept-note {
+        padding: 0 24px 24px;
+        font-size: 12px;
+        line-height: 1.35;
+        opacity: 0.78;
+      }
+
+      .rank {
+        display: grid;
+        grid-template-columns: 26px 1fr auto;
+        gap: 8px;
+        align-items: center;
+        font-size: 13px;
+      }
+      .match-line {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        font-size: 12px;
+      }
+      .team {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .email-chip {
+        border-radius: 999px;
+        padding: 6px 8px;
+        font-size: 10px;
+        font-weight: 800;
+        background: rgba(0, 0, 0, 0.06);
+      }
+      .d2 .email-chip {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      @media (max-width: 1700px) {
+        .canvas {
+          transform: scale(0.78);
+          transform-origin: top left;
+          width: 1680px;
+        }
+        body {
+          min-height: 900px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="canvas">
+      <section class="topbar">
+        <div>
+          <div class="eyebrow">Padel tracker prototype</div>
+          <h1>Five visual directions on one canvas</h1>
+        </div>
+        <p class="subtitle">
+          Same product ideas, different visual systems: passkey signup, post-session logging,
+          email-based players, rotating doubles matches, sequential ELO, leaderboard and history.
+        </p>
+      </section>
+
+      <section class="directions">
+        <article class="direction d1">
+          <div class="label"><span>01 Clubhouse Clean</span><span>calm · simple</span></div>
+          <div class="phone">
+            <div class="screen stack">
+              <div class="row">
+                <div>
+                  <div class="tiny">Thursday Padel</div>
+                  <h2 style="margin: 2px 0 0; font-size: 26px; letter-spacing: -0.05em">
+                    Leaderboard
+                  </h2>
+                </div>
+                <div class="avatar">JV</div>
+              </div>
+
+              <div class="hero">
+                <div class="row">
+                  <div>
+                    <div class="tiny">Your rating</div>
+                    <div style="font-size: 42px; font-weight: 950; letter-spacing: -0.06em">
+                      1048
+                    </div>
+                  </div>
+                  <div class="pill" style="background: rgba(255, 255, 255, 0.15); color: white">
+                    +18 last session
+                  </div>
+                </div>
+                <div class="mini-chart" aria-hidden="true">
+                  <span style="height: 38%"></span><span style="height: 44%"></span
+                  ><span style="height: 58%"></span><span style="height: 51%"></span
+                  ><span style="height: 76%"></span><span style="height: 70%"></span>
+                </div>
+              </div>
+
+              <div class="btn">+ Log completed session</div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>May 14 · The Padellers</strong><span class="pill">3 matches</span>
+                </div>
+                <div class="match-line">
+                  <span>Alice / Bob beat Chris / Dana</span><span class="score">6-4</span>
+                </div>
+                <div class="match-line">
+                  <span>Alice / Chris beat Bob / Dana</span><span class="score">7-5</span>
+                </div>
+                <div class="match-line">
+                  <span>Bob / Chris beat Alice / Dana</span><span class="score">10-8</span>
+                </div>
+              </div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Rankings</strong><span class="tiny">lifetime ELO</span>
+                </div>
+                <div class="rank"><span>1</span><span>Sam</span><strong>1124</strong></div>
+                <div class="rank"><span>2</span><span>Alice</span><strong>1088</strong></div>
+                <div class="rank"><span>3</span><span>You</span><strong>1048</strong></div>
+                <div class="rank"><span>4</span><span>Dana</span><strong>993</strong></div>
+              </div>
+
+              <div class="card stack">
+                <strong>Add players by email</strong>
+                <div class="team">
+                  <span class="email-chip">sam@example.com</span
+                  ><span class="email-chip">tom@new.com · unclaimed</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="concept-note">
+            Friendly default: approachable, legible, easy for quick result entry after a session.
+          </p>
+        </article>
+
+        <article class="direction d2">
+          <div class="label"><span>02 Night Court</span><span>dark · energetic</span></div>
+          <div class="phone">
+            <div class="screen stack">
+              <div class="row">
+                <div>
+                  <div class="tiny">Passkey signed in</div>
+                  <h2 style="margin: 2px 0 0; font-size: 25px; letter-spacing: -0.05em">
+                    Night Court
+                  </h2>
+                </div>
+                <div class="pill">LIVE ELO</div>
+              </div>
+
+              <div class="card stack" style="padding: 20px">
+                <div class="row">
+                  <span class="tiny">Current rank</span><span class="pill">#3</span>
+                </div>
+                <div
+                  style="
+                    font-size: 52px;
+                    font-weight: 950;
+                    letter-spacing: -0.08em;
+                    line-height: 0.9;
+                  "
+                >
+                  1048
+                </div>
+                <div class="mini-chart">
+                  <span style="height: 36%"></span><span style="height: 50%"></span
+                  ><span style="height: 43%"></span><span style="height: 65%"></span
+                  ><span style="height: 72%"></span>
+                </div>
+              </div>
+
+              <div class="btn">ENTER SESSION RESULTS</div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Match queue</strong><span class="tiny">played order</span>
+                </div>
+                <div class="match-line">
+                  <span><b>01</b> Alice+Bob vs Chris+Dana</span><span class="score">+11</span>
+                </div>
+                <div class="match-line">
+                  <span><b>02</b> Alice+Chris vs Bob+Dana</span><span class="score">+13</span>
+                </div>
+                <div class="match-line">
+                  <span><b>03</b> Bob+Chris vs Alice+Dana</span><span class="score">-9</span>
+                </div>
+              </div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Leaderboard</strong><span class="pill">rotating teams</span>
+                </div>
+                <div class="rank"><span>01</span><span>Sam</span><strong>1124</strong></div>
+                <div class="rank"><span>02</span><span>Alice</span><strong>1088</strong></div>
+                <div class="rank"><span>03</span><span>You</span><strong>1048</strong></div>
+                <div class="rank"><span>04</span><span>Chris</span><strong>1006</strong></div>
+              </div>
+
+              <div class="card stack">
+                <strong>Invite identity</strong>
+                <span class="email-chip">tom@new.com links when they sign up</span>
+              </div>
+            </div>
+          </div>
+          <p class="concept-note">
+            More competitive and game-like, with neon feedback around ELO movement and match
+            ordering.
+          </p>
+        </article>
+
+        <article class="direction d3">
+          <div class="label"><span>03 Match Journal</span><span>warm · editorial</span></div>
+          <div class="phone">
+            <div class="screen stack">
+              <div class="row">
+                <div>
+                  <div class="tiny">Padel logbook</div>
+                  <h2 class="serif" style="margin: 2px 0 0; font-size: 30px">The latest chapter</h2>
+                </div>
+                <div class="avatar">14</div>
+              </div>
+
+              <div class="card stack">
+                <div class="row">
+                  <span class="pill">May 14</span><span class="tiny">Court 3</span>
+                </div>
+                <h2 class="serif" style="margin: 0; font-size: 32px; line-height: 0.95">
+                  Three rotating matches at Zuid
+                </h2>
+                <p style="margin: 0; font-size: 12px; line-height: 1.4">
+                  Sequential ELO updates, entered after the session.
+                </p>
+              </div>
+
+              <div class="btn">Write match results</div>
+
+              <div class="card stack">
+                <strong>Played order</strong>
+                <div class="match-line">
+                  <span>① Alice & Bob defeated Chris & Dana</span><span class="score">6–4</span>
+                </div>
+                <div class="match-line">
+                  <span>② Alice & Chris defeated Bob & Dana</span><span class="score">7–5</span>
+                </div>
+                <div class="match-line">
+                  <span>③ Bob & Chris defeated Alice & Dana</span><span class="score">10–8</span>
+                </div>
+              </div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Table</strong><span class="tiny">after all chapters</span>
+                </div>
+                <div class="rank"><span>1.</span><span>Sam</span><strong>1124</strong></div>
+                <div class="rank"><span>2.</span><span>Alice</span><strong>1088</strong></div>
+                <div class="rank"><span>3.</span><span>Jonas</span><strong>1048</strong></div>
+                <div class="rank"><span>4.</span><span>Dana</span><strong>993</strong></div>
+              </div>
+
+              <div class="card stack">
+                <strong>People</strong>
+                <div class="team">
+                  <span class="email-chip">claimed</span
+                  ><span class="email-chip">waiting on passkey signup</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="concept-note">
+            Feels like a private club journal; distinctive and warm, less SaaS-like.
+          </p>
+        </article>
+
+        <article class="direction d4">
+          <div class="label"><span>04 Scoreboard Pro</span><span>stats · precise</span></div>
+          <div class="phone">
+            <div class="screen stack">
+              <div class="scoreboard stack">
+                <div class="row"><span>PADEL ELO</span><span>RANK 03</span></div>
+                <div style="font-size: 48px; font-weight: 950; letter-spacing: -0.06em">1048.2</div>
+                <div class="row tiny"><span>W 14</span><span>L 9</span><span>LAST +18.4</span></div>
+              </div>
+
+              <div class="btn">+ ADD COMPLETED SESSION</div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Session validation</strong><span class="pill">ordered</span>
+                </div>
+                <div class="rank">
+                  <span>01</span><span>Team avg 1012 vs 1008</span><strong>+11.9</strong>
+                </div>
+                <div class="rank">
+                  <span>02</span><span>Team avg 1024 vs 996</span><strong>+10.1</strong>
+                </div>
+                <div class="rank">
+                  <span>03</span><span>Team avg 1001 vs 1019</span><strong>+13.3</strong>
+                </div>
+              </div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Leaderboard</strong><span class="tiny">rating · W/L</span>
+                </div>
+                <div class="rank">
+                  <span class="avatar">1</span><span>Sam <span class="muted">18–7</span></span
+                  ><strong>1124</strong>
+                </div>
+                <div class="rank">
+                  <span class="avatar">2</span><span>Alice <span class="muted">15–9</span></span
+                  ><strong>1088</strong>
+                </div>
+                <div class="rank">
+                  <span class="avatar">3</span><span>You <span class="muted">14–9</span></span
+                  ><strong>1048</strong>
+                </div>
+              </div>
+
+              <div class="card stack">
+                <strong>Score entry</strong>
+                <div class="row"><span>Team A</span><span class="score">6 7</span></div>
+                <div class="row"><span>Team B</span><span class="score">4 5</span></div>
+              </div>
+
+              <div class="card stack">
+                <strong>Identity matching</strong>
+                <span class="email-chip">email is source of truth before signup</span>
+              </div>
+            </div>
+          </div>
+          <p class="concept-note">
+            Best if the product should feel accurate, competitive, and transparent about rating
+            math.
+          </p>
+        </article>
+
+        <article class="direction d5">
+          <div class="label"><span>05 Social Rally</span><span>playful · feed</span></div>
+          <div class="phone">
+            <div class="screen stack">
+              <div class="row">
+                <div>
+                  <div class="tiny">Your friend group</div>
+                  <h2 style="margin: 2px 0 0; font-size: 27px; letter-spacing: -0.06em">
+                    Rally recap
+                  </h2>
+                </div>
+                <div class="avatar">🎾</div>
+              </div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Sam is still on top</strong><span class="pill">1124</span>
+                </div>
+                <p style="margin: 0; font-size: 12px; line-height: 1.4">
+                  Alice gained +22 after two wins with two different partners.
+                </p>
+                <div class="team">
+                  <span class="avatar">S</span><span class="avatar">A</span
+                  ><span class="avatar">J</span><span class="avatar">D</span
+                  ><span class="email-chip">+1 unclaimed</span>
+                </div>
+              </div>
+
+              <div class="btn">Log the games we just played</div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Today’s session</strong><span class="pill">posted</span>
+                </div>
+                <div class="match-line">
+                  <span>🔥 Alice/Bob took match 1</span><span class="score">6-4</span>
+                </div>
+                <div class="match-line">
+                  <span>💪 Alice/Chris held match 2</span><span class="score">7-5</span>
+                </div>
+                <div class="match-line">
+                  <span>😮 Bob/Chris upset match 3</span><span class="score">10-8</span>
+                </div>
+              </div>
+
+              <div class="card stack">
+                <div class="row">
+                  <strong>Leaderboard</strong><span class="tiny">tap player for profile</span>
+                </div>
+                <div class="rank"><span>🥇</span><span>Sam</span><strong>1124</strong></div>
+                <div class="rank"><span>🥈</span><span>Alice</span><strong>1088</strong></div>
+                <div class="rank"><span>🥉</span><span>You</span><strong>1048</strong></div>
+                <div class="rank"><span>4</span><span>Dana</span><strong>993</strong></div>
+              </div>
+
+              <div class="card stack">
+                <strong>Passkey onboarding</strong>
+                <span class="email-chip">claim your match history with your email</span>
+              </div>
+            </div>
+          </div>
+          <p class="concept-note">
+            A friendlier social-feed framing, making the app feel more like a group ritual than
+            admin work.
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

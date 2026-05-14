@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: push-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to exe.dev VM
+    runs-on: [self-hosted, linux, push-prod]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Write production env file
+        run: |
+          cat > .env.production <<EOF
+          APP_URL=https://push.vhtm.eu
+          NEXT_PUBLIC_APP_URL=https://push.vhtm.eu
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          PUSH_APP_HOST_PORT=3001
+          EOF
+
+      - name: Deploy with Docker Compose
+        run: |
+          docker compose up -d --build --remove-orphans
+          docker compose ps
