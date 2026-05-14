@@ -23,7 +23,6 @@ export function AuthPanel() {
   const [name, setName] = useState("");
   const [mode, setMode] = useState<"idle" | "signup" | "signin">("idle");
   const [error, setError] = useState<string | null>(null);
-  const [autofillAvailable, setAutofillAvailable] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,7 +32,6 @@ export function AuthPanel() {
         const supportsAutofill = await browserSupportsWebAuthnAutofill();
         if (!supportsAutofill || cancelled) return;
 
-        setAutofillAvailable(true);
         const { challengeId, options } = await postJson("/api/auth/login/options", {});
         const response = await startAuthentication({
           optionsJSON: options,
@@ -93,10 +91,7 @@ export function AuthPanel() {
 
   return (
     <div className="card stack">
-      <div>
-        <h2>Sign in</h2>
-        <p className="muted">Use the same email your match history is tied to.</p>
-      </div>
+      <h2>Sign in</h2>
 
       {error ? <div className="error">{error}</div> : null}
 
@@ -121,12 +116,6 @@ export function AuthPanel() {
           placeholder="Your name"
         />
       </label>
-
-      {autofillAvailable ? (
-        <p className="help">
-          If you already have an account, select it from your browser’s sign-in suggestion.
-        </p>
-      ) : null}
 
       <div className="row wrap">
         <button className="btn dark" onClick={signUp} disabled={!email || mode !== "idle"}>
