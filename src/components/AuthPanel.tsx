@@ -78,7 +78,8 @@ export function AuthPanel() {
     setError(null);
     setMode("signin");
     try {
-      const { challengeId, options } = await postJson("/api/auth/login/options", { email });
+      const body = email ? { email } : {};
+      const { challengeId, options } = await postJson("/api/auth/login/options", body);
       const response = await startAuthentication({ optionsJSON: options });
       await postJson("/api/auth/login/verify", { challengeId, response });
       window.location.reload();
@@ -121,7 +122,7 @@ export function AuthPanel() {
         <button className="btn dark" onClick={signUp} disabled={!email || mode !== "idle"}>
           {mode === "signup" ? "Creating account…" : "Create account"}
         </button>
-        <button className="btn secondary" onClick={signIn} disabled={!email || mode !== "idle"}>
+        <button className="btn secondary" onClick={signIn} disabled={mode !== "idle"}>
           {mode === "signin" ? "Signing in…" : "Sign in"}
         </button>
       </div>
