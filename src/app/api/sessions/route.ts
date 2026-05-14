@@ -10,7 +10,7 @@ const sessionSchema = z.object({
   venue: z.string().trim().max(120).optional(),
   courtNumber: z.string().trim().max(40).optional(),
   notes: z.string().trim().max(500).optional(),
-  attendeeEmails: z.array(z.string().email()).min(4),
+  attendeeEmails: z.array(z.string().email()).default([]),
 });
 
 export async function POST(request: Request) {
