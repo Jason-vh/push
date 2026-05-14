@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { AuthChallengeType } from "@prisma/client";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { z } from "zod";
+import { CONDITIONAL_AUTH_EMAIL } from "@/lib/auth";
 import { expectedOrigin, rpID } from "@/lib/config";
 import { prisma } from "@/lib/db";
 import { createSession } from "@/lib/session";
@@ -28,8 +29,13 @@ export async function POST(request: Request) {
     include: { user: true },
   });
 
-  if (!credential || credential.user.email !== challenge.email) {
-    return NextResponse.json({ error: "Passkey does not match this email." }, { status: 400 });
+  const isConditionalChallenge = challenge.email === CONDITIONAL_AUTH_EMAIL;
+
+  if (!credential || (!isConditionalChallenge && credential.user.email !== challenge.email)) {
+    return NextResponse.json(
+      { error: "Passkey does not match this sign-in request." },
+      { status: 400 },
+    );
   }
 
   const verification = await verifyAuthenticationResponse({

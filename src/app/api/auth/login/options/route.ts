@@ -5,12 +5,31 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { normalizeEmail } from "@/lib/email";
 import { rpID } from "@/lib/config";
+import { CONDITIONAL_AUTH_EMAIL } from "@/lib/auth";
 
-const schema = z.object({ email: z.string().email() });
+const schema = z.object({ email: z.string().email().optional() });
 
 export async function POST(request: Request) {
   const input = schema.parse(await request.json());
-  const email = normalizeEmail(input.email);
+  const email = input.email ? normalizeEmail(input.email) : null;
+
+  if (!email) {
+    const options = await generateAuthenticationOptions({
+      rpID,
+      userVerification: "preferred",
+    });
+
+    const challenge = await prisma.authChallenge.create({
+      data: {
+        email: CONDITIONAL_AUTH_EMAIL,
+        type: AuthChallengeType.AUTHENTICATION,
+        challenge: options.challenge,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    return NextResponse.json({ challengeId: challenge.id, options });
+  }
 
   const user = await prisma.user.findUnique({
     where: { email },

@@ -5,7 +5,8 @@
     "correctness": "error"
   },
   "rules": {
-    "typescript/triple-slash-reference": "off"
+    "typescript/triple-slash-reference": "off",
+    "jsx-a11y/autocomplete-valid": "off"
   },
   "env": {
     "builtin": true

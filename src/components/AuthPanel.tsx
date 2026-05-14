@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import { useEffect, useState } from "react";
+import {
+  browserSupportsWebAuthnAutofill,
+  startAuthentication,
+  startRegistration,
+} from "@simplewebauthn/browser";
 
 async function postJson(url: string, body: unknown) {
   const response = await fetch(url, {
@@ -19,6 +23,40 @@ export function AuthPanel() {
   const [name, setName] = useState("");
   const [mode, setMode] = useState<"idle" | "signup" | "signin">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [autofillAvailable, setAutofillAvailable] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function startConditionalSignIn() {
+      try {
+        const supportsAutofill = await browserSupportsWebAuthnAutofill();
+        if (!supportsAutofill || cancelled) return;
+
+        setAutofillAvailable(true);
+        const { challengeId, options } = await postJson("/api/auth/login/options", {});
+        const response = await startAuthentication({
+          optionsJSON: options,
+          useBrowserAutofill: true,
+        });
+
+        if (cancelled) return;
+        await postJson("/api/auth/login/verify", { challengeId, response });
+        window.location.reload();
+      } catch (err) {
+        const errorName = err instanceof Error ? err.name : null;
+        if (errorName !== "AbortError" && errorName !== "NotAllowedError") {
+          console.debug("Conditional passkey sign-in unavailable", err);
+        }
+      }
+    }
+
+    startConditionalSignIn();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function signUp() {
     setError(null);
@@ -73,6 +111,7 @@ export function AuthPanel() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@example.com"
+          autoComplete="username webauthn"
         />
       </label>
 
@@ -85,6 +124,12 @@ export function AuthPanel() {
           placeholder="Your name"
         />
       </label>
+
+      {autofillAvailable ? (
+        <p className="help">
+          If you already have a passkey, select it from your browser’s sign-in suggestion.
+        </p>
+      ) : null}
 
       <div className="row wrap">
         <button className="btn dark" onClick={signUp} disabled={!email || mode !== "idle"}>
