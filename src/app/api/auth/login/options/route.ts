@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   });
 
   if (!user || user.credentials.length === 0) {
-    return NextResponse.json({ error: "No passkey found for this email." }, { status: 404 });
+    return NextResponse.json({ error: "No account found for this email." }, { status: 404 });
   }
 
   const options = await generateAuthenticationOptions({

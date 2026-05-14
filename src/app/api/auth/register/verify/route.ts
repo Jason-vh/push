@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   });
 
   if (!verification.verified || !verification.registrationInfo) {
-    return NextResponse.json({ error: "Passkey registration failed." }, { status: 400 });
+    return NextResponse.json({ error: "Account creation failed." }, { status: 400 });
   }
 
   const { credential } = verification.registrationInfo;

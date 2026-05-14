@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   if (user.credentials.length > 0) {
     return NextResponse.json(
-      { error: "This email already has a passkey. Sign in instead." },
+      { error: "This email already has an account. Sign in instead." },
       { status: 409 },
     );
   }

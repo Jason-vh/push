@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   if (!credential || (!isConditionalChallenge && credential.user.email !== challenge.email)) {
     return NextResponse.json(
-      { error: "Passkey does not match this sign-in request." },
+      { error: "This sign-in method does not match the request." },
       { status: 400 },
     );
   }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   });
 
   if (!verification.verified) {
-    return NextResponse.json({ error: "Passkey sign-in failed." }, { status: 400 });
+    return NextResponse.json({ error: "Sign-in failed." }, { status: 400 });
   }
 
   await prisma.webAuthnCredential.update({

@@ -82,37 +82,11 @@ export default async function Home() {
 
 function Landing() {
   return (
-    <main className="shell">
-      <Header />
-      <section className="grid">
-        <div className="stack" style={{ paddingTop: 36 }}>
-          <span className="pill">Private friend-group padel tracker</span>
-          <div>
-            <h1>Track sessions, rotating teams, and lifetime ELO.</h1>
-            <p className="lede">
-              Log completed padel sessions after you play. Add people by email, record matches in
-              order, and keep a friendly leaderboard for the group.
-            </p>
-          </div>
-          <div className="card hero-card">
-            <div className="row">
-              <div>
-                <div className="eyebrow" style={{ color: "rgba(255,255,255,.78)" }}>
-                  Sequential doubles ELO
-                </div>
-                <div className="big-number">1048</div>
-              </div>
-              <span className="pill">+18 last session</span>
-            </div>
-            <div className="chart" aria-hidden="true">
-              <span style={{ height: "38%" }} />
-              <span style={{ height: "44%" }} />
-              <span style={{ height: "58%" }} />
-              <span style={{ height: "51%" }} />
-              <span style={{ height: "76%" }} />
-              <span style={{ height: "70%" }} />
-            </div>
-          </div>
+    <main className="auth-shell">
+      <section className="auth-card-wrap">
+        <div className="auth-brand">
+          <div className="logo">P</div>
+          <strong>Push Padel</strong>
         </div>
         <AuthPanel />
       </section>
@@ -125,10 +99,7 @@ function Header({ signedInAs }: { signedInAs?: string }) {
     <header className="header">
       <div className="brand">
         <div className="logo">P</div>
-        <div>
-          <div className="eyebrow">Push Padel</div>
-          <strong>push.vhtm.eu</strong>
-        </div>
+        <strong>Push Padel</strong>
       </div>
       {signedInAs ? (
         <div className="row wrap">

@@ -1,1 +1,1 @@
-export const CONDITIONAL_AUTH_EMAIL = "__conditional_passkey__@push.local";
+export const CONDITIONAL_AUTH_EMAIL = "__conditional_signin__@push.local";

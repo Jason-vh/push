@@ -46,7 +46,7 @@ export function AuthPanel() {
       } catch (err) {
         const errorName = err instanceof Error ? err.name : null;
         if (errorName !== "AbortError" && errorName !== "NotAllowedError") {
-          console.debug("Conditional passkey sign-in unavailable", err);
+          console.debug("Conditional sign-in unavailable", err);
         }
       }
     }
@@ -94,11 +94,8 @@ export function AuthPanel() {
   return (
     <div className="card stack">
       <div>
-        <span className="pill">Passkey auth</span>
-        <h2 style={{ marginTop: 14 }}>Join the group</h2>
-        <p className="muted">
-          Use your email so historic matches can link to your account when you sign up.
-        </p>
+        <h2>Sign in</h2>
+        <p className="muted">Use the same email your match history is tied to.</p>
       </div>
 
       {error ? <div className="error">{error}</div> : null}
@@ -127,16 +124,16 @@ export function AuthPanel() {
 
       {autofillAvailable ? (
         <p className="help">
-          If you already have a passkey, select it from your browser’s sign-in suggestion.
+          If you already have an account, select it from your browser’s sign-in suggestion.
         </p>
       ) : null}
 
       <div className="row wrap">
         <button className="btn dark" onClick={signUp} disabled={!email || mode !== "idle"}>
-          {mode === "signup" ? "Creating passkey…" : "Sign up with passkey"}
+          {mode === "signup" ? "Creating account…" : "Create account"}
         </button>
         <button className="btn secondary" onClick={signIn} disabled={!email || mode !== "idle"}>
-          {mode === "signin" ? "Checking passkey…" : "Sign in"}
+          {mode === "signin" ? "Signing in…" : "Sign in"}
         </button>
       </div>
     </div>
