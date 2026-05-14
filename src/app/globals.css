@@ -288,6 +288,7 @@ h3 {
   color: white;
 }
 .login-button {
+  --login-ball-travel: min(300px, calc(100vw - 120px));
   overflow: hidden;
   position: relative;
   isolation: isolate;
@@ -316,7 +317,7 @@ h3 {
   box-shadow:
     0 0 0 3px rgba(255, 207, 77, 0.18),
     0 8px 18px rgba(16, 32, 21, 0.22);
-  animation: login-ball-bounce 1.05s cubic-bezier(0.42, 0, 0.2, 1) infinite;
+  animation: login-ball-bounce 1.9s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
 }
 .btn.full {
   width: 100%;
@@ -499,18 +500,20 @@ h3 {
 }
 
 @keyframes login-ball-bounce {
-  0%,
+  0% {
+    transform: translate3d(0, -50%, 0) scale(0.94);
+  }
+  22% {
+    transform: translate3d(calc(var(--login-ball-travel) * 0.22), -132%, 0) scale(1);
+  }
+  44% {
+    transform: translate3d(calc(var(--login-ball-travel) * 0.44), -50%, 0) scale(1.04, 0.96);
+  }
+  68% {
+    transform: translate3d(calc(var(--login-ball-travel) * 0.68), -112%, 0) scale(1);
+  }
   100% {
-    transform: translate(0, -50%);
-  }
-  25% {
-    transform: translate(calc(min(390px, 100vw) * 0.18), -145%);
-  }
-  50% {
-    transform: translate(calc(min(390px, 100vw) * 0.38), -50%);
-  }
-  75% {
-    transform: translate(calc(min(390px, 100vw) * 0.58), 45%);
+    transform: translate3d(var(--login-ball-travel), -50%, 0) scale(0.94);
   }
 }
 
