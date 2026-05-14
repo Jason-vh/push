@@ -124,12 +124,8 @@ export function AuthPanel() {
 
       {authView === "signin" ? (
         <div className="stack">
-          <button
-            className={`btn dark full login-button ${mode === "signin" ? "is-loading" : ""}`}
-            onClick={signIn}
-            disabled={mode !== "idle"}
-          >
-            <span>{mode === "signin" ? "Logging in…" : "Log in"}</span>
+          <button className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
+            {mode === "signin" ? "Logging in…" : "Log in"}
           </button>
           <button
             className="btn secondary full"
