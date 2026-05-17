@@ -7,9 +7,11 @@ type Attendee = { id: string; name: string };
 type Team = "A" | "B";
 type SlotKey = "a1" | "a2" | "b1" | "b2";
 type Slots = Record<SlotKey, string>;
+type Status = "idle" | "saving" | "saved";
 
 const EMPTY_SLOTS: Slots = { a1: "", a2: "", b1: "", b2: "" };
 const SLOT_ORDER: SlotKey[] = ["a1", "a2", "b1", "b2"];
+const SAVED_DISPLAY_MS = 1500;
 
 export function AddMatchForm({
   sessionId,
@@ -21,29 +23,20 @@ export function AddMatchForm({
   const router = useRouter();
   const [slots, setSlots] = useState<Slots>(EMPTY_SLOTS);
   const [winnerTeam, setWinnerTeam] = useState<Team | null>(null);
-  const [status, setStatus] = useState<"idle" | "saving">("idle");
+  const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
   const allFilled = SLOT_ORDER.every((key) => slots[key]);
   const attendeeById = new Map(attendees.map((attendee) => [attendee.id, attendee]));
   const assignedIds = new Set(Object.values(slots).filter(Boolean));
   const available = attendees.filter((attendee) => !assignedIds.has(attendee.id));
+  const busy = status !== "idle";
 
-  function assignNext(attendeeId: string) {
-    const nextEmpty = SLOT_ORDER.find((key) => !slots[key]);
-    if (!nextEmpty) return;
-    setSlots({ ...slots, [nextEmpty]: attendeeId });
-  }
+  async function trySaveWith(nextSlots: Slots, nextWinner: Team | null) {
+    if (status !== "idle") return;
+    if (!nextWinner) return;
+    if (!SLOT_ORDER.every((key) => nextSlots[key])) return;
 
-  function removeFromSlot(slotKey: SlotKey) {
-    setSlots({ ...slots, [slotKey]: "" });
-  }
-
-  async function submit() {
-    if (!winnerTeam) {
-      setError("Tap a side of the court to mark the winner.");
-      return;
-    }
     setError(null);
     setStatus("saving");
     try {
@@ -51,23 +44,44 @@ export function AddMatchForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teamAPlayer1Id: slots.a1,
-          teamAPlayer2Id: slots.a2,
-          teamBPlayer1Id: slots.b1,
-          teamBPlayer2Id: slots.b2,
-          winnerTeam,
+          teamAPlayer1Id: nextSlots.a1,
+          teamAPlayer2Id: nextSlots.a2,
+          teamBPlayer1Id: nextSlots.b1,
+          teamBPlayer2Id: nextSlots.b2,
+          winnerTeam: nextWinner,
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Could not save match");
       setSlots(EMPTY_SLOTS);
       setWinnerTeam(null);
+      setStatus("saved");
       router.refresh();
+      window.setTimeout(() => setStatus("idle"), SAVED_DISPLAY_MS);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save match");
-    } finally {
       setStatus("idle");
     }
+  }
+
+  function assignNext(attendeeId: string) {
+    if (busy) return;
+    const nextEmpty = SLOT_ORDER.find((key) => !slots[key]);
+    if (!nextEmpty) return;
+    const next = { ...slots, [nextEmpty]: attendeeId };
+    setSlots(next);
+    trySaveWith(next, winnerTeam);
+  }
+
+  function removeFromSlot(slotKey: SlotKey) {
+    if (busy) return;
+    setSlots({ ...slots, [slotKey]: "" });
+  }
+
+  function pickWinner(team: Team) {
+    if (busy) return;
+    setWinnerTeam(team);
+    trySaveWith(slots, team);
   }
 
   return (
@@ -89,7 +103,7 @@ export function AddMatchForm({
                 type="button"
                 className="chip"
                 onClick={() => assignNext(attendee.id)}
-                disabled={allFilled}
+                disabled={allFilled || busy}
               >
                 {attendee.name}
               </button>
@@ -105,7 +119,8 @@ export function AddMatchForm({
             className={`court-team-button${winnerTeam === "A" ? " winner" : ""}`}
             aria-pressed={winnerTeam === "A"}
             aria-label="Mark Team A as winner"
-            onClick={() => setWinnerTeam("A")}
+            onClick={() => pickWinner("A")}
+            disabled={busy}
           >
             Team A{winnerTeam === "A" ? " · Won" : ""}
           </button>
@@ -114,7 +129,8 @@ export function AddMatchForm({
             className={`court-team-button${winnerTeam === "B" ? " winner" : ""}`}
             aria-pressed={winnerTeam === "B"}
             aria-label="Mark Team B as winner"
-            onClick={() => setWinnerTeam("B")}
+            onClick={() => pickWinner("B")}
+            disabled={busy}
           >
             Team B{winnerTeam === "B" ? " · Won" : ""}
           </button>
@@ -141,21 +157,15 @@ export function AddMatchForm({
         </div>
       </div>
 
-      <div className="court-hint">
-        {allFilled
-          ? winnerTeam
-            ? `Team ${winnerTeam} won. Ready to save.`
-            : "Tap a team button above to mark the winner."
-          : "Tap an attendee above to place them on the court."}
+      <div className={`court-hint${status === "saved" ? " saved" : ""}`}>
+        {status === "saving"
+          ? "Saving…"
+          : status === "saved"
+            ? "✓ Match saved"
+            : allFilled
+              ? "Tap a team button above to log the winner."
+              : "Tap an attendee above to place them on the court."}
       </div>
-
-      <button
-        className="btn dark full"
-        onClick={submit}
-        disabled={status === "saving" || !allFilled || !winnerTeam}
-      >
-        {status === "saving" ? "Saving…" : "Save match"}
-      </button>
     </div>
   );
 }

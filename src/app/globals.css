@@ -573,6 +573,10 @@ h3 {
   text-align: center;
   font-size: 13px;
   color: var(--muted);
+  font-weight: 600;
+}
+.court-hint.saved {
+  color: var(--green);
 }
 .court-pool-label {
   font-size: 11px;
