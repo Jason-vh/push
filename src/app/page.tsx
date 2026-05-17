@@ -56,14 +56,6 @@ export default async function Home() {
               </div>
               <span className="pill">Rank {currentRank ? `#${currentRank}` : "—"}</span>
             </div>
-            <div className="chart" aria-hidden="true">
-              <span style={{ height: "36%" }} />
-              <span style={{ height: "46%" }} />
-              <span style={{ height: "58%" }} />
-              <span style={{ height: "52%" }} />
-              <span style={{ height: "73%" }} />
-              <span style={{ height: "68%" }} />
-            </div>
           </div>
 
           <Leaderboard users={users} />

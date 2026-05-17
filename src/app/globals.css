@@ -399,19 +399,6 @@ h3 {
   font-weight: 950;
   letter-spacing: -0.075em;
 }
-.chart {
-  height: 54px;
-  display: flex;
-  align-items: flex-end;
-  gap: 7px;
-  margin-top: 18px;
-}
-.chart span {
-  flex: 1;
-  border-radius: 8px 8px 2px 2px;
-  background: rgba(255, 255, 255, 0.82);
-}
-
 .match {
   border: 1px solid var(--line);
   border-radius: 20px;
