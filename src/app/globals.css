@@ -442,10 +442,73 @@ h3 {
   display: grid;
   gap: 10px;
 }
-.match-form-grid {
+.teams-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.team-card {
+  display: grid;
   gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1.5px solid var(--line);
+  background: var(--panel-strong);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+.team-card h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.team-card.winner {
+  border-color: var(--green);
+  background: var(--green-soft);
+  box-shadow: 0 0 0 3px rgba(31, 93, 58, 0.12);
+}
+.team-card.winner h3 {
+  color: var(--green);
+}
+.winner-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}
+.team-card.winner .winner-toggle {
+  color: var(--green);
+}
+.winner-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+  display: grid;
+  place-items: center;
+}
+.team-card.winner .winner-dot {
+  border-color: var(--green);
+  background: var(--green);
+}
+.team-card.winner .winner-dot::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
 }
 
 .empty {
@@ -546,7 +609,7 @@ h3 {
   .form-grid {
     grid-template-columns: 1fr;
   }
-  .match-form-grid {
+  .teams-row {
     grid-template-columns: 1fr;
   }
 }

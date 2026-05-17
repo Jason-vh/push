@@ -8,6 +8,8 @@ type Attendee = {
   name: string;
 };
 
+type Team = "A" | "B";
+
 export function AddMatchForm({
   sessionId,
   attendees,
@@ -20,11 +22,22 @@ export function AddMatchForm({
   const [teamAPlayer2Id, setTeamAPlayer2Id] = useState("");
   const [teamBPlayer1Id, setTeamBPlayer1Id] = useState("");
   const [teamBPlayer2Id, setTeamBPlayer2Id] = useState("");
-  const [winnerTeam, setWinnerTeam] = useState<"A" | "B">("A");
+  const [winnerTeam, setWinnerTeam] = useState<Team | null>(null);
   const [status, setStatus] = useState<"idle" | "saving">("idle");
   const [error, setError] = useState<string | null>(null);
 
+  const allFilled =
+    Boolean(teamAPlayer1Id) &&
+    Boolean(teamAPlayer2Id) &&
+    Boolean(teamBPlayer1Id) &&
+    Boolean(teamBPlayer2Id);
+
   async function submit() {
+    if (!winnerTeam) {
+      setError("Tap a team to mark the winner.");
+      return;
+    }
+
     setError(null);
     setStatus("saving");
 
@@ -46,7 +59,7 @@ export function AddMatchForm({
       setTeamAPlayer2Id("");
       setTeamBPlayer1Id("");
       setTeamBPlayer2Id("");
-      setWinnerTeam("A");
+      setWinnerTeam(null);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save match");
@@ -55,58 +68,90 @@ export function AddMatchForm({
     }
   }
 
+  const pickedIds = [teamAPlayer1Id, teamAPlayer2Id, teamBPlayer1Id, teamBPlayer2Id];
+  function availableFor(currentValue: string) {
+    return attendees.filter(
+      (attendee) => attendee.id === currentValue || !pickedIds.includes(attendee.id),
+    );
+  }
+
   return (
     <div className="card stack">
-      <div className="row">
-        <div>
-          <span className="pill">Next match</span>
-          <h2 style={{ marginTop: 14 }}>Log match</h2>
-        </div>
-        <button className="btn dark" onClick={submit} disabled={status === "saving"}>
-          {status === "saving" ? "Saving…" : "Save match"}
-        </button>
-      </div>
+      <span className="pill">Next match</span>
+      <h2 style={{ marginTop: 0 }}>Log match</h2>
 
       {error ? <div className="error">{error}</div> : null}
 
-      <div className="match-form-grid">
-        <PlayerSelect
-          label="Team A · Player 1"
-          value={teamAPlayer1Id}
-          attendees={attendees}
-          onChange={setTeamAPlayer1Id}
-        />
-        <PlayerSelect
-          label="Team A · Player 2"
-          value={teamAPlayer2Id}
-          attendees={attendees}
-          onChange={setTeamAPlayer2Id}
-        />
-        <PlayerSelect
-          label="Team B · Player 1"
-          value={teamBPlayer1Id}
-          attendees={attendees}
-          onChange={setTeamBPlayer1Id}
-        />
-        <PlayerSelect
-          label="Team B · Player 2"
-          value={teamBPlayer2Id}
-          attendees={attendees}
-          onChange={setTeamBPlayer2Id}
-        />
+      <div className="teams-row">
+        <TeamCard
+          team="A"
+          isWinner={winnerTeam === "A"}
+          onSelectWinner={() => setWinnerTeam("A")}
+        >
+          <PlayerSelect
+            label="Player 1"
+            value={teamAPlayer1Id}
+            onChange={setTeamAPlayer1Id}
+            options={availableFor(teamAPlayer1Id)}
+          />
+          <PlayerSelect
+            label="Player 2"
+            value={teamAPlayer2Id}
+            onChange={setTeamAPlayer2Id}
+            options={availableFor(teamAPlayer2Id)}
+          />
+        </TeamCard>
+
+        <TeamCard
+          team="B"
+          isWinner={winnerTeam === "B"}
+          onSelectWinner={() => setWinnerTeam("B")}
+        >
+          <PlayerSelect
+            label="Player 1"
+            value={teamBPlayer1Id}
+            onChange={setTeamBPlayer1Id}
+            options={availableFor(teamBPlayer1Id)}
+          />
+          <PlayerSelect
+            label="Player 2"
+            value={teamBPlayer2Id}
+            onChange={setTeamBPlayer2Id}
+            options={availableFor(teamBPlayer2Id)}
+          />
+        </TeamCard>
       </div>
 
-      <label className="label">
-        Winner
-        <select
-          className="select"
-          value={winnerTeam}
-          onChange={(event) => setWinnerTeam(event.target.value as "A" | "B")}
-        >
-          <option value="A">Team A</option>
-          <option value="B">Team B</option>
-        </select>
-      </label>
+      <button
+        className="btn dark full"
+        onClick={submit}
+        disabled={status === "saving" || !allFilled || !winnerTeam}
+      >
+        {status === "saving" ? "Saving…" : "Save match"}
+      </button>
+    </div>
+  );
+}
+
+function TeamCard({
+  team,
+  isWinner,
+  onSelectWinner,
+  children,
+}: {
+  team: Team;
+  isWinner: boolean;
+  onSelectWinner: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`team-card${isWinner ? " winner" : ""}`}>
+      <h3>Team {team}</h3>
+      {children}
+      <button type="button" className="winner-toggle" onClick={onSelectWinner}>
+        <span className="winner-dot" aria-hidden="true" />
+        {isWinner ? "Won" : "Mark as winner"}
+      </button>
     </div>
   );
 }
@@ -114,12 +159,12 @@ export function AddMatchForm({
 function PlayerSelect({
   label,
   value,
-  attendees,
+  options,
   onChange,
 }: {
   label: string;
   value: string;
-  attendees: Attendee[];
+  options: Attendee[];
   onChange: (value: string) => void;
 }) {
   return (
@@ -127,9 +172,9 @@ function PlayerSelect({
       {label}
       <select className="select" value={value} onChange={(event) => onChange(event.target.value)}>
         <option value="">Select player</option>
-        {attendees.map((attendee) => (
-          <option value={attendee.id} key={attendee.id}>
-            {attendee.name}
+        {options.map((option) => (
+          <option value={option.id} key={option.id}>
+            {option.name}
           </option>
         ))}
       </select>

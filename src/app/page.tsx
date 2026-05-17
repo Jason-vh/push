@@ -88,10 +88,7 @@ type UserWithStats = Awaited<ReturnType<typeof prisma.user.findMany>>[number] & 
 function Leaderboard({ users }: { users: UserWithStats[] }) {
   return (
     <div className="card">
-      <div className="row">
-        <h2>Leaderboard</h2>
-        <span className="pill">Lifetime ELO</span>
-      </div>
+      <h2>Leaderboard</h2>
       {users.length === 0 ? <div className="empty">No players yet. Create a session.</div> : null}
       {users.map((user, index) => {
         const wins = user.ratingChanges.filter((change) => change.delta > 0).length;
