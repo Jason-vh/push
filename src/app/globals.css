@@ -446,8 +446,8 @@ h3 {
 .court-wrap {
   background: linear-gradient(180deg, #5fa676 0%, #4a8c5f 100%);
   border-radius: 20px;
-  padding: 14px;
-  aspect-ratio: 2 / 1;
+  padding: 12px;
+  height: 200px;
   box-shadow:
     inset 0 0 0 4px rgba(255, 255, 255, 0.4),
     0 12px 30px rgba(31, 93, 58, 0.18);
@@ -725,15 +725,16 @@ h3 {
 
 @media (max-width: 600px) {
   .court-wrap {
-    aspect-ratio: 1.7 / 1;
-    padding: 12px;
+    height: 180px;
+    padding: 10px;
   }
   .court-side {
-    padding: 14px 10px 10px;
+    padding: 14px 8px 8px;
+    gap: 6px;
   }
   .court-side-label {
     font-size: 10px;
-    padding: 3px 10px;
+    padding: 3px 9px;
   }
   .court-slot {
     font-size: 13px;
