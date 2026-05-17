@@ -98,26 +98,46 @@ export function AddMatchForm({
         </div>
       </div>
 
-      <div className="court-wrap">
-        <div className="court">
-          <CourtSide
-            team="A"
-            isWinner={winnerTeam === "A"}
-            onSelectWinner={() => setWinnerTeam("A")}
-            slotKeys={["a1", "a2"]}
-            slots={slots}
-            attendeeById={attendeeById}
-            onRemove={removeFromSlot}
-          />
-          <CourtSide
-            team="B"
-            isWinner={winnerTeam === "B"}
-            onSelectWinner={() => setWinnerTeam("B")}
-            slotKeys={["b1", "b2"]}
-            slots={slots}
-            attendeeById={attendeeById}
-            onRemove={removeFromSlot}
-          />
+      <div className="court-block">
+        <div className="court-header">
+          <button
+            type="button"
+            className={`court-team-button${winnerTeam === "A" ? " winner" : ""}`}
+            aria-pressed={winnerTeam === "A"}
+            aria-label="Mark Team A as winner"
+            onClick={() => setWinnerTeam("A")}
+          >
+            Team A{winnerTeam === "A" ? " · Won" : ""}
+          </button>
+          <button
+            type="button"
+            className={`court-team-button${winnerTeam === "B" ? " winner" : ""}`}
+            aria-pressed={winnerTeam === "B"}
+            aria-label="Mark Team B as winner"
+            onClick={() => setWinnerTeam("B")}
+          >
+            Team B{winnerTeam === "B" ? " · Won" : ""}
+          </button>
+        </div>
+        <div className="court-wrap">
+          <div className="court">
+            <CourtSide
+              team="A"
+              isWinner={winnerTeam === "A"}
+              slotKeys={["a1", "a2"]}
+              slots={slots}
+              attendeeById={attendeeById}
+              onRemove={removeFromSlot}
+            />
+            <CourtSide
+              team="B"
+              isWinner={winnerTeam === "B"}
+              slotKeys={["b1", "b2"]}
+              slots={slots}
+              attendeeById={attendeeById}
+              onRemove={removeFromSlot}
+            />
+          </div>
         </div>
       </div>
 
@@ -125,7 +145,7 @@ export function AddMatchForm({
         {allFilled
           ? winnerTeam
             ? `Team ${winnerTeam} won. Ready to save.`
-            : "Tap a side of the court to mark the winner."
+            : "Tap a team button above to mark the winner."
           : "Tap an attendee above to place them on the court."}
       </div>
 
@@ -143,7 +163,6 @@ export function AddMatchForm({
 function CourtSide({
   team,
   isWinner,
-  onSelectWinner,
   slotKeys,
   slots,
   attendeeById,
@@ -151,7 +170,6 @@ function CourtSide({
 }: {
   team: Team;
   isWinner: boolean;
-  onSelectWinner: () => void;
   slotKeys: SlotKey[];
   slots: Slots;
   attendeeById: Map<string, Attendee>;
@@ -159,16 +177,6 @@ function CourtSide({
 }) {
   return (
     <div className={`court-side ${team === "A" ? "left" : "right"}${isWinner ? " winner" : ""}`}>
-      <button
-        type="button"
-        className="court-side-label"
-        aria-pressed={isWinner}
-        aria-label={`Mark Team ${team} as winner`}
-        onClick={onSelectWinner}
-      >
-        Team {team}
-        {isWinner ? " · Won" : ""}
-      </button>
       {slotKeys.map((key) => {
         const attendee = slots[key] ? attendeeById.get(slots[key]) : null;
         if (!attendee) {

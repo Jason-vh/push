@@ -443,6 +443,47 @@ h3 {
   display: grid;
   gap: 10px;
 }
+.court-block {
+  display: grid;
+  gap: 10px;
+}
+.court-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.court-team-button {
+  border: 1.5px solid var(--line);
+  background: var(--panel-strong);
+  color: var(--ink);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease,
+    transform 80ms ease;
+  min-height: 40px;
+}
+.court-team-button:hover {
+  border-color: var(--green);
+  background: var(--green-soft);
+  color: var(--green);
+}
+.court-team-button.winner {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+}
+.court-team-button:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
 .court-wrap {
   background: linear-gradient(180deg, #5fa676 0%, #4a8c5f 100%);
   border-radius: 18px;
@@ -474,7 +515,7 @@ h3 {
   width: 50%;
   display: grid;
   grid-template-rows: 1fr 1fr;
-  padding: 22px 14px 14px;
+  padding: 10px;
   gap: 6px;
   transition: background 140ms ease;
 }
@@ -486,43 +527,6 @@ h3 {
 }
 .court-side.winner {
   background: rgba(31, 93, 58, 0.32);
-}
-.court-side-label {
-  position: absolute;
-  top: 6px;
-  background: transparent;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.85);
-  text-transform: uppercase;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  cursor: pointer;
-  font-family: inherit;
-  transition:
-    background 140ms ease,
-    color 140ms ease,
-    border-color 140ms ease;
-}
-.court-side-label:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-.court-side-label:focus-visible {
-  outline: 2px solid var(--yellow);
-  outline-offset: 2px;
-}
-.court-side.left .court-side-label {
-  left: 10px;
-}
-.court-side.right .court-side-label {
-  right: 10px;
-}
-.court-side.winner .court-side-label {
-  background: white;
-  color: var(--green);
-  border-color: white;
 }
 .court-slot {
   display: grid;
@@ -724,7 +728,7 @@ h3 {
     height: 160px;
   }
   .court-side {
-    padding: 22px 10px 10px;
+    padding: 8px;
   }
   .court-slot.filled {
     font-size: 13px;
