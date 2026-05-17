@@ -113,7 +113,7 @@ function MatchHistory({ matches }: { matches: MatchWithPlayers[] }) {
                 {match.orderIndex}. {winner} beat {loser}
               </strong>
               <span className="score">
-                {match.scoreText || "—"} · ±{displayDelta(avgDelta).replace("+", "")}
+                ±{displayDelta(avgDelta).replace("+", "")}
               </span>
             </div>
           </div>

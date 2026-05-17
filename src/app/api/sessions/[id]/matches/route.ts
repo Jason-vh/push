@@ -11,7 +11,6 @@ const matchSchema = z.object({
   teamBPlayer1Id: z.string().min(1),
   teamBPlayer2Id: z.string().min(1),
   winnerTeam: z.enum(["A", "B"]),
-  scoreText: z.string().trim().max(80).optional(),
 });
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -78,7 +77,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           teamBPlayer1Id: b1.id,
           teamBPlayer2Id: b2.id,
           winnerTeam: input.winnerTeam === "A" ? Team.A : Team.B,
-          scoreText: input.scoreText || null,
         },
       });
 

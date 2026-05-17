@@ -22,7 +22,6 @@ export function AddMatchForm({
   const [teamBPlayer1Id, setTeamBPlayer1Id] = useState("");
   const [teamBPlayer2Id, setTeamBPlayer2Id] = useState("");
   const [winnerTeam, setWinnerTeam] = useState<"A" | "B">("A");
-  const [scoreText, setScoreText] = useState("");
   const [status, setStatus] = useState<"idle" | "saving">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -40,7 +39,6 @@ export function AddMatchForm({
           teamBPlayer1Id,
           teamBPlayer2Id,
           winnerTeam,
-          scoreText,
         }),
       });
       const data = await response.json();
@@ -50,7 +48,6 @@ export function AddMatchForm({
       setTeamBPlayer1Id("");
       setTeamBPlayer2Id("");
       setWinnerTeam("A");
-      setScoreText("");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save match");
@@ -100,28 +97,17 @@ export function AddMatchForm({
         />
       </div>
 
-      <div className="form-grid">
-        <label className="label">
-          Winner
-          <select
-            className="select"
-            value={winnerTeam}
-            onChange={(event) => setWinnerTeam(event.target.value as "A" | "B")}
-          >
-            <option value="A">Team A</option>
-            <option value="B">Team B</option>
-          </select>
-        </label>
-        <label className="label">
-          Score
-          <input
-            className="input"
-            value={scoreText}
-            onChange={(event) => setScoreText(event.target.value)}
-            placeholder="6-4, 7-5"
-          />
-        </label>
-      </div>
+      <label className="label">
+        Winner
+        <select
+          className="select"
+          value={winnerTeam}
+          onChange={(event) => setWinnerTeam(event.target.value as "A" | "B")}
+        >
+          <option value="A">Team A</option>
+          <option value="B">Team B</option>
+        </select>
+      </label>
     </div>
   );
 }

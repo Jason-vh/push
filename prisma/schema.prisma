@@ -76,7 +76,6 @@ model Match {
   teamBPlayer1Id String
   teamBPlayer2Id String
   winnerTeam     Team
-  scoreText      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

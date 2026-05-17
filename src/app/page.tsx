@@ -128,7 +128,6 @@ type RecentSession = Awaited<ReturnType<typeof prisma.gameSession.findMany>>[num
   matches: Array<{
     id: string;
     orderIndex: number;
-    scoreText: string | null;
     winnerTeam: "A" | "B";
     teamAPlayer1: { name: string | null; email: string };
     teamAPlayer2: { name: string | null; email: string };
@@ -175,7 +174,7 @@ function RecentSessions({ sessions }: { sessions: RecentSession[] }) {
                     {match.orderIndex}. <strong>{winner}</strong> beat {loser}
                   </span>
                   <span className="score">
-                    {match.scoreText || "—"} · ±{displayDelta(avgDelta).replace("+", "")}
+                    ±{displayDelta(avgDelta).replace("+", "")}
                   </span>
                 </div>
               );
