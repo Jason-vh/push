@@ -26,7 +26,6 @@ function isCanceledAuthDialog(error: unknown) {
 
 export function AuthPanel() {
   const [authView, setAuthView] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [mode, setMode] = useState<"idle" | "signup" | "signin">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -71,10 +70,7 @@ export function AuthPanel() {
     setError(null);
     setMode("signup");
     try {
-      const { challengeId, options } = await postJson("/api/auth/register/options", {
-        email,
-        name,
-      });
+      const { challengeId, options } = await postJson("/api/auth/register/options", { name });
       const response = await startRegistration({ optionsJSON: options });
       await postJson("/api/auth/register/verify", { challengeId, response });
       enterApp();
@@ -111,29 +107,15 @@ export function AuthPanel() {
       {error ? <div className="error">{error}</div> : null}
 
       {authView === "signup" ? (
-        <>
-          <label className="label">
-            Email
-            <input
-              className="input"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </label>
-
-          <label className="label">
-            Name
-            <input
-              className="input"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Your name"
-            />
-          </label>
-        </>
+        <label className="label">
+          Name
+          <input
+            className="input"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Your name"
+          />
+        </label>
       ) : null}
 
       {authView === "signin" ? (
@@ -158,7 +140,7 @@ export function AuthPanel() {
           <button
             className="btn dark full"
             onClick={signUp}
-            disabled={!email || !name || mode !== "idle"}
+            disabled={!name.trim() || mode !== "idle"}
           >
             {mode === "signup" ? "Creating account…" : "Create account"}
           </button>

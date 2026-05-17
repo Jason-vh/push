@@ -1,14 +1,8 @@
 import Link from "next/link";
 import { AvatarMenu } from "@/components/AvatarMenu";
 
-export function AppHeader({
-  userName,
-  userEmail,
-}: {
-  userName?: string | null;
-  userEmail: string;
-}) {
-  const initial = (userName || userEmail).trim().charAt(0).toUpperCase();
+export function AppHeader({ userName }: { userName: string }) {
+  const initial = userName.trim().charAt(0).toUpperCase() || "?";
 
   return (
     <header className="header">

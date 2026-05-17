@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { STARTING_RATING } from "@/lib/elo";
-import { nameFromEmail, normalizeEmail } from "@/lib/email";
 import { getCurrentUser } from "@/lib/session";
 
 const sessionSchema = z.object({
   playedAt: z.string().min(1),
   venue: z.string().trim().max(120).optional(),
   courtNumber: z.string().trim().max(40).optional(),
-  attendeeEmails: z.array(z.string().email()).default([]),
+  attendeeUserIds: z.array(z.string().min(1)).default([]),
 });
 
 export async function POST(request: Request) {
@@ -18,27 +16,18 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const input = sessionSchema.parse(await request.json());
-    const attendeeEmails = Array.from(new Set(input.attendeeEmails.map(normalizeEmail)));
+    const attendeeUserIds = Array.from(new Set(input.attendeeUserIds));
 
     const session = await prisma.$transaction(async (tx) => {
-      const players = await Promise.all(
-        attendeeEmails.map(async (email) => {
-          const existingUser = await tx.user.findUnique({ where: { email } });
-          return tx.player.upsert({
-            where: { email },
-            create: {
-              email,
-              name: nameFromEmail(email),
-              rating: STARTING_RATING,
-              userId: existingUser?.id,
-            },
-            update: {
-              active: true,
-              ...(existingUser ? { userId: existingUser.id } : {}),
-            },
-          });
-        }),
-      );
+      if (attendeeUserIds.length > 0) {
+        const existing = await tx.user.findMany({
+          where: { id: { in: attendeeUserIds } },
+          select: { id: true },
+        });
+        if (existing.length !== attendeeUserIds.length) {
+          throw new Error("One or more attendees do not exist.");
+        }
+      }
 
       return tx.gameSession.create({
         data: {
@@ -47,7 +36,7 @@ export async function POST(request: Request) {
           courtNumber: input.courtNumber || null,
           createdById: user.id,
           players: {
-            create: players.map((player) => ({ playerId: player.id })),
+            create: attendeeUserIds.map((userId) => ({ userId })),
           },
         },
       });

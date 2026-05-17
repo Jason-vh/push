@@ -4,17 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AttendeePicker } from "@/components/AttendeePicker";
 
-type KnownPlayer = { email: string; name: string | null };
+type KnownUser = { id: string; name: string };
 
 type SaveStatus = "idle" | "saving" | "saved";
 
 export function SessionAttendeesForm({
   sessionId,
-  knownPlayers,
+  knownUsers,
   initialAttendees,
 }: {
   sessionId: string;
-  knownPlayers: KnownPlayer[];
+  knownUsers: KnownUser[];
   initialAttendees: string[];
 }) {
   const router = useRouter();
@@ -32,7 +32,7 @@ export function SessionAttendeesForm({
       const response = await fetch(`/api/sessions/${sessionId}/attendees`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ attendeeEmails: nextPlayers }),
+        body: JSON.stringify({ attendeeUserIds: nextPlayers }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Could not save players");
@@ -56,7 +56,7 @@ export function SessionAttendeesForm({
       </div>
 
       {error ? <div className="error">{error}</div> : null}
-      <AttendeePicker knownPlayers={knownPlayers} value={players} onChange={save} />
+      <AttendeePicker knownUsers={knownUsers} value={players} onChange={save} />
     </div>
   );
 }

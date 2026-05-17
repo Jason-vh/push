@@ -13,13 +13,13 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   if (!user) redirect("/");
 
   const { id } = await params;
-  const [session, knownPlayers] = await Promise.all([
+  const [session, knownUsers] = await Promise.all([
     prisma.gameSession.findUnique({
       where: { id },
       include: {
         players: {
-          include: { player: true },
-          orderBy: { player: { email: "asc" } },
+          include: { user: true },
+          orderBy: { user: { name: "asc" } },
         },
         matches: {
           orderBy: { orderIndex: "asc" },
@@ -28,28 +28,28 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             teamAPlayer2: true,
             teamBPlayer1: true,
             teamBPlayer2: true,
-            ratingChanges: { include: { player: true } },
+            ratingChanges: { include: { user: true } },
           },
         },
       },
     }),
-    prisma.player.findMany({
+    prisma.user.findMany({
       where: { active: true },
-      orderBy: [{ name: "asc" }, { email: "asc" }],
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
     }),
   ]);
 
   if (!session) notFound();
 
   const attendees = session.players.map((sessionPlayer) => ({
-    id: sessionPlayer.player.id,
-    email: sessionPlayer.player.email,
-    name: sessionPlayer.player.name,
+    id: sessionPlayer.user.id,
+    name: sessionPlayer.user.name,
   }));
 
   return (
     <main className="shell">
-      <AppHeader userName={user.player?.name ?? user.name} userEmail={user.email} />
+      <AppHeader userName={user.name} />
 
       <section className="page-heading compact-heading">
         <h1 className="session-title-line">
@@ -70,11 +70,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         <div className="stack">
           <SessionAttendeesForm
             sessionId={session.id}
-            knownPlayers={knownPlayers.map((player) => ({
-              email: player.email,
-              name: player.name,
-            }))}
-            initialAttendees={attendees.map((attendee) => attendee.email)}
+            knownUsers={knownUsers}
+            initialAttendees={attendees.map((attendee) => attendee.id)}
           />
           <MatchHistory matches={session.matches} />
         </div>
@@ -85,11 +82,11 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 }
 
 type MatchWithPlayers = Awaited<ReturnType<typeof prisma.match.findMany>>[number] & {
-  teamAPlayer1: { name: string | null; email: string };
-  teamAPlayer2: { name: string | null; email: string };
-  teamBPlayer1: { name: string | null; email: string };
-  teamBPlayer2: { name: string | null; email: string };
-  ratingChanges: Array<{ delta: number; player: { email: string; name: string | null } }>;
+  teamAPlayer1: { name: string };
+  teamAPlayer2: { name: string };
+  teamBPlayer1: { name: string };
+  teamBPlayer2: { name: string };
+  ratingChanges: Array<{ delta: number; user: { name: string } }>;
 };
 
 function MatchHistory({ matches }: { matches: MatchWithPlayers[] }) {
@@ -98,8 +95,8 @@ function MatchHistory({ matches }: { matches: MatchWithPlayers[] }) {
       <h2>Matches</h2>
       {matches.length === 0 ? <div className="empty">No matches logged yet.</div> : null}
       {matches.map((match) => {
-        const teamA = `${label(match.teamAPlayer1)} / ${label(match.teamAPlayer2)}`;
-        const teamB = `${label(match.teamBPlayer1)} / ${label(match.teamBPlayer2)}`;
+        const teamA = `${match.teamAPlayer1.name} / ${match.teamAPlayer2.name}`;
+        const teamB = `${match.teamBPlayer1.name} / ${match.teamBPlayer2.name}`;
         const winner = match.winnerTeam === "A" ? teamA : teamB;
         const loser = match.winnerTeam === "A" ? teamB : teamA;
         const avgDelta =
@@ -121,10 +118,6 @@ function MatchHistory({ matches }: { matches: MatchWithPlayers[] }) {
       })}
     </div>
   );
-}
-
-function label(player: { name: string | null; email: string }) {
-  return player.name ?? player.email.split("@")[0];
 }
 
 function formatDate(date: Date) {

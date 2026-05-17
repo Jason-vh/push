@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { STARTING_RATING } from "@/lib/elo";
-import { nameFromEmail, normalizeEmail } from "@/lib/email";
 import { getCurrentUser } from "@/lib/session";
 
 const attendeesSchema = z.object({
-  attendeeEmails: z.array(z.string().email()),
+  attendeeUserIds: z.array(z.string().min(1)),
 });
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -16,45 +14,32 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { id: sessionId } = await params;
     const input = attendeesSchema.parse(await request.json());
-    const attendeeEmails = Array.from(new Set(input.attendeeEmails.map(normalizeEmail)));
+    const attendeeUserIds = Array.from(new Set(input.attendeeUserIds));
 
     await prisma.$transaction(async (tx) => {
       const session = await tx.gameSession.findUnique({ where: { id: sessionId } });
       if (!session) throw new Error("Session not found.");
 
-      const players = await Promise.all(
-        attendeeEmails.map(async (email) => {
-          const existingUser = await tx.user.findUnique({ where: { email } });
-          return tx.player.upsert({
-            where: { email },
-            create: {
-              email,
-              name: nameFromEmail(email),
-              rating: STARTING_RATING,
-              userId: existingUser?.id,
-            },
-            update: {
-              active: true,
-              ...(existingUser ? { userId: existingUser.id } : {}),
-            },
-          });
-        }),
-      );
+      if (attendeeUserIds.length > 0) {
+        const existing = await tx.user.findMany({
+          where: { id: { in: attendeeUserIds } },
+          select: { id: true },
+        });
+        if (existing.length !== attendeeUserIds.length) {
+          throw new Error("One or more attendees do not exist.");
+        }
 
-      const playerIds = players.map((player) => player.id);
-
-      if (playerIds.length > 0) {
         await tx.sessionPlayer.deleteMany({
-          where: { sessionId, playerId: { notIn: playerIds } },
+          where: { sessionId, userId: { notIn: attendeeUserIds } },
         });
       } else {
         await tx.sessionPlayer.deleteMany({ where: { sessionId } });
       }
 
-      for (const player of players) {
+      for (const userId of attendeeUserIds) {
         await tx.sessionPlayer.upsert({
-          where: { sessionId_playerId: { sessionId, playerId: player.id } },
-          create: { sessionId, playerId: player.id },
+          where: { sessionId_userId: { sessionId, userId } },
+          create: { sessionId, userId },
           update: {},
         });
       }

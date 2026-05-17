@@ -20,14 +20,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { id: sessionId } = await params;
     const input = matchSchema.parse(await request.json());
-    const playerIds = [
+    const userIds = [
       input.teamAPlayer1Id,
       input.teamAPlayer2Id,
       input.teamBPlayer1Id,
       input.teamBPlayer2Id,
     ];
 
-    if (new Set(playerIds).size !== 4) {
+    if (new Set(userIds).size !== 4) {
       return NextResponse.json(
         { error: "A match must have four distinct players." },
         { status: 400 },
@@ -42,19 +42,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
       if (!session) throw new Error("Session not found.");
 
-      const attendeeIds = new Set(session.players.map((sessionPlayer) => sessionPlayer.playerId));
-      for (const playerId of playerIds) {
-        if (!attendeeIds.has(playerId)) {
+      const attendeeIds = new Set(session.players.map((sessionPlayer) => sessionPlayer.userId));
+      for (const userId of userIds) {
+        if (!attendeeIds.has(userId)) {
           throw new Error("Every match player must be an attendee of this session.");
         }
       }
 
-      const players = await tx.player.findMany({ where: { id: { in: playerIds } } });
-      const playerById = new Map(players.map((player) => [player.id, player]));
-      const a1 = playerById.get(input.teamAPlayer1Id)!;
-      const a2 = playerById.get(input.teamAPlayer2Id)!;
-      const b1 = playerById.get(input.teamBPlayer1Id)!;
-      const b2 = playerById.get(input.teamBPlayer2Id)!;
+      const users = await tx.user.findMany({ where: { id: { in: userIds } } });
+      const userById = new Map(users.map((u) => [u.id, u]));
+      const a1 = userById.get(input.teamAPlayer1Id)!;
+      const a2 = userById.get(input.teamAPlayer2Id)!;
+      const b1 = userById.get(input.teamBPlayer1Id)!;
+      const b2 = userById.get(input.teamBPlayer2Id)!;
       const teamARating = (a1.rating + a2.rating) / 2;
       const teamBRating = (b1.rating + b2.rating) / 2;
       const { deltaA, deltaB } = doublesEloDelta({
@@ -81,20 +81,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       });
 
       const changes = [
-        { player: a1, delta: deltaA },
-        { player: a2, delta: deltaA },
-        { player: b1, delta: deltaB },
-        { player: b2, delta: deltaB },
+        { user: a1, delta: deltaA },
+        { user: a2, delta: deltaA },
+        { user: b1, delta: deltaB },
+        { user: b2, delta: deltaB },
       ];
 
       for (const change of changes) {
-        const after = change.player.rating + change.delta;
-        await tx.player.update({ where: { id: change.player.id }, data: { rating: after } });
+        const after = change.user.rating + change.delta;
+        await tx.user.update({ where: { id: change.user.id }, data: { rating: after } });
         await tx.ratingChange.create({
           data: {
             matchId: createdMatch.id,
-            playerId: change.player.id,
-            ratingBefore: change.player.rating,
+            userId: change.user.id,
+            ratingBefore: change.user.rating,
             ratingAfter: after,
             delta: change.delta,
           },

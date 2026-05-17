@@ -3,38 +3,37 @@
 import { useMemo, useState } from "react";
 import { Autocomplete } from "@base-ui/react/autocomplete";
 
-type KnownPlayer = { email: string; name: string | null };
+type KnownUser = { id: string; name: string };
+type Option = { value: string; label: string };
 
 export function AttendeePicker({
-  knownPlayers,
+  knownUsers,
   value,
   onChange,
 }: {
-  knownPlayers: KnownPlayer[];
+  knownUsers: KnownUser[];
   value: string[];
-  onChange: (emails: string[]) => void;
+  onChange: (userIds: string[]) => void;
 }) {
   const [inputValue, setInputValue] = useState("");
-  const selected = useMemo(() => new Set(value.map(normalizeEmail)), [value]);
-  const suggestions = useMemo(
+  const selected = useMemo(() => new Set(value), [value]);
+  const suggestions = useMemo<Option[]>(
     () =>
-      knownPlayers
-        .filter((player) => !selected.has(normalizeEmail(player.email)))
-        .map((player) => player.email),
-    [knownPlayers, selected],
+      knownUsers
+        .filter((user) => !selected.has(user.id))
+        .map((user) => ({ value: user.id, label: user.name })),
+    [knownUsers, selected],
   );
+  const userById = useMemo(() => new Map(knownUsers.map((user) => [user.id, user])), [knownUsers]);
 
-  function addEmail(email: string) {
-    const normalized = normalizeEmail(email);
-    if (!isEmail(normalized) || selected.has(normalized)) return;
-
-    onChange([...value, normalized]);
+  function addUser(userId: string) {
+    if (!userById.has(userId) || selected.has(userId)) return;
+    onChange([...value, userId]);
     setInputValue("");
   }
 
-  function removeEmail(email: string) {
-    const normalized = normalizeEmail(email);
-    onChange(value.filter((attendeeEmail) => normalizeEmail(attendeeEmail) !== normalized));
+  function removeUser(userId: string) {
+    onChange(value.filter((id) => id !== userId));
   }
 
   return (
@@ -45,42 +44,24 @@ export function AttendeePicker({
         onValueChange={setInputValue}
         openOnInputClick
       >
-        <form
-          className="attendee-input-row"
-          onSubmit={(event) => {
-            event.preventDefault();
-            addEmail(inputValue);
-          }}
-        >
-          <Autocomplete.InputGroup className="attendee-autocomplete-group">
-            <Autocomplete.Input className="input" placeholder="friend@example.com" type="email" />
-          </Autocomplete.InputGroup>
-          <button className="btn secondary" type="submit" disabled={!isEmail(inputValue)}>
-            Add
-          </button>
-        </form>
+        <Autocomplete.InputGroup className="attendee-autocomplete-group">
+          <Autocomplete.Input className="input" placeholder="Add a player" />
+        </Autocomplete.InputGroup>
 
         <Autocomplete.Portal>
           <Autocomplete.Positioner className="attendee-positioner" sideOffset={8}>
             <Autocomplete.Popup className="attendee-popup">
               <Autocomplete.List>
-                {(email: string) => {
-                  const player = knownPlayers.find(
-                    (knownPlayer) => normalizeEmail(knownPlayer.email) === normalizeEmail(email),
-                  );
-
-                  return (
-                    <Autocomplete.Item
-                      className="attendee-option"
-                      key={email}
-                      value={email}
-                      onClick={() => addEmail(email)}
-                    >
-                      <strong>{player?.name ?? email}</strong>
-                      {player?.name ? <span>{email}</span> : null}
-                    </Autocomplete.Item>
-                  );
-                }}
+                {(option: Option) => (
+                  <Autocomplete.Item
+                    className="attendee-option"
+                    key={option.value}
+                    value={option}
+                    onClick={() => addUser(option.value)}
+                  >
+                    <strong>{option.label}</strong>
+                  </Autocomplete.Item>
+                )}
               </Autocomplete.List>
               <Autocomplete.Empty className="attendee-empty">
                 No matching players.
@@ -92,17 +73,16 @@ export function AttendeePicker({
 
       {value.length > 0 ? (
         <div className="chip-list">
-          {value.map((email) => {
-            const player = knownPlayers.find(
-              (knownPlayer) => normalizeEmail(knownPlayer.email) === normalizeEmail(email),
-            );
+          {value.map((userId) => {
+            const user = userById.get(userId);
+            const label = user?.name ?? "Unknown";
             return (
-              <span className="attendee-chip" key={email}>
-                {player?.name ?? email}
+              <span className="attendee-chip" key={userId}>
+                {label}
                 <button
                   type="button"
-                  onClick={() => removeEmail(email)}
-                  aria-label={`Remove ${email}`}
+                  onClick={() => removeUser(userId)}
+                  aria-label={`Remove ${label}`}
                 >
                   ×
                 </button>
@@ -115,12 +95,4 @@ export function AttendeePicker({
       )}
     </div>
   );
-}
-
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
-
-function isEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(value));
 }

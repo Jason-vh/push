@@ -8,30 +8,17 @@ datasource db {
 }
 
 model User {
-  id          String                @id @default(cuid())
-  email       String                @unique
-  name        String?
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  rating      Float    @default(1000)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  player      Player?
   credentials WebAuthnCredential[]
   sessions    AuthSession[]
   challenges  AuthChallenge[]
   createdGameSessions GameSession[] @relation("CreatedGameSessions")
-}
-
-model Player {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  userId    String?  @unique
-  rating    Float    @default(1000)
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   sessionPlayers SessionPlayer[]
   teamA1Matches  Match[] @relation("TeamA1")
@@ -58,13 +45,13 @@ model GameSession {
 model SessionPlayer {
   id        String   @id @default(cuid())
   sessionId String
-  playerId  String
+  userId    String
   createdAt DateTime @default(now())
 
   session   GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  player    Player      @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([sessionId, playerId])
+  @@unique([sessionId, userId])
 }
 
 model Match {
@@ -80,10 +67,10 @@ model Match {
   updatedAt      DateTime @updatedAt
 
   session        GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  teamAPlayer1   Player      @relation("TeamA1", fields: [teamAPlayer1Id], references: [id])
-  teamAPlayer2   Player      @relation("TeamA2", fields: [teamAPlayer2Id], references: [id])
-  teamBPlayer1   Player      @relation("TeamB1", fields: [teamBPlayer1Id], references: [id])
-  teamBPlayer2   Player      @relation("TeamB2", fields: [teamBPlayer2Id], references: [id])
+  teamAPlayer1   User        @relation("TeamA1", fields: [teamAPlayer1Id], references: [id])
+  teamAPlayer2   User        @relation("TeamA2", fields: [teamAPlayer2Id], references: [id])
+  teamBPlayer1   User        @relation("TeamB1", fields: [teamBPlayer1Id], references: [id])
+  teamBPlayer2   User        @relation("TeamB2", fields: [teamBPlayer2Id], references: [id])
   ratingChanges  RatingChange[]
 
   @@unique([sessionId, orderIndex])
@@ -92,16 +79,16 @@ model Match {
 model RatingChange {
   id           String   @id @default(cuid())
   matchId      String
-  playerId     String
+  userId       String
   ratingBefore Float
   ratingAfter  Float
   delta        Float
   createdAt    DateTime @default(now())
 
   match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([matchId, playerId])
+  @@unique([matchId, userId])
 }
 
 model WebAuthnCredential {
@@ -130,7 +117,6 @@ model AuthSession {
 model AuthChallenge {
   id        String   @id @default(cuid())
   userId    String?
-  email     String
   type      AuthChallengeType
   challenge String
   expiresAt DateTime

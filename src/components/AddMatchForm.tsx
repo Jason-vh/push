@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 
 type Attendee = {
   id: string;
-  email: string;
-  name: string | null;
+  name: string;
 };
 
 export function AddMatchForm({
@@ -130,7 +129,7 @@ function PlayerSelect({
         <option value="">Select player</option>
         {attendees.map((attendee) => (
           <option value={attendee.id} key={attendee.id}>
-            {attendee.name ?? attendee.email}
+            {attendee.name}
           </option>
         ))}
       </select>

@@ -4,15 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AttendeePicker } from "@/components/AttendeePicker";
 
-type KnownPlayer = { email: string; name: string | null };
+type KnownUser = { id: string; name: string };
 
-export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[] }) {
+export function CreateSessionForm({ knownUsers }: { knownUsers: KnownUser[] }) {
   const router = useRouter();
   const [playedAt, setPlayedAt] = useState(new Date().toISOString().slice(0, 10));
   const [venue, setVenue] = useState("");
   const [courtNumber, setCourtNumber] = useState("");
   const [players, setPlayers] = useState<string[]>(
-    knownPlayers.slice(0, 4).map((player) => player.email),
+    knownUsers.slice(0, 4).map((user) => user.id),
   );
   const [status, setStatus] = useState<"idle" | "saving">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
           playedAt,
           venue,
           courtNumber,
-          attendeeEmails: players,
+          attendeeUserIds: players,
         }),
       });
       const data = await response.json();
@@ -80,7 +80,7 @@ export function CreateSessionForm({ knownPlayers }: { knownPlayers: KnownPlayer[
 
       <div className="label">
         Players
-        <AttendeePicker knownPlayers={knownPlayers} value={players} onChange={setPlayers} />
+        <AttendeePicker knownUsers={knownUsers} value={players} onChange={setPlayers} />
       </div>
 
       <button className="btn dark full" onClick={submit} disabled={status === "saving"}>
