@@ -4,6 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
 import { displayDelta } from "@/lib/elo";
 import { prisma } from "@/lib/db";
+import { computeRatings, loadAllMatchesOrdered } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   if (!user) redirect("/");
 
   const { id } = await params;
-  const [session, knownUsers] = await Promise.all([
+  const [session, knownUsers, orderedMatches] = await Promise.all([
     prisma.gameSession.findUnique({
       where: { id },
       include: {
@@ -24,11 +25,10 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         matches: {
           orderBy: { orderIndex: "asc" },
           include: {
-            teamAPlayer1: true,
-            teamAPlayer2: true,
-            teamBPlayer1: true,
-            teamBPlayer2: true,
-            ratingChanges: { include: { user: true } },
+            teamAPlayer1: { select: { name: true } },
+            teamAPlayer2: { select: { name: true } },
+            teamBPlayer1: { select: { name: true } },
+            teamBPlayer2: { select: { name: true } },
           },
         },
       },
@@ -38,9 +38,12 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+    loadAllMatchesOrdered(prisma),
   ]);
 
   if (!session) notFound();
+
+  const { byMatch } = computeRatings(orderedMatches);
 
   const attendees = session.players.map((sessionPlayer) => ({
     id: sessionPlayer.user.id,
@@ -73,7 +76,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             knownUsers={knownUsers}
             initialAttendees={attendees.map((attendee) => attendee.id)}
           />
-          <MatchHistory matches={session.matches} />
+          <MatchHistory matches={session.matches} byMatch={byMatch} />
         </div>
         <AddMatchForm sessionId={session.id} attendees={attendees} />
       </section>
@@ -81,15 +84,23 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   );
 }
 
-type MatchWithPlayers = Awaited<ReturnType<typeof prisma.match.findMany>>[number] & {
+type MatchWithPlayers = {
+  id: string;
+  orderIndex: number;
+  winnerTeam: "A" | "B";
   teamAPlayer1: { name: string };
   teamAPlayer2: { name: string };
   teamBPlayer1: { name: string };
   teamBPlayer2: { name: string };
-  ratingChanges: Array<{ delta: number; user: { name: string } }>;
 };
 
-function MatchHistory({ matches }: { matches: MatchWithPlayers[] }) {
+function MatchHistory({
+  matches,
+  byMatch,
+}: {
+  matches: MatchWithPlayers[];
+  byMatch: ReturnType<typeof computeRatings>["byMatch"];
+}) {
   return (
     <div className="card stack">
       <h2>Matches</h2>
@@ -99,9 +110,10 @@ function MatchHistory({ matches }: { matches: MatchWithPlayers[] }) {
         const teamB = `${match.teamBPlayer1.name} / ${match.teamBPlayer2.name}`;
         const winner = match.winnerTeam === "A" ? teamA : teamB;
         const loser = match.winnerTeam === "A" ? teamB : teamA;
+        const changes = byMatch.get(match.id) ?? [];
         const avgDelta =
-          match.ratingChanges.reduce((sum, change) => sum + Math.abs(change.delta), 0) /
-          Math.max(match.ratingChanges.length, 1);
+          changes.reduce((sum, change) => sum + Math.abs(change.delta), 0) /
+          Math.max(changes.length, 1);
 
         return (
           <div className="match" key={match.id}>
@@ -109,9 +121,7 @@ function MatchHistory({ matches }: { matches: MatchWithPlayers[] }) {
               <strong>
                 {match.orderIndex}. {winner} beat {loser}
               </strong>
-              <span className="score">
-                ±{displayDelta(avgDelta).replace("+", "")}
-              </span>
+              <span className="score">±{displayDelta(avgDelta).replace("+", "")}</span>
             </div>
           </div>
         );

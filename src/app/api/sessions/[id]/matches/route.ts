@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { Team } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { doublesEloDelta } from "@/lib/elo";
 import { getCurrentUser } from "@/lib/session";
 
 const matchSchema = z.object({
@@ -49,59 +48,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }
       }
 
-      const users = await tx.user.findMany({ where: { id: { in: userIds } } });
-      const userById = new Map(users.map((u) => [u.id, u]));
-      const a1 = userById.get(input.teamAPlayer1Id)!;
-      const a2 = userById.get(input.teamAPlayer2Id)!;
-      const b1 = userById.get(input.teamBPlayer1Id)!;
-      const b2 = userById.get(input.teamBPlayer2Id)!;
-      const teamARating = (a1.rating + a2.rating) / 2;
-      const teamBRating = (b1.rating + b2.rating) / 2;
-      const { deltaA, deltaB } = doublesEloDelta({
-        teamARating,
-        teamBRating,
-        winnerTeam: input.winnerTeam,
-      });
-
       const lastMatch = await tx.match.findFirst({
         where: { sessionId },
         orderBy: { orderIndex: "desc" },
       });
 
-      const createdMatch = await tx.match.create({
+      return tx.match.create({
         data: {
           sessionId,
           orderIndex: (lastMatch?.orderIndex ?? 0) + 1,
-          teamAPlayer1Id: a1.id,
-          teamAPlayer2Id: a2.id,
-          teamBPlayer1Id: b1.id,
-          teamBPlayer2Id: b2.id,
+          teamAPlayer1Id: input.teamAPlayer1Id,
+          teamAPlayer2Id: input.teamAPlayer2Id,
+          teamBPlayer1Id: input.teamBPlayer1Id,
+          teamBPlayer2Id: input.teamBPlayer2Id,
           winnerTeam: input.winnerTeam === "A" ? Team.A : Team.B,
         },
       });
-
-      const changes = [
-        { user: a1, delta: deltaA },
-        { user: a2, delta: deltaA },
-        { user: b1, delta: deltaB },
-        { user: b2, delta: deltaB },
-      ];
-
-      for (const change of changes) {
-        const after = change.user.rating + change.delta;
-        await tx.user.update({ where: { id: change.user.id }, data: { rating: after } });
-        await tx.ratingChange.create({
-          data: {
-            matchId: createdMatch.id,
-            userId: change.user.id,
-            ratingBefore: change.user.rating,
-            ratingAfter: after,
-            delta: change.delta,
-          },
-        });
-      }
-
-      return createdMatch;
     });
 
     return NextResponse.json({ ok: true, matchId: match.id });

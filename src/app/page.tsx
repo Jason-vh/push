@@ -3,6 +3,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { AuthPanel } from "@/components/AuthPanel";
 import { prisma } from "@/lib/db";
 import { displayDelta, displayRating } from "@/lib/elo";
+import { computeRatings, loadAllMatchesOrdered, statsFor } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -14,11 +15,10 @@ export default async function Home() {
     return <Landing />;
   }
 
-  const [users, recentSessions] = await Promise.all([
+  const [users, recentSessions, orderedMatches] = await Promise.all([
     prisma.user.findMany({
       where: { active: true },
-      orderBy: { rating: "desc" },
-      include: { ratingChanges: { select: { delta: true } } },
+      select: { id: true, name: true },
     }),
     prisma.gameSession.findMany({
       take: 5,
@@ -27,18 +27,28 @@ export default async function Home() {
         matches: {
           orderBy: { orderIndex: "asc" },
           include: {
-            teamAPlayer1: true,
-            teamAPlayer2: true,
-            teamBPlayer1: true,
-            teamBPlayer2: true,
-            ratingChanges: { include: { user: true } },
+            teamAPlayer1: { select: { name: true } },
+            teamAPlayer2: { select: { name: true } },
+            teamBPlayer1: { select: { name: true } },
+            teamBPlayer2: { select: { name: true } },
           },
         },
       },
     }),
+    loadAllMatchesOrdered(prisma),
   ]);
 
-  const currentRank = users.findIndex((u) => u.id === user.id) + 1 || null;
+  const { stats, byMatch } = computeRatings(orderedMatches);
+
+  const leaderboard = users
+    .map((u) => {
+      const s = statsFor(stats, u.id);
+      return { id: u.id, name: u.name, rating: s.rating, wins: s.wins, losses: s.losses };
+    })
+    .sort((a, b) => b.rating - a.rating);
+
+  const currentStats = statsFor(stats, user.id);
+  const currentRank = leaderboard.findIndex((entry) => entry.id === user.id) + 1 || null;
 
   return (
     <main className="shell">
@@ -52,16 +62,16 @@ export default async function Home() {
                 <div className="eyebrow" style={{ color: "rgba(255,255,255,.78)" }}>
                   Your rating
                 </div>
-                <div className="big-number">{displayRating(user.rating)}</div>
+                <div className="big-number">{displayRating(currentStats.rating)}</div>
               </div>
               <span className="pill">Rank {currentRank ? `#${currentRank}` : "—"}</span>
             </div>
           </div>
 
-          <Leaderboard users={users} />
+          <Leaderboard entries={leaderboard} />
         </div>
 
-        <RecentSessions sessions={recentSessions} />
+        <RecentSessions sessions={recentSessions} byMatch={byMatch} />
       </section>
     </main>
   );
@@ -81,31 +91,31 @@ function Landing() {
   );
 }
 
-type UserWithStats = Awaited<ReturnType<typeof prisma.user.findMany>>[number] & {
-  ratingChanges: { delta: number }[];
+type LeaderboardEntry = {
+  id: string;
+  name: string;
+  rating: number;
+  wins: number;
+  losses: number;
 };
 
-function Leaderboard({ users }: { users: UserWithStats[] }) {
+function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
   return (
     <div className="card">
       <h2>Leaderboard</h2>
-      {users.length === 0 ? <div className="empty">No players yet. Create a session.</div> : null}
-      {users.map((user, index) => {
-        const wins = user.ratingChanges.filter((change) => change.delta > 0).length;
-        const losses = user.ratingChanges.filter((change) => change.delta < 0).length;
-        return (
-          <div className="leaderboard-row" key={user.id}>
-            <span className="rank">{index + 1}</span>
-            <div>
-              <strong>{user.name}</strong>
-              <div className="muted" style={{ fontSize: 13 }}>
-                {wins}W · {losses}L
-              </div>
+      {entries.length === 0 ? <div className="empty">No players yet. Create a session.</div> : null}
+      {entries.map((entry, index) => (
+        <div className="leaderboard-row" key={entry.id}>
+          <span className="rank">{index + 1}</span>
+          <div>
+            <strong>{entry.name}</strong>
+            <div className="muted" style={{ fontSize: 13 }}>
+              {entry.wins}W · {entry.losses}L
             </div>
-            <strong>{displayRating(user.rating)}</strong>
           </div>
-        );
-      })}
+          <strong>{displayRating(entry.rating)}</strong>
+        </div>
+      ))}
     </div>
   );
 }
@@ -119,11 +129,16 @@ type RecentSession = Awaited<ReturnType<typeof prisma.gameSession.findMany>>[num
     teamAPlayer2: { name: string };
     teamBPlayer1: { name: string };
     teamBPlayer2: { name: string };
-    ratingChanges: Array<{ delta: number; user: { name: string } }>;
   }>;
 };
 
-function RecentSessions({ sessions }: { sessions: RecentSession[] }) {
+function RecentSessions({
+  sessions,
+  byMatch,
+}: {
+  sessions: RecentSession[];
+  byMatch: ReturnType<typeof computeRatings>["byMatch"];
+}) {
   return (
     <div className="card stack">
       <div className="row">
@@ -151,17 +166,16 @@ function RecentSessions({ sessions }: { sessions: RecentSession[] }) {
               const teamB = `${match.teamBPlayer1.name} / ${match.teamBPlayer2.name}`;
               const winner = match.winnerTeam === "A" ? teamA : teamB;
               const loser = match.winnerTeam === "A" ? teamB : teamA;
+              const changes = byMatch.get(match.id) ?? [];
               const avgDelta =
-                match.ratingChanges.reduce((sum, change) => sum + Math.abs(change.delta), 0) /
-                Math.max(match.ratingChanges.length, 1);
+                changes.reduce((sum, change) => sum + Math.abs(change.delta), 0) /
+                Math.max(changes.length, 1);
               return (
                 <div className="row" key={match.id}>
                   <span>
                     {match.orderIndex}. <strong>{winner}</strong> beat {loser}
                   </span>
-                  <span className="score">
-                    ±{displayDelta(avgDelta).replace("+", "")}
-                  </span>
+                  <span className="score">±{displayDelta(avgDelta).replace("+", "")}</span>
                 </div>
               );
             })}

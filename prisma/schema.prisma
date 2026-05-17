@@ -10,7 +10,6 @@ datasource db {
 model User {
   id          String   @id @default(cuid())
   name        String
-  rating      Float    @default(1000)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -25,7 +24,6 @@ model User {
   teamA2Matches  Match[] @relation("TeamA2")
   teamB1Matches  Match[] @relation("TeamB1")
   teamB2Matches  Match[] @relation("TeamB2")
-  ratingChanges  RatingChange[]
 }
 
 model GameSession {
@@ -71,24 +69,8 @@ model Match {
   teamAPlayer2   User        @relation("TeamA2", fields: [teamAPlayer2Id], references: [id])
   teamBPlayer1   User        @relation("TeamB1", fields: [teamBPlayer1Id], references: [id])
   teamBPlayer2   User        @relation("TeamB2", fields: [teamBPlayer2Id], references: [id])
-  ratingChanges  RatingChange[]
 
   @@unique([sessionId, orderIndex])
-}
-
-model RatingChange {
-  id           String   @id @default(cuid())
-  matchId      String
-  userId       String
-  ratingBefore Float
-  ratingAfter  Float
-  delta        Float
-  createdAt    DateTime @default(now())
-
-  match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([matchId, userId])
 }
 
 model WebAuthnCredential {
