@@ -173,8 +173,8 @@ function CourtSide({
         const attendee = slots[key] ? attendeeById.get(slots[key]) : null;
         if (!attendee) {
           return (
-            <div key={key} className="court-slot empty" aria-label="Empty slot">
-              —
+            <div key={key} className="court-slot empty">
+              Empty
             </div>
           );
         }
