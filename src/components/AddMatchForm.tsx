@@ -77,6 +77,27 @@ export function AddMatchForm({
 
       {error ? <div className="error">{error}</div> : null}
 
+      <div>
+        <div className="court-pool-label">Available</div>
+        <div className="chip-strip">
+          {available.length === 0 ? (
+            <span className="empty compact">All attendees are on the court.</span>
+          ) : (
+            available.map((attendee) => (
+              <button
+                key={attendee.id}
+                type="button"
+                className="chip"
+                onClick={() => assignNext(attendee.id)}
+                disabled={allFilled}
+              >
+                {attendee.name}
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+
       <div className="court-wrap">
         <div className="court">
           <CourtSide
@@ -105,28 +126,7 @@ export function AddMatchForm({
           ? winnerTeam
             ? `Team ${winnerTeam} won. Ready to save.`
             : "Tap a side of the court to mark the winner."
-          : "Tap an attendee below to place them on the court."}
-      </div>
-
-      <div>
-        <div className="court-pool-label">Available</div>
-        <div className="chip-strip">
-          {available.length === 0 ? (
-            <span className="empty compact">All attendees are on the court.</span>
-          ) : (
-            available.map((attendee) => (
-              <button
-                key={attendee.id}
-                type="button"
-                className="chip"
-                onClick={() => assignNext(attendee.id)}
-                disabled={allFilled}
-              >
-                {attendee.name}
-              </button>
-            ))
-          )}
-        </div>
+          : "Tap an attendee above to place them on the court."}
       </div>
 
       <button
