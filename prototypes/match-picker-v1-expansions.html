@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Push Padel — Variant 1 Expansions</title>
+    <style>
+      :root {
+        --bg: #f3f0e8;
+        --panel: #fbfaf4;
+        --panel-strong: #ffffff;
+        --ink: #102015;
+        --muted: #667166;
+        --green: #1f5d3a;
+        --green-deep: #143d27;
+        --green-soft: #e7f4df;
+        --court: #4a8c5f;
+        --court-line: rgba(255, 255, 255, 0.85);
+        --yellow: #ffcf4d;
+        --line: rgba(31, 93, 58, 0.13);
+        --shadow: 0 24px 70px rgba(17, 24, 39, 0.13);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 10% 12%, rgba(123, 190, 118, 0.25), transparent 28%),
+          radial-gradient(circle at 92% 0%, rgba(255, 207, 77, 0.25), transparent 23%),
+          var(--bg);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        padding: 32px 24px 64px;
+      }
+      h1 {
+        max-width: 1100px;
+        margin: 0 auto 8px;
+        font-size: 26px;
+        letter-spacing: -0.03em;
+      }
+      .subtitle {
+        max-width: 1100px;
+        margin: 0 auto 28px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .grid {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+      .variant { display: grid; gap: 12px; }
+      .variant-label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--green);
+      }
+      .variant-name {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      .variant-desc {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        margin: 0 0 4px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+        display: grid;
+        gap: 14px;
+      }
+      .pill {
+        display: inline-block;
+        background: var(--green-soft);
+        color: var(--green);
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        justify-self: start;
+      }
+      h2 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
+      .btn {
+        border: 0;
+        border-radius: 16px;
+        padding: 14px 22px;
+        font-weight: 800;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      .btn.dark { background: var(--ink); color: white; }
+      .btn.full { width: 100%; }
+      .btn.ghost {
+        background: transparent;
+        border: 1.5px solid var(--line);
+        color: var(--ink);
+        font-size: 13px;
+        padding: 10px 14px;
+      }
+      .btn.ghost:hover { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+
+      .teams-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .team-card {
+        border: 1.5px solid var(--line);
+        border-radius: 18px;
+        padding: 14px;
+        background: var(--panel-strong);
+        display: grid;
+        gap: 12px;
+        transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+      }
+      .team-card.winner {
+        border-color: var(--green);
+        background: var(--green-soft);
+        box-shadow: 0 0 0 3px rgba(31, 93, 58, 0.12);
+      }
+      .team-card h3 {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .team-card.winner h3 { color: var(--green); }
+      .winner-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .team-card.winner .winner-toggle { color: var(--green); }
+      .winner-dot {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        border: 2px solid var(--muted);
+        display: grid; place-items: center;
+      }
+      .team-card.winner .winner-dot { border-color: var(--green); background: var(--green); }
+      .team-card.winner .winner-dot::after {
+        content: ""; width: 6px; height: 6px; border-radius: 50%; background: white;
+      }
+      .chip-strip { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--panel-strong);
+        border: 1.5px solid var(--line);
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: transform 80ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease;
+        white-space: nowrap;
+        user-select: none;
+      }
+      .chip:hover:not(.disabled) { transform: translateY(-1px); }
+      .chip.disabled { opacity: 0.35; cursor: not-allowed; }
+      .chip.picked { background: var(--green); border-color: var(--green); color: white; }
+      .helper { font-size: 12px; color: var(--muted); margin-top: -4px; }
+
+      /* ------------- Variant A: Court diagram ------------- */
+      .court-wrap {
+        background: linear-gradient(180deg, #5fa676 0%, var(--court) 100%);
+        border-radius: 20px;
+        padding: 18px;
+        position: relative;
+        aspect-ratio: 2 / 1;
+        box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.4), 0 12px 30px rgba(31, 93, 58, 0.18);
+      }
+      .court {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border: 3px solid var(--court-line);
+        border-radius: 8px;
+      }
+      .court::after {
+        /* net */
+        content: "";
+        position: absolute;
+        top: 0; bottom: 0; left: 50%;
+        width: 3px;
+        background: var(--court-line);
+        transform: translateX(-50%);
+      }
+      .court::before {
+        /* service line */
+        content: "";
+        position: absolute;
+        top: 30%; bottom: 30%; left: 15%; right: 15%;
+        border-left: 2px dashed rgba(255, 255, 255, 0.6);
+        border-right: 2px dashed rgba(255, 255, 255, 0.6);
+      }
+      .court-side {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 50%;
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        padding: 14px;
+        gap: 10px;
+        cursor: pointer;
+        transition: background 140ms ease;
+      }
+      .court-side.left { left: 0; }
+      .court-side.right { right: 0; }
+      .court-side.winner {
+        background: rgba(31, 93, 58, 0.32);
+      }
+      .court-slot {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        font-weight: 800;
+        font-size: 14px;
+        color: var(--green-deep);
+        padding: 8px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+        position: relative;
+      }
+      .court-slot.empty {
+        background: rgba(255, 255, 255, 0.18);
+        color: rgba(255, 255, 255, 0.85);
+        border: 2px dashed rgba(255, 255, 255, 0.6);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .court-slot .x {
+        position: absolute;
+        top: 4px; right: 6px;
+        font-size: 10px;
+        color: var(--muted);
+        opacity: 0.65;
+      }
+      .court-side-label {
+        position: absolute;
+        top: -10px;
+        background: white;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        color: var(--green);
+      }
+      .court-side.left .court-side-label { left: 14px; }
+      .court-side.right .court-side-label { right: 14px; }
+      .winner-prompt {
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+
+      /* ------------- Variant B: Stats chips ------------- */
+      .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px 6px 6px;
+        border-radius: 999px;
+        background: var(--panel-strong);
+        border: 1.5px solid var(--line);
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 140ms ease;
+        white-space: nowrap;
+      }
+      .stat-chip:hover:not(.disabled) { transform: translateY(-1px); }
+      .stat-chip.picked { background: var(--green); border-color: var(--green); color: white; }
+      .stat-chip.picked .avatar { background: white; color: var(--green); }
+      .stat-chip.disabled { opacity: 0.35; cursor: not-allowed; }
+      .avatar {
+        width: 26px; height: 26px; border-radius: 50%;
+        display: grid; place-items: center;
+        font-size: 12px; font-weight: 900;
+        background: var(--green); color: white;
+      }
+      .stat-chip .rating {
+        font-size: 11px;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.85);
+        color: var(--ink);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+      .stat-chip.picked .rating { background: rgba(255, 255, 255, 0.2); color: white; }
+      .team-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .team-stats .avg {
+        font-size: 18px;
+        font-weight: 900;
+        color: var(--ink);
+        letter-spacing: -0.02em;
+        text-transform: none;
+      }
+      .balance-indicator {
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        padding: 6px 0;
+      }
+      .balance-indicator.imbalanced { color: #b07e1a; }
+      .balance-indicator.balanced { color: var(--green); }
+
+      /* ------------- Variant C: Per-attendee segmented control ------------- */
+      .attendee-list {
+        display: grid;
+        gap: 8px;
+      }
+      .attendee-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 12px;
+        border: 1.5px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel-strong);
+      }
+      .attendee-row.assigned-a { border-color: var(--green); background: var(--green-soft); }
+      .attendee-row.assigned-b { border-color: #b07e1a; background: #fff4d4; }
+      .attendee-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .segmented {
+        display: inline-flex;
+        background: var(--bg);
+        border-radius: 10px;
+        padding: 3px;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      .seg-btn {
+        border: 0;
+        background: transparent;
+        padding: 6px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--muted);
+        transition: all 140ms ease;
+      }
+      .seg-btn.active.a { background: var(--green); color: white; }
+      .seg-btn.active.b { background: #b07e1a; color: white; }
+      .seg-btn.active.x { background: white; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+      .team-recap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 4px;
+      }
+      .recap {
+        padding: 12px;
+        border-radius: 14px;
+        border: 1.5px solid var(--line);
+        background: var(--panel-strong);
+        cursor: pointer;
+        transition: all 140ms ease;
+        text-align: center;
+      }
+      .recap.winner {
+        border-color: var(--green);
+        background: var(--green-soft);
+        box-shadow: 0 0 0 3px rgba(31, 93, 58, 0.12);
+      }
+      .recap-header {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .recap.winner .recap-header { color: var(--green); }
+      .recap-names { font-weight: 800; font-size: 14px; }
+      .recap-empty { color: var(--muted); font-size: 13px; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <h1>Variant 1 expansions — three directions</h1>
+    <p class="subtitle">All keep "tap to assign" but push it in different directions: thematic (court diagram), informative (stats chips), or compact (segmented rows).</p>
+
+    <div class="grid">
+      <!-- VARIANT A: COURT DIAGRAM -->
+      <div class="variant">
+        <span class="variant-label">Variant A</span>
+        <h2 class="variant-name">Court diagram</h2>
+        <p class="variant-desc">Top-down padel court. Tap an attendee chip below → fills the next open court position. Tap a player on the court to remove them. Tap a court side to mark the winning team. Most thematic.</p>
+        <div class="card">
+          <span class="pill">Next match</span>
+          <h2>Log match</h2>
+          <div class="court-wrap">
+            <div class="court">
+              <div class="court-side left" data-team="A" id="courtSideA" onclick="setCourtWinner('A', event)">
+                <span class="court-side-label">Team A</span>
+                <div class="court-slot" id="court-a-1">Sasha Lin<span class="x">×</span></div>
+                <div class="court-slot" id="court-a-2">Mateo Rivera<span class="x">×</span></div>
+              </div>
+              <div class="court-side right winner" data-team="B" id="courtSideB" onclick="setCourtWinner('B', event)">
+                <span class="court-side-label">Team B</span>
+                <div class="court-slot" id="court-b-1">Imani Okafor<span class="x">×</span></div>
+                <div class="court-slot" id="court-b-2">Yuki Tanaka<span class="x">×</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="winner-prompt">Tap a side of the court to mark the winner.</div>
+          <div>
+            <div class="helper">Available attendees</div>
+            <div class="chip-strip" id="courtPool">
+              <div class="chip disabled">Sasha Lin</div>
+              <div class="chip disabled">Mateo Rivera</div>
+              <div class="chip disabled">Imani Okafor</div>
+              <div class="chip disabled">Yuki Tanaka</div>
+              <div class="chip">Jason</div>
+              <div class="chip">Smoke Test</div>
+            </div>
+          </div>
+          <button class="btn dark full">Save match</button>
+        </div>
+      </div>
+
+      <!-- VARIANT B: STATS CHIPS -->
+      <div class="variant">
+        <span class="variant-label">Variant B</span>
+        <h2 class="variant-name">Stats chips + team avg rating</h2>
+        <p class="variant-desc">Each chip shows initial, name, and current ELO. Team header shows the team's average rating; a balance indicator flags lopsided teams. Helps you set up fair matches at a glance.</p>
+        <div class="card">
+          <span class="pill">Next match</span>
+          <h2>Log match</h2>
+          <div class="teams-row" id="v2-teams">
+            <div class="team-card winner" data-team="A">
+              <div class="team-stats">
+                <h3>Team A</h3>
+                <span class="avg" id="avg-a">1024</span>
+              </div>
+              <div class="chip-strip" data-strip="A"></div>
+              <button class="winner-toggle"><span class="winner-dot"></span>Won</button>
+            </div>
+            <div class="team-card" data-team="B">
+              <div class="team-stats">
+                <h3>Team B</h3>
+                <span class="avg" id="avg-b">988</span>
+              </div>
+              <div class="chip-strip" data-strip="B"></div>
+              <button class="winner-toggle"><span class="winner-dot"></span>Mark as winner</button>
+            </div>
+          </div>
+          <div class="balance-indicator balanced" id="balance">⚖ Teams are well matched (±36)</div>
+          <button class="btn dark full">Save match</button>
+        </div>
+      </div>
+
+      <!-- VARIANT C: SEGMENTED ROWS -->
+      <div class="variant">
+        <span class="variant-label">Variant C</span>
+        <h2 class="variant-name">Segmented rows</h2>
+        <p class="variant-desc">One row per attendee with a [A &middot; — &middot; B] selector. Most compact layout — scales cleanly to 12+ attendees. Team recap at the bottom shows the resulting matchup.</p>
+        <div class="card">
+          <span class="pill">Next match</span>
+          <h2>Log match</h2>
+          <div class="attendee-list" id="segList"></div>
+          <div class="team-recap">
+            <div class="recap winner" id="recap-a" onclick="setSegWinner('A')">
+              <div class="recap-header">Team A</div>
+              <div class="recap-names" id="recap-a-names">Sasha + Mateo</div>
+            </div>
+            <div class="recap" id="recap-b" onclick="setSegWinner('B')">
+              <div class="recap-header">Team B</div>
+              <div class="recap-names" id="recap-b-names">Imani + Yuki</div>
+            </div>
+          </div>
+          <button class="btn dark full">Save match</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const ATTENDEES = [
+        { name: "Sasha Lin", rating: 1052 },
+        { name: "Mateo Rivera", rating: 996 },
+        { name: "Imani Okafor", rating: 1014 },
+        { name: "Yuki Tanaka", rating: 962 },
+        { name: "Jason", rating: 1000 },
+        { name: "Smoke Test", rating: 1000 },
+      ];
+      const initial = (name) => name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+
+      // ---------- Variant A: court ----------
+      function setCourtWinner(team, event) {
+        if (event.target.classList.contains("court-slot") || event.target.classList.contains("x")) return;
+        document.getElementById("courtSideA").classList.toggle("winner", team === "A");
+        document.getElementById("courtSideB").classList.toggle("winner", team === "B");
+      }
+
+      // ---------- Variant B: stats chips ----------
+      const vBState = { A: new Set(["Sasha Lin", "Mateo Rivera"]), B: new Set(["Imani Okafor", "Yuki Tanaka"]) };
+      function renderVB() {
+        ["A", "B"].forEach((team) => {
+          const other = team === "A" ? "B" : "A";
+          const strip = document.querySelector(`[data-strip="${team}"]`);
+          strip.innerHTML = "";
+          ATTENDEES.forEach(({ name, rating }) => {
+            const el = document.createElement("div");
+            el.className = "stat-chip";
+            if (vBState[team].has(name)) el.classList.add("picked");
+            if (vBState[other].has(name)) el.classList.add("disabled");
+            el.innerHTML = `<span class="avatar">${initial(name)}</span>${name}<span class="rating">${rating}</span>`;
+            el.onclick = () => {
+              if (vBState[other].has(name)) return;
+              if (vBState[team].has(name)) vBState[team].delete(name);
+              else if (vBState[team].size < 2) vBState[team].add(name);
+              renderVB();
+            };
+            strip.appendChild(el);
+          });
+        });
+        const avgA = avg(vBState.A);
+        const avgB = avg(vBState.B);
+        document.getElementById("avg-a").textContent = avgA ? avgA : "—";
+        document.getElementById("avg-b").textContent = avgB ? avgB : "—";
+        const ind = document.getElementById("balance");
+        if (avgA && avgB) {
+          const diff = Math.abs(avgA - avgB);
+          ind.className = "balance-indicator " + (diff < 60 ? "balanced" : "imbalanced");
+          ind.textContent = diff < 60
+            ? `⚖ Teams are well matched (±${diff})`
+            : `⚠ Lopsided: team avg differs by ${diff}`;
+        } else {
+          ind.className = "balance-indicator";
+          ind.textContent = "Pick 2 per team to see the balance";
+        }
+      }
+      function avg(set) {
+        if (set.size === 0) return null;
+        const sum = [...set].reduce((s, name) => s + ATTENDEES.find((a) => a.name === name).rating, 0);
+        return Math.round(sum / set.size);
+      }
+      renderVB();
+      document.querySelectorAll("#v2-teams .winner-toggle").forEach((btn) => {
+        btn.onclick = () => {
+          document.querySelectorAll("#v2-teams .team-card").forEach((c) => c.classList.remove("winner"));
+          btn.closest(".team-card").classList.add("winner");
+        };
+      });
+
+      // ---------- Variant C: segmented rows ----------
+      const vCState = new Map();
+      vCState.set("Sasha Lin", "A");
+      vCState.set("Mateo Rivera", "A");
+      vCState.set("Imani Okafor", "B");
+      vCState.set("Yuki Tanaka", "B");
+      vCState.set("Jason", null);
+      vCState.set("Smoke Test", null);
+
+      function renderVC() {
+        const list = document.getElementById("segList");
+        list.innerHTML = "";
+        ATTENDEES.forEach(({ name }) => {
+          const team = vCState.get(name);
+          const row = document.createElement("div");
+          row.className = "attendee-row" + (team === "A" ? " assigned-a" : team === "B" ? " assigned-b" : "");
+          row.innerHTML = `
+            <div class="attendee-name"><span class="avatar">${initial(name)}</span>${name}</div>
+            <div class="segmented">
+              <button class="seg-btn ${team === "A" ? "active a" : ""}" data-set="A">A</button>
+              <button class="seg-btn ${team === null ? "active x" : ""}" data-set="">—</button>
+              <button class="seg-btn ${team === "B" ? "active b" : ""}" data-set="B">B</button>
+            </div>`;
+          row.querySelectorAll(".seg-btn").forEach((btn) => {
+            btn.onclick = () => {
+              vCState.set(name, btn.dataset.set || null);
+              renderVC();
+            };
+          });
+          list.appendChild(row);
+        });
+        const aMembers = [...vCState.entries()].filter(([, t]) => t === "A").map(([n]) => n.split(" ")[0]);
+        const bMembers = [...vCState.entries()].filter(([, t]) => t === "B").map(([n]) => n.split(" ")[0]);
+        document.getElementById("recap-a-names").textContent = aMembers.length ? aMembers.join(" + ") : "—";
+        document.getElementById("recap-b-names").textContent = bMembers.length ? bMembers.join(" + ") : "—";
+      }
+      renderVC();
+      function setSegWinner(team) {
+        document.getElementById("recap-a").classList.toggle("winner", team === "A");
+        document.getElementById("recap-b").classList.toggle("winner", team === "B");
+      }
+    </script>
+  </body>
+</html>

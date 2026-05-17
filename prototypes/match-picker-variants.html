@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Push Padel — Player Picker Variants</title>
+    <style>
+      :root {
+        --bg: #f3f0e8;
+        --panel: #fbfaf4;
+        --panel-strong: #ffffff;
+        --ink: #102015;
+        --muted: #667166;
+        --green: #1f5d3a;
+        --green-soft: #e7f4df;
+        --yellow: #ffcf4d;
+        --line: rgba(31, 93, 58, 0.13);
+        --shadow: 0 24px 70px rgba(17, 24, 39, 0.13);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 10% 12%, rgba(123, 190, 118, 0.25), transparent 28%),
+          radial-gradient(circle at 92% 0%, rgba(255, 207, 77, 0.25), transparent 23%),
+          var(--bg);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        padding: 32px 24px 64px;
+      }
+      h1 {
+        max-width: 1100px;
+        margin: 0 auto 8px;
+        font-size: 26px;
+        letter-spacing: -0.03em;
+      }
+      .subtitle {
+        max-width: 1100px;
+        margin: 0 auto 28px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .grid {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+      .variant { display: grid; gap: 12px; }
+      .variant-label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--green);
+      }
+      .variant-name {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      .variant-desc {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        margin: 0 0 4px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+      .pill {
+        display: inline-block;
+        background: var(--green-soft);
+        color: var(--green);
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      h2 { margin: 12px 0 4px; font-size: 22px; letter-spacing: -0.02em; }
+      .btn {
+        border: 0;
+        border-radius: 16px;
+        padding: 14px 22px;
+        font-weight: 800;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      .btn.dark { background: var(--ink); color: white; }
+      .btn.full { width: 100%; }
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+      .teams-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .team-card {
+        border: 1.5px solid var(--line);
+        border-radius: 18px;
+        padding: 14px;
+        background: var(--panel-strong);
+        display: grid;
+        gap: 12px;
+        transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+      }
+      .team-card h3 {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .team-card.winner {
+        border-color: var(--green);
+        background: var(--green-soft);
+        box-shadow: 0 0 0 3px rgba(31, 93, 58, 0.12);
+      }
+      .team-card.winner h3 { color: var(--green); }
+      .winner-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .team-card.winner .winner-toggle { color: var(--green); }
+      .winner-dot {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        border: 2px solid var(--muted);
+        display: grid; place-items: center;
+      }
+      .team-card.winner .winner-dot {
+        border-color: var(--green);
+        background: var(--green);
+      }
+      .team-card.winner .winner-dot::after {
+        content: "";
+        width: 6px; height: 6px; border-radius: 50%; background: white;
+      }
+
+      /* ----- Chip strip shared styles ----- */
+      .chip-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--panel-strong);
+        border: 1.5px solid var(--line);
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: transform 80ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease;
+        white-space: nowrap;
+        user-select: none;
+      }
+      .chip:hover:not(.disabled) { transform: translateY(-1px); }
+      .chip.disabled { opacity: 0.35; cursor: not-allowed; }
+
+      /* ----- Variant 1: per-team strip ----- */
+      .chip.picked {
+        background: var(--green);
+        border-color: var(--green);
+        color: white;
+      }
+      .helper {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: -4px;
+      }
+
+      /* ----- Variant 2: shared pool ----- */
+      .pool-label {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .chip.assigned-a {
+        background: var(--green);
+        border-color: var(--green);
+        color: white;
+      }
+      .chip.assigned-b {
+        background: #b07e1a;
+        border-color: #b07e1a;
+        color: white;
+      }
+      .chip .badge {
+        margin-left: 6px;
+        font-size: 10px;
+        font-weight: 900;
+        padding: 1px 5px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.25);
+      }
+      .team-slot {
+        min-height: 40px;
+        border: 1.5px dashed var(--line);
+        border-radius: 14px;
+        padding: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .team-card .roster {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-height: 36px;
+      }
+      .pool-row {
+        margin-bottom: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Player picker — chips instead of dropdowns</h1>
+    <p class="subtitle">Both variants keep the side-by-side team layout you picked. The dropdowns get replaced by tap-to-select chips.</p>
+
+    <div class="grid">
+      <!-- VARIANT 1: per-team chip strip -->
+      <div class="variant">
+        <span class="variant-label">Variant 1</span>
+        <h2 class="variant-name">Per-team chip strip</h2>
+        <p class="variant-desc">Each team card shows every attendee as a chip. Tap to add (max 2 per team). Tap a picked chip to remove. Chips picked by the other team are greyed out.</p>
+        <div class="card" style="display: grid; gap: 14px;">
+          <span class="pill">Next match</span>
+          <h2>Log match</h2>
+          <div class="teams-row" id="v1">
+            <div class="team-card winner" data-team="A">
+              <h3>Team A</h3>
+              <div class="helper">Tap up to 2 players</div>
+              <div class="chip-strip"></div>
+              <button class="winner-toggle"><span class="winner-dot"></span>Won</button>
+            </div>
+            <div class="team-card" data-team="B">
+              <h3>Team B</h3>
+              <div class="helper">Tap up to 2 players</div>
+              <div class="chip-strip"></div>
+              <button class="winner-toggle"><span class="winner-dot"></span>Mark as winner</button>
+            </div>
+          </div>
+          <button class="btn dark full">Save match</button>
+        </div>
+      </div>
+
+      <!-- VARIANT 2: shared pool -->
+      <div class="variant">
+        <span class="variant-label">Variant 2</span>
+        <h2 class="variant-name">Shared pool, tap to cycle</h2>
+        <p class="variant-desc">One chip per attendee at the top. Tap to cycle: unassigned → Team A → Team B → unassigned. Picked players show up in the team cards below as you assign them.</p>
+        <div class="card" style="display: grid; gap: 14px;">
+          <span class="pill">Next match</span>
+          <h2>Log match</h2>
+          <div class="pool-row">
+            <div class="pool-label">Attendees</div>
+            <div class="chip-strip" id="v2-pool"></div>
+          </div>
+          <div class="teams-row" id="v2-teams">
+            <div class="team-card winner" data-team="A">
+              <h3>Team A</h3>
+              <div class="roster"></div>
+              <button class="winner-toggle"><span class="winner-dot"></span>Won</button>
+            </div>
+            <div class="team-card" data-team="B">
+              <h3>Team B</h3>
+              <div class="roster"></div>
+              <button class="winner-toggle"><span class="winner-dot"></span>Mark as winner</button>
+            </div>
+          </div>
+          <button class="btn dark full">Save match</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const ATTENDEES = ["Sasha Lin", "Mateo Rivera", "Imani Okafor", "Yuki Tanaka", "Jason", "Smoke Test"];
+
+      // ---------- Variant 1 state ----------
+      const v1State = { A: new Set(["Sasha Lin", "Mateo Rivera"]), B: new Set(["Imani Okafor", "Yuki Tanaka"]) };
+
+      function renderV1() {
+        document.querySelectorAll("#v1 .team-card").forEach((card) => {
+          const team = card.dataset.team;
+          const other = team === "A" ? "B" : "A";
+          const strip = card.querySelector(".chip-strip");
+          strip.innerHTML = "";
+          ATTENDEES.forEach((name) => {
+            const chip = document.createElement("div");
+            chip.className = "chip";
+            chip.textContent = name;
+            if (v1State[team].has(name)) chip.classList.add("picked");
+            if (v1State[other].has(name)) chip.classList.add("disabled");
+            chip.onclick = () => {
+              if (v1State[other].has(name)) return;
+              if (v1State[team].has(name)) {
+                v1State[team].delete(name);
+              } else if (v1State[team].size < 2) {
+                v1State[team].add(name);
+              }
+              renderV1();
+            };
+            strip.appendChild(chip);
+          });
+        });
+      }
+      renderV1();
+      document.querySelectorAll("#v1 .winner-toggle").forEach((btn) => {
+        btn.onclick = () => {
+          document.querySelectorAll("#v1 .team-card").forEach((c) => c.classList.remove("winner"));
+          btn.closest(".team-card").classList.add("winner");
+        };
+      });
+
+      // ---------- Variant 2 state ----------
+      const v2State = new Map();
+      v2State.set("Sasha Lin", "A");
+      v2State.set("Mateo Rivera", "A");
+      v2State.set("Imani Okafor", "B");
+      v2State.set("Yuki Tanaka", "B");
+      v2State.set("Jason", null);
+      v2State.set("Smoke Test", null);
+
+      function nextTeam(current) {
+        if (current === null) {
+          return v2Count("A") < 2 ? "A" : v2Count("B") < 2 ? "B" : null;
+        }
+        if (current === "A") {
+          return v2Count("B") < 2 ? "B" : null;
+        }
+        return null;
+      }
+      function v2Count(team) {
+        let count = 0;
+        v2State.forEach((value) => { if (value === team) count++; });
+        return count;
+      }
+
+      function renderV2() {
+        const pool = document.getElementById("v2-pool");
+        pool.innerHTML = "";
+        ATTENDEES.forEach((name) => {
+          const chip = document.createElement("div");
+          chip.className = "chip";
+          const team = v2State.get(name);
+          if (team === "A") chip.classList.add("assigned-a");
+          if (team === "B") chip.classList.add("assigned-b");
+          chip.textContent = name;
+          if (team) {
+            const badge = document.createElement("span");
+            badge.className = "badge";
+            badge.textContent = team;
+            chip.appendChild(badge);
+          }
+          chip.onclick = () => {
+            v2State.set(name, nextTeam(v2State.get(name)));
+            renderV2();
+          };
+          pool.appendChild(chip);
+        });
+
+        document.querySelectorAll("#v2-teams .team-card").forEach((card) => {
+          const team = card.dataset.team;
+          const roster = card.querySelector(".roster");
+          roster.innerHTML = "";
+          const members = [];
+          v2State.forEach((value, name) => { if (value === team) members.push(name); });
+          if (members.length === 0) {
+            const placeholder = document.createElement("div");
+            placeholder.style.color = "var(--muted)";
+            placeholder.style.fontSize = "13px";
+            placeholder.textContent = "Tap a chip above";
+            roster.appendChild(placeholder);
+          }
+          members.forEach((name) => {
+            const chip = document.createElement("div");
+            chip.className = `chip ${team === "A" ? "assigned-a" : "assigned-b"}`;
+            chip.textContent = name;
+            chip.onclick = () => {
+              v2State.set(name, null);
+              renderV2();
+            };
+            roster.appendChild(chip);
+          });
+        });
+      }
+      renderV2();
+      document.querySelectorAll("#v2-teams .winner-toggle").forEach((btn) => {
+        btn.onclick = () => {
+          document.querySelectorAll("#v2-teams .team-card").forEach((c) => c.classList.remove("winner"));
+          btn.closest(".team-card").classList.add("winner");
+        };
+      });
+    </script>
+  </body>
+</html>
