@@ -436,6 +436,12 @@ h3 {
   color: var(--ink-mute);
   font-size: 12px;
 }
+/* base-ui keeps the empty <div> mounted for aria-live; collapse it when
+   there are matches so it doesn't pad the popup with phantom space. */
+.attendee-empty:empty {
+  padding: 0;
+  line-height: 0;
+}
 .chip-list {
   display: flex;
   flex-wrap: wrap;
