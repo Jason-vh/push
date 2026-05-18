@@ -145,7 +145,7 @@ function TeamColumn({
     <div className={`team-col ${align}${won ? "" : " lost"}`}>
       {players.map((player) => (
         <div className="team-player" key={player.id}>
-          <Avatar name={player.name} size={20} tone={won ? "forest" : "mint"} />
+          <Avatar name={player.name} size={20} />
           <span className="name">{player.name.split(" ")[0]}</span>
         </div>
       ))}

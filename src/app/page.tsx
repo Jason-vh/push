@@ -205,7 +205,7 @@ function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
       {entries.map((entry, index) => (
         <div className="lb-row" key={entry.id}>
           <div className="lb-rank">{index + 1}</div>
-          <Avatar name={entry.name} size={28} tone="forest" />
+          <Avatar name={entry.name} size={28} />
           <div style={{ minWidth: 0 }}>
             <div className="lb-name">{entry.isMe ? "You" : entry.name}</div>
             <div className="lb-wl">
@@ -237,7 +237,7 @@ function CalloutCard({
       <div className="callout-title">{title}</div>
       {record && name ? (
         <div className="callout-body">
-          <Avatar name={name} size={36} tone="forest" />
+          <Avatar name={name} size={36} />
           <div style={{ minWidth: 0 }}>
             <div className="callout-name">{name.split(" ")[0]}</div>
             <div className="callout-stats">

@@ -191,7 +191,7 @@ export function LogMatchSheet({
                   >
                     {attendee ? (
                       <>
-                        <Avatar name={attendee.name} size={34} tone="forest" />
+                        <Avatar name={attendee.name} size={34} />
                         <span className="slot-name">{firstName(attendee.name)}</span>
                       </>
                     ) : (
@@ -220,11 +220,7 @@ export function LogMatchSheet({
                     onClick={() => placeOnBench(player.id)}
                     disabled={ready || busy}
                   >
-                    <Avatar
-                      name={player.name}
-                      size={22}
-                      tone={ready ? "mint" : "forest"}
-                    />
+                    <Avatar name={player.name} size={22} />
                     {firstName(player.name)}
                   </button>
                 ))
@@ -284,7 +280,7 @@ function WinPick({
         <div className="win-pick-stack">
           {players.map((p) => (
             <span className="frame" key={p.id}>
-              <Avatar name={p.name} size={26} tone="forest" />
+              <Avatar name={p.name} size={26} />
             </span>
           ))}
         </div>

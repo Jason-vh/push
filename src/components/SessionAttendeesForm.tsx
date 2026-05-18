@@ -66,7 +66,7 @@ export function SessionAttendeesForm({
           ) : (
             roster.map((player) => (
               <span className="roster-avatar-frame" key={player.id}>
-                <Avatar name={player.name} size={30} tone="forest" />
+                <Avatar name={player.name} size={30} />
               </span>
             ))
           )}
