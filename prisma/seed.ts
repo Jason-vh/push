@@ -2,13 +2,17 @@ import { PrismaClient, type Team } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const PLAYER_NAMES = [
+// First 4 are fictional friends. The 5th slot is replaced at runtime by the
+// real logged-in user (detected via WebAuthnCredential, or overridden with
+// SEED_ME_NAME) so the dashboard's "Best teammate" / "Toughest opponent"
+// callouts have data to display.
+const FRIEND_NAMES = [
   "Mateo Rivera",
   "Imani Okafor",
   "Priya Vance",
   "Sasha Lin",
-  "Jason Wu",
 ];
+const FALLBACK_ME_NAME = "You";
 
 const SESSIONS: Array<{
   daysAgo: number;
@@ -70,39 +74,69 @@ const SESSIONS: Array<{
   },
 ];
 
-async function main() {
-  const existingUsers = await prisma.user.findMany({
-    where: { name: { in: PLAYER_NAMES } },
-  });
-  const byName = new Map(existingUsers.map((u) => [u.name, u]));
-  for (const name of PLAYER_NAMES) {
-    if (!byName.has(name)) {
-      const created = await prisma.user.create({ data: { name } });
-      byName.set(name, created);
-    }
+async function resolveMe(): Promise<{ id: string; name: string }> {
+  // 1) Explicit override
+  const override = process.env.SEED_ME_NAME?.trim();
+  if (override) {
+    const user = await prisma.user.findFirst({ where: { name: override } });
+    if (user) return user;
+    return prisma.user.create({ data: { name: override } });
   }
-  const userByIndex = PLAYER_NAMES.map((name) => byName.get(name)!);
-  const creator = userByIndex[0];
+
+  // 2) The first user with a registered passkey is "me"
+  const credentialed = await prisma.user.findFirst({
+    where: { credentials: { some: {} } },
+    orderBy: { createdAt: "asc" },
+  });
+  if (credentialed) return credentialed;
+
+  // 3) No real account yet — create a placeholder so the seed still works
+  const existing = await prisma.user.findFirst({ where: { name: FALLBACK_ME_NAME } });
+  if (existing) return existing;
+  return prisma.user.create({ data: { name: FALLBACK_ME_NAME } });
+}
+
+async function main() {
+  const me = await resolveMe();
+  console.log(`Seeding for "me" = ${me.name} (${me.id})`);
+
+  const friends = await Promise.all(
+    FRIEND_NAMES.map(async (name) => {
+      const found = await prisma.user.findFirst({ where: { name } });
+      return found ?? (await prisma.user.create({ data: { name } }));
+    }),
+  );
+  // Remove any leftover "Jason Wu" placeholder from earlier seed runs so it
+  // doesn't clutter the leaderboard. Safe because nothing references it once
+  // the seeded sessions are reset below.
+  const legacy = await prisma.user.findFirst({ where: { name: "Jason Wu" } });
+
+  const userByIndex = [...friends, me];
 
   for (const session of SESSIONS) {
     const playedAt = new Date();
     playedAt.setDate(playedAt.getDate() - session.daysAgo);
     playedAt.setHours(18, 30, 0, 0);
 
-    // Idempotent-ish: skip if a session by this creator at this venue exists for the same day.
     const dayStart = new Date(playedAt);
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(playedAt);
     dayEnd.setHours(23, 59, 59, 999);
-    const existing = await prisma.gameSession.findFirst({
+
+    // Wipe any prior seeded session for this venue+day so re-running the seed
+    // produces a fresh, consistent dataset (now with the real user in it).
+    const prior = await prisma.gameSession.findMany({
       where: {
         venue: session.venue,
         playedAt: { gte: dayStart, lte: dayEnd },
       },
+      select: { id: true },
     });
-    if (existing) {
-      console.log(`Skipping existing session: ${session.venue} ${dayStart.toDateString()}`);
-      continue;
+    if (prior.length > 0) {
+      const priorIds = prior.map((s) => s.id);
+      await prisma.match.deleteMany({ where: { sessionId: { in: priorIds } } });
+      await prisma.sessionPlayer.deleteMany({ where: { sessionId: { in: priorIds } } });
+      await prisma.gameSession.deleteMany({ where: { id: { in: priorIds } } });
     }
 
     const created = await prisma.gameSession.create({
@@ -110,7 +144,7 @@ async function main() {
         playedAt,
         venue: session.venue,
         courtNumber: session.courtNumber,
-        createdById: creator.id,
+        createdById: me.id,
         players: {
           create: userByIndex.map((u) => ({ userId: u.id })),
         },
@@ -133,6 +167,25 @@ async function main() {
     }
 
     console.log(`Seeded ${session.venue} (${session.matches.length} matches)`);
+  }
+
+  if (legacy && legacy.id !== me.id) {
+    const stillReferenced = await prisma.match.findFirst({
+      where: {
+        OR: [
+          { teamAPlayer1Id: legacy.id },
+          { teamAPlayer2Id: legacy.id },
+          { teamBPlayer1Id: legacy.id },
+          { teamBPlayer2Id: legacy.id },
+        ],
+      },
+      select: { id: true },
+    });
+    if (!stillReferenced) {
+      await prisma.sessionPlayer.deleteMany({ where: { userId: legacy.id } });
+      await prisma.user.delete({ where: { id: legacy.id } });
+      console.log("Removed legacy seed user: Jason Wu");
+    }
   }
 }
 
