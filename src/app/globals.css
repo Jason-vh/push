@@ -384,11 +384,13 @@ h3 {
 
 .empty {
   padding: 20px;
+  background: var(--surface);
   border: 1px dashed rgba(13, 63, 36, 0.22);
   border-radius: 22px;
   color: var(--ink-mute);
   text-align: center;
   font-size: 13px;
+  box-shadow: var(--card-shadow);
 }
 .empty.compact {
   padding: 10px 14px;
@@ -595,7 +597,7 @@ h3 {
   background: var(--mint-pill);
 }
 .callout.negative {
-  background: rgba(245, 224, 196, 0.7);
+  background: #f1c890;
 }
 .callout-title {
   font-size: 10px;
