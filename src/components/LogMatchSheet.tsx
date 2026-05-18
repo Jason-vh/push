@@ -8,10 +8,28 @@ type Attendee = { id: string; name: string };
 type Team = "A" | "B";
 type SlotKey = "a1" | "a2" | "b1" | "b2";
 type Slots = Record<SlotKey, string>;
-type Status = "idle" | "saving";
+type Status = "idle" | "saving" | "deleting";
+
+export type EditingMatch = {
+  id: string;
+  teamAPlayer1Id: string;
+  teamAPlayer2Id: string;
+  teamBPlayer1Id: string;
+  teamBPlayer2Id: string;
+  winnerTeam: Team;
+};
 
 const EMPTY_SLOTS: Slots = { a1: "", a2: "", b1: "", b2: "" };
 const SLOT_ORDER: SlotKey[] = ["a1", "a2", "b1", "b2"];
+
+function slotsFromMatch(match: EditingMatch): Slots {
+  return {
+    a1: match.teamAPlayer1Id,
+    a2: match.teamAPlayer2Id,
+    b1: match.teamBPlayer1Id,
+    b2: match.teamBPlayer2Id,
+  };
+}
 
 // Slot 1 = A front (top-left); 2 = A back (bottom-left);
 // 3 = B front (top-right); 4 = B back (bottom-right).
@@ -29,30 +47,33 @@ export function LogMatchSheet({
   attendees,
   open,
   onClose,
+  match,
 }: {
   sessionId: string;
   attendees: Attendee[];
   open: boolean;
   onClose: () => void;
+  match?: EditingMatch;
 }) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [slots, setSlots] = useState<Slots>(EMPTY_SLOTS);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
+  const isEditing = Boolean(match);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (open && !dialog.open) {
-      setSlots(EMPTY_SLOTS);
+      setSlots(match ? slotsFromMatch(match) : EMPTY_SLOTS);
       setStatus("idle");
       setError(null);
       dialog.showModal();
     } else if (!open && dialog.open) {
       dialog.close();
     }
-  }, [open]);
+  }, [open, match]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -96,8 +117,11 @@ export function LogMatchSheet({
     setError(null);
     setStatus("saving");
     try {
-      const response = await fetch(`/api/sessions/${sessionId}/matches`, {
-        method: "POST",
+      const endpoint = match
+        ? `/api/sessions/${sessionId}/matches/${match.id}`
+        : `/api/sessions/${sessionId}/matches`;
+      const response = await fetch(endpoint, {
+        method: match ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamAPlayer1Id: slots.a1,
@@ -117,6 +141,25 @@ export function LogMatchSheet({
     }
   }
 
+  async function deleteMatch() {
+    if (busy || !match) return;
+    if (!window.confirm("Delete this match? This will recompute ratings.")) return;
+    setError(null);
+    setStatus("deleting");
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}/matches/${match.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not delete match");
+      router.refresh();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete match");
+      setStatus("idle");
+    }
+  }
+
   const teamA: Attendee[] = [slots.a1, slots.a2]
     .map((id) => attendeeById.get(id))
     .filter((a): a is Attendee => Boolean(a));
@@ -128,7 +171,7 @@ export function LogMatchSheet({
     <dialog
       ref={dialogRef}
       className="sheet"
-      aria-label="Log a match"
+      aria-label={isEditing ? "Edit match" : "Log a match"}
       onClose={onClose}
       onCancel={(event) => {
         if (busy) event.preventDefault();
@@ -141,10 +184,12 @@ export function LogMatchSheet({
 
           <div className="sheet-header">
             <div>
-              <h2 className="sheet-title">Set the teams</h2>
+              <h2 className="sheet-title">{isEditing ? "Edit match" : "Set the teams"}</h2>
               <div className="sheet-sub">
                 {ready
-                  ? "Tap the winning team to save"
+                  ? isEditing
+                    ? "Tap the winning team to save changes"
+                    : "Tap the winning team to save"
                   : placedCount === 0
                     ? "Tap 4 players from the bench"
                     : `Tap ${4 - placedCount} more from the bench`}
@@ -235,17 +280,30 @@ export function LogMatchSheet({
                 players={teamA}
                 onPick={() => saveWith("A")}
                 disabled={busy}
+                isCurrent={isEditing && match?.winnerTeam === "A"}
               />
               <WinPick
                 label="Team B"
                 players={teamB}
                 onPick={() => saveWith("B")}
                 disabled={busy}
+                isCurrent={isEditing && match?.winnerTeam === "B"}
               />
             </div>
           ) : null}
 
-          {busy ? <div className="sheet-status">Saving…</div> : null}
+          {isEditing ? (
+            <button
+              type="button"
+              className="sheet-delete"
+              onClick={deleteMatch}
+              disabled={busy}
+            >
+              {status === "deleting" ? "Deleting…" : "Delete match"}
+            </button>
+          ) : null}
+
+          {status === "saving" ? <div className="sheet-status">Saving…</div> : null}
         </div>
     </dialog>
   );
@@ -256,19 +314,22 @@ function WinPick({
   players,
   onPick,
   disabled,
+  isCurrent,
 }: {
   label: string;
   players: Attendee[];
   onPick: () => void;
   disabled: boolean;
+  isCurrent?: boolean;
 }) {
   return (
     <button
       type="button"
-      className="win-pick"
+      className={`win-pick${isCurrent ? " is-current" : ""}`}
       onClick={onPick}
       disabled={disabled}
       aria-label={`${label} won`}
+      aria-pressed={isCurrent}
     >
       <div className="win-pick-head">
         <span>{label.toUpperCase()} WON</span>

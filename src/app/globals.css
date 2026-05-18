@@ -896,6 +896,22 @@ h3 {
   align-items: center;
   gap: 8px;
   box-shadow: 0 1px 0 rgba(13, 63, 36, 0.04), 0 4px 12px -8px rgba(13, 63, 36, 0.08);
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+.match-card:hover {
+  border-color: rgba(13, 63, 36, 0.22);
+}
+.match-card:active {
+  transform: scale(0.995);
+}
+.match-card:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
 }
 .match-card.highlight {
   background: #eaf3e0;
@@ -1255,6 +1271,19 @@ h3 {
   opacity: 0.6;
   cursor: not-allowed;
 }
+.win-pick.is-current {
+  background: var(--forest);
+  color: #f4ead0;
+}
+.win-pick.is-current .win-pick-head {
+  color: rgba(244, 234, 208, 0.7);
+}
+.win-pick.is-current .win-pick-names {
+  color: #f4ead0;
+}
+.win-pick.is-current .win-pick-stack .frame {
+  box-shadow: 0 0 0 2px var(--forest);
+}
 .win-pick-head {
   display: flex;
   align-items: center;
@@ -1302,4 +1331,24 @@ h3 {
 }
 .sheet-error {
   margin: 12px 22px 0;
+}
+.sheet-delete {
+  align-self: center;
+  margin-top: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: 0;
+  color: #8e3b3c;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.sheet-delete:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.sheet-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

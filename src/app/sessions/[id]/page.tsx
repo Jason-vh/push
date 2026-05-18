@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Avatar } from "@/components/Avatar";
 import { AvatarMenu } from "@/components/AvatarMenu";
 import { LogMatchButton } from "@/components/LogMatchButton";
+import { MatchCard } from "@/components/MatchCard";
 import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -92,64 +92,16 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           </div>
         ) : (
           session.matches.map((match) => (
-            <MatchRow key={match.id} match={match} />
+            <MatchCard
+              key={match.id}
+              sessionId={session.id}
+              attendees={attendees}
+              match={match}
+            />
           ))
         )}
       </section>
     </main>
-  );
-}
-
-type MatchWithPlayers = {
-  id: string;
-  winnerTeam: "A" | "B";
-  teamAPlayer1: { id: string; name: string };
-  teamAPlayer2: { id: string; name: string };
-  teamBPlayer1: { id: string; name: string };
-  teamBPlayer2: { id: string; name: string };
-};
-
-function MatchRow({ match }: { match: MatchWithPlayers }) {
-  const aWon = match.winnerTeam === "A";
-  return (
-    <div className="timeline-row">
-      <div className="match-card">
-        <TeamColumn
-          players={[match.teamAPlayer1, match.teamAPlayer2]}
-          won={aWon}
-          align="left"
-        />
-        <div className="match-vs">
-          <span className="vs">VS</span>
-        </div>
-        <TeamColumn
-          players={[match.teamBPlayer1, match.teamBPlayer2]}
-          won={!aWon}
-          align="right"
-        />
-      </div>
-    </div>
-  );
-}
-
-function TeamColumn({
-  players,
-  won,
-  align,
-}: {
-  players: Array<{ id: string; name: string }>;
-  won: boolean;
-  align: "left" | "right";
-}) {
-  return (
-    <div className={`team-col ${align}${won ? "" : " lost"}`}>
-      {players.map((player) => (
-        <div className="team-player" key={player.id}>
-          <Avatar name={player.name} size={20} />
-          <span className="name">{player.name.split(" ")[0]}</span>
-        </div>
-      ))}
-    </div>
   );
 }
 
