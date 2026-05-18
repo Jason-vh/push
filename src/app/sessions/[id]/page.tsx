@@ -80,9 +80,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       />
 
       <section className="timeline">
-        {session.matches.length > 0 ? (
-          <div className="timeline-spine" aria-hidden />
-        ) : null}
+        <div className="timeline-spine" aria-hidden />
 
         <div className="timeline-row first">
           <LogMatchButton sessionId={session.id} attendees={attendees} />
