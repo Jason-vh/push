@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: push-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: push_padel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - push_dev_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d push_padel"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  push_dev_postgres_data:
