@@ -538,14 +538,10 @@ h3 {
 }
 .lb-rank {
   width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  background: var(--mint-pill);
-  color: var(--forest);
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  font-weight: 800;
+  color: var(--ink-mute);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .lb-name {
