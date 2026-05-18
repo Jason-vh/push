@@ -41,7 +41,18 @@ export function AttendeePicker({
       <Autocomplete.Root
         items={suggestions}
         value={inputValue}
-        onValueChange={setInputValue}
+        onValueChange={(newValue, details) => {
+          // Picking a suggestion (click or Enter) fires with reason
+          // "item-press" and newValue = the option's label. Intercept it so
+          // the label doesn't get stamped into the input, and add the player
+          // instead.
+          if (details.reason === "item-press") {
+            const match = suggestions.find((s) => s.label === newValue);
+            if (match) addUser(match.value);
+            return;
+          }
+          setInputValue(newValue);
+        }}
         openOnInputClick
       >
         <Autocomplete.InputGroup className="attendee-autocomplete-group">
@@ -57,7 +68,6 @@ export function AttendeePicker({
                     className="attendee-option"
                     key={option.value}
                     value={option}
-                    onClick={() => addUser(option.value)}
                   >
                     <strong>{option.label}</strong>
                   </Autocomplete.Item>
@@ -90,9 +100,7 @@ export function AttendeePicker({
             );
           })}
         </div>
-      ) : (
-        <div className="empty compact">No players yet.</div>
-      )}
+      ) : null}
     </div>
   );
 }
