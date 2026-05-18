@@ -1,19 +1,24 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { AuthPanel } from "@/components/AuthPanel";
+import { Avatar } from "@/components/Avatar";
 import { prisma } from "@/lib/db";
-import { displayDelta, displayRating } from "@/lib/elo";
-import { computeRatings, loadAllMatchesOrdered, statsFor } from "@/lib/ratings";
+import { displayRating } from "@/lib/elo";
+import {
+  bestTeammate,
+  computeRatings,
+  loadAllMatchesOrdered,
+  statsFor,
+  toughestOpponent,
+  type PairRecord,
+} from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const user = await getCurrentUser();
-
-  if (!user) {
-    return <Landing />;
-  }
+  if (!user) return <Landing />;
 
   const [users, recentSessions, orderedMatches] = await Promise.all([
     prisma.user.findMany({
@@ -25,12 +30,13 @@ export default async function Home() {
       orderBy: { playedAt: "desc" },
       include: {
         matches: {
-          orderBy: { orderIndex: "asc" },
-          include: {
-            teamAPlayer1: { select: { name: true } },
-            teamAPlayer2: { select: { name: true } },
-            teamBPlayer1: { select: { name: true } },
-            teamBPlayer2: { select: { name: true } },
+          select: {
+            id: true,
+            winnerTeam: true,
+            teamAPlayer1Id: true,
+            teamAPlayer2Id: true,
+            teamBPlayer1Id: true,
+            teamBPlayer2Id: true,
           },
         },
       },
@@ -39,39 +45,100 @@ export default async function Home() {
   ]);
 
   const { stats, byMatch } = computeRatings(orderedMatches);
+  const usersById = new Map(users.map((u) => [u.id, u]));
 
   const leaderboard = users
     .map((u) => {
       const s = statsFor(stats, u.id);
-      return { id: u.id, name: u.name, rating: s.rating, wins: s.wins, losses: s.losses };
+      return {
+        id: u.id,
+        name: u.name,
+        rating: s.rating,
+        wins: s.wins,
+        losses: s.losses,
+        isMe: u.id === user.id,
+      };
     })
     .sort((a, b) => b.rating - a.rating);
 
   const currentStats = statsFor(stats, user.id);
   const currentRank = leaderboard.findIndex((entry) => entry.id === user.id) + 1 || null;
 
+  const teammate = bestTeammate(orderedMatches, user.id);
+  const opponent = toughestOpponent(orderedMatches, user.id);
+
+  // Per-session "my delta" + my W/L. total = all matches in the session.
+  const sessionDelta = new Map<string, number>();
+  const sessionMyResults = new Map<string, { won: number; lost: number; total: number }>();
+  for (const session of recentSessions) {
+    let delta = 0;
+    let won = 0;
+    let lost = 0;
+    for (const match of session.matches) {
+      const onTeamA =
+        match.teamAPlayer1Id === user.id || match.teamAPlayer2Id === user.id;
+      const onTeamB =
+        match.teamBPlayer1Id === user.id || match.teamBPlayer2Id === user.id;
+      if (onTeamA || onTeamB) {
+        const myTeam: "A" | "B" = onTeamA ? "A" : "B";
+        if (match.winnerTeam === myTeam) won += 1;
+        else lost += 1;
+        const change = byMatch.get(match.id)?.find((c) => c.userId === user.id);
+        if (change) delta += change.delta;
+      }
+    }
+    sessionDelta.set(session.id, Math.round(delta));
+    sessionMyResults.set(session.id, { won, lost, total: session.matches.length });
+  }
+
   return (
     <main className="shell">
       <AppHeader userName={user.name} />
 
-      <section className="dashboard-grid">
-        <div className="stack">
-          <div className="card hero-card">
-            <div className="row">
-              <div>
-                <div className="eyebrow" style={{ color: "rgba(255,255,255,.78)" }}>
-                  Your rating
-                </div>
-                <div className="big-number">{displayRating(currentStats.rating)}</div>
-              </div>
-              <span className="pill">Rank {currentRank ? `#${currentRank}` : "—"}</span>
-            </div>
-          </div>
+      <RatingHero rating={currentStats.rating} rank={currentRank} />
 
-          <Leaderboard entries={leaderboard} />
+      <Leaderboard entries={leaderboard} />
+
+      <div className="callout-grid" style={{ marginTop: 14 }}>
+        <CalloutCard
+          title="Best teammate"
+          record={teammate}
+          name={teammate ? usersById.get(teammate.otherUserId)?.name ?? null : null}
+          tone="positive"
+        />
+        <CalloutCard
+          title="Toughest opponent"
+          record={opponent}
+          name={opponent ? usersById.get(opponent.otherUserId)?.name ?? null : null}
+          tone="negative"
+        />
+      </div>
+
+      <section style={{ marginTop: 22 }}>
+        <div className="section-head">
+          <h2>Recent sessions</h2>
+          <Link className="btn-pill" href="/sessions/new">
+            <span className="plus">+</span>
+            New
+          </Link>
         </div>
 
-        <RecentSessions sessions={recentSessions} byMatch={byMatch} />
+        {recentSessions.length === 0 ? (
+          <div className="empty">No sessions logged yet. Start one to see it here.</div>
+        ) : (
+          <div className="session-list">
+            {recentSessions.map((session) => (
+              <SessionRow
+                key={session.id}
+                href={`/sessions/${session.id}`}
+                playedAt={session.playedAt}
+                venue={session.venue}
+                results={sessionMyResults.get(session.id) ?? { won: 0, lost: 0, total: 0 }}
+                delta={sessionDelta.get(session.id) ?? 0}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );
@@ -82,12 +149,38 @@ function Landing() {
     <main className="auth-shell">
       <section className="auth-card-wrap">
         <div className="auth-brand">
-          <div className="logo">P</div>
+          <div className="brand-blob">P</div>
           <strong>Push Padel</strong>
         </div>
         <AuthPanel />
       </section>
     </main>
+  );
+}
+
+function RatingHero({ rating, rank }: { rating: number; rank: number | null }) {
+  return (
+    <div className="rating-hero" style={{ marginBottom: 14 }}>
+      <svg
+        className="ball-seam"
+        viewBox="0 0 400 120"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <defs>
+          <linearGradient id="ballPanel" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#6c8845" />
+            <stop offset="100%" stopColor="#5a7338" />
+          </linearGradient>
+        </defs>
+        <path d="M250,0 C220,30 220,90 250,120 L400,120 L400,0 Z" fill="url(#ballPanel)" />
+      </svg>
+      <div className="hero-body">
+        <div className="hero-label">YOUR RATING</div>
+        <div className="hero-rating">{displayRating(rating)}</div>
+      </div>
+      <div className="hero-rank">{rank ? `Rank #${rank}` : "Unranked"}</div>
+    </div>
   );
 }
 
@@ -97,97 +190,130 @@ type LeaderboardEntry = {
   rating: number;
   wins: number;
   losses: number;
+  isMe: boolean;
 };
 
 function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
   return (
-    <div className="card">
+    <div className="leaderboard">
       <h2>Leaderboard</h2>
-      {entries.length === 0 ? <div className="empty">No players yet. Create a session.</div> : null}
+      {entries.length === 0 ? (
+        <div className="empty" style={{ marginBottom: 12 }}>
+          No players yet. Create a session.
+        </div>
+      ) : null}
       {entries.map((entry, index) => (
-        <div className="leaderboard-row" key={entry.id}>
-          <span className="rank">{index + 1}</span>
-          <div>
-            <strong>{entry.name}</strong>
-            <div className="muted" style={{ fontSize: 13 }}>
-              {entry.wins}W · {entry.losses}L
+        <div className="lb-row" key={entry.id}>
+          <div className="lb-rank">{index + 1}</div>
+          <Avatar name={entry.name} size={28} tone="forest" />
+          <div style={{ minWidth: 0 }}>
+            <div className="lb-name">{entry.isMe ? "You" : entry.name}</div>
+            <div className="lb-wl">
+              <span className="w">{entry.wins}W</span>
+              <span className="sep"> · </span>
+              <span className="l">{entry.losses}L</span>
             </div>
           </div>
-          <strong>{displayRating(entry.rating)}</strong>
+          <div className="lb-rating">{displayRating(entry.rating)}</div>
         </div>
       ))}
     </div>
   );
 }
 
-type RecentSession = Awaited<ReturnType<typeof prisma.gameSession.findMany>>[number] & {
-  matches: Array<{
-    id: string;
-    orderIndex: number;
-    winnerTeam: "A" | "B";
-    teamAPlayer1: { name: string };
-    teamAPlayer2: { name: string };
-    teamBPlayer1: { name: string };
-    teamBPlayer2: { name: string };
-  }>;
-};
-
-function RecentSessions({
-  sessions,
-  byMatch,
+function CalloutCard({
+  title,
+  record,
+  name,
+  tone,
 }: {
-  sessions: RecentSession[];
-  byMatch: ReturnType<typeof computeRatings>["byMatch"];
+  title: string;
+  record: PairRecord | null;
+  name: string | null;
+  tone: "positive" | "negative";
 }) {
   return (
-    <div className="card stack">
-      <div className="row">
-        <h2>Recent sessions</h2>
-        <Link className="btn secondary" href="/sessions/new">
-          + New session
-        </Link>
-      </div>
-      {sessions.length === 0 ? <div className="empty">No sessions logged yet.</div> : null}
-      {sessions.map((session) => (
-        <Link className="match match-link" href={`/sessions/${session.id}`} key={session.id}>
-          <div className="row">
-            <strong>
-              {formatDate(session.playedAt)}
-              {session.venue ? ` · ${session.venue}` : ""}
-            </strong>
-            <span className="pill">{session.matches.length} matches</span>
+    <div className={`callout ${tone}`}>
+      <div className="callout-title">{title}</div>
+      {record && name ? (
+        <div className="callout-body">
+          <Avatar name={name} size={36} tone="forest" />
+          <div style={{ minWidth: 0 }}>
+            <div className="callout-name">{name.split(" ")[0]}</div>
+            <div className="callout-stats">
+              {record.winRate}% · {record.wins}–{record.losses}
+            </div>
           </div>
-          <div className="match-result" style={{ marginTop: 12 }}>
-            {session.matches.length === 0 ? (
-              <span className="muted">No matches logged yet.</span>
-            ) : null}
-            {session.matches.map((match) => {
-              const teamA = `${match.teamAPlayer1.name} / ${match.teamAPlayer2.name}`;
-              const teamB = `${match.teamBPlayer1.name} / ${match.teamBPlayer2.name}`;
-              const winner = match.winnerTeam === "A" ? teamA : teamB;
-              const loser = match.winnerTeam === "A" ? teamB : teamA;
-              const changes = byMatch.get(match.id) ?? [];
-              const avgDelta =
-                changes.reduce((sum, change) => sum + Math.abs(change.delta), 0) /
-                Math.max(changes.length, 1);
-              return (
-                <div className="row" key={match.id}>
-                  <span>
-                    {match.orderIndex}. <strong>{winner}</strong> beat {loser}
-                  </span>
-                  <span className="score">±{displayDelta(avgDelta).replace("+", "")}</span>
-                </div>
-              );
-            })}
-          </div>
-        </Link>
-      ))}
+        </div>
+      ) : (
+        <div className="callout-empty">Not enough games yet.</div>
+      )}
     </div>
   );
 }
 
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(
-    date,
+function SessionRow({
+  href,
+  playedAt,
+  venue,
+  results,
+  delta,
+}: {
+  href: string;
+  playedAt: Date;
+  venue: string | null;
+  results: { won: number; lost: number; total: number };
+  delta: number;
+}) {
+  const { dow, day } = splitDate(playedAt);
+  return (
+    <Link className="session-row" href={href}>
+      <div className="session-date">
+        <span className="dow">{dow}</span>
+        <span className="day">{day}</span>
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div className="session-meta-line">
+          {results.total} {results.total === 1 ? "game" : "games"}
+          {results.won + results.lost > 0 ? (
+            <>
+              {" · "}
+              <span className="w">{results.won}W</span>
+              <span className="sep"> · </span>
+              <span className="l">{results.lost}L</span>
+            </>
+          ) : null}
+        </div>
+        {venue ? <div className="session-venue">{venue}</div> : null}
+      </div>
+      <DeltaPill value={delta} />
+    </Link>
   );
+}
+
+function DeltaPill({ value }: { value: number }) {
+  const direction = value > 0 ? "up" : value < 0 ? "down" : "flat";
+  const abs = Math.abs(value);
+  return (
+    <span className={`delta-pill ${direction}`}>
+      {direction === "flat" ? (
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
+          <rect x="2" y="4.3" width="6" height="1.4" rx="0.7" />
+        </svg>
+      ) : (
+        <svg width="9" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
+          <path d="M5 1.5L9 6.5H1L5 1.5Z" />
+        </svg>
+      )}
+      {direction === "flat" ? "0" : abs}
+    </span>
+  );
+}
+
+function splitDate(date: Date) {
+  const formatter = new Intl.DateTimeFormat("en", { weekday: "short", day: "numeric" });
+  const parts = formatter.formatToParts(date);
+  const dow = parts.find((p) => p.type === "weekday")?.value.toUpperCase() ?? "";
+  const day = parts.find((p) => p.type === "day")?.value ?? "";
+  return { dow, day };
 }

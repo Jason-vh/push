@@ -1,10 +1,10 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { AddMatchForm } from "@/components/AddMatchForm";
-import { AppHeader } from "@/components/AppHeader";
+import { Avatar } from "@/components/Avatar";
+import { AvatarMenu } from "@/components/AvatarMenu";
+import { LogMatchButton } from "@/components/LogMatchButton";
 import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
-import { displayDelta } from "@/lib/elo";
 import { prisma } from "@/lib/db";
-import { computeRatings, loadAllMatchesOrdered } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   if (!user) redirect("/");
 
   const { id } = await params;
-  const [session, knownUsers, orderedMatches] = await Promise.all([
+  const [session, knownUsers] = await Promise.all([
     prisma.gameSession.findUnique({
       where: { id },
       include: {
@@ -23,12 +23,12 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           orderBy: { user: { name: "asc" } },
         },
         matches: {
-          orderBy: { orderIndex: "asc" },
+          orderBy: { orderIndex: "desc" },
           include: {
-            teamAPlayer1: { select: { name: true } },
-            teamAPlayer2: { select: { name: true } },
-            teamBPlayer1: { select: { name: true } },
-            teamBPlayer2: { select: { name: true } },
+            teamAPlayer1: { select: { id: true, name: true } },
+            teamAPlayer2: { select: { id: true, name: true } },
+            teamBPlayer1: { select: { id: true, name: true } },
+            teamBPlayer2: { select: { id: true, name: true } },
           },
         },
       },
@@ -38,47 +38,63 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
-    loadAllMatchesOrdered(prisma),
   ]);
 
   if (!session) notFound();
-
-  const { byMatch } = computeRatings(orderedMatches);
 
   const attendees = session.players.map((sessionPlayer) => ({
     id: sessionPlayer.user.id,
     name: sessionPlayer.user.name,
   }));
 
+  const headerInitial = user.name.trim().charAt(0).toUpperCase() || "?";
+
   return (
     <main className="shell">
-      <AppHeader userName={user.name} />
-
-      <section className="page-heading compact-heading">
-        <h1 className="session-title-line">
-          <span>{formatDate(session.playedAt)}</span>
-          {[session.venue, session.courtNumber ? `Court ${session.courtNumber}` : null].filter(
-            Boolean,
-          ).length > 0 ? (
-            <span className="session-title-meta">
-              {[session.venue, session.courtNumber ? `Court ${session.courtNumber}` : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
-          ) : null}
-        </h1>
-      </section>
-
-      <section className="dashboard-grid">
-        <div className="stack">
-          <SessionAttendeesForm
-            sessionId={session.id}
-            knownUsers={knownUsers}
-            initialAttendees={attendees.map((attendee) => attendee.id)}
-          />
-          <MatchHistory matches={session.matches} byMatch={byMatch} />
+      <header className="session-header">
+        <div className="session-header-content">
+          <Link className="brand-link" href="/" aria-label="Dashboard">
+            <div className="brand-blob">P</div>
+          </Link>
+          <div>
+            <h1 className="session-title">{formatDate(session.playedAt)}</h1>
+            {(session.venue || session.courtNumber) ? (
+              <div className="session-subtitle">
+                {session.courtNumber ? <span>Court {session.courtNumber}</span> : null}
+                {session.courtNumber && session.venue ? (
+                  <span className="dotsep">·</span>
+                ) : null}
+                {session.venue ? <span>{session.venue}</span> : null}
+              </div>
+            ) : null}
+          </div>
         </div>
-        <AddMatchForm sessionId={session.id} attendees={attendees} />
+        <AvatarMenu initial={headerInitial} />
+      </header>
+
+      <SessionAttendeesForm
+        sessionId={session.id}
+        knownUsers={knownUsers}
+        initialAttendees={attendees.map((attendee) => attendee.id)}
+        matchCount={session.matches.length}
+      />
+
+      <section className="timeline">
+        <div className="timeline-spine" aria-hidden />
+
+        <div className="timeline-row first">
+          <LogMatchButton sessionId={session.id} attendees={attendees} />
+        </div>
+
+        {session.matches.length === 0 ? (
+          <div className="empty" style={{ marginTop: 12 }}>
+            No matches yet. Tap “Log a match” to add the first one.
+          </div>
+        ) : (
+          session.matches.map((match) => (
+            <MatchRow key={match.id} match={match} />
+          ))
+        )}
       </section>
     </main>
   );
@@ -86,52 +102,61 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
 type MatchWithPlayers = {
   id: string;
-  orderIndex: number;
   winnerTeam: "A" | "B";
-  teamAPlayer1: { name: string };
-  teamAPlayer2: { name: string };
-  teamBPlayer1: { name: string };
-  teamBPlayer2: { name: string };
+  teamAPlayer1: { id: string; name: string };
+  teamAPlayer2: { id: string; name: string };
+  teamBPlayer1: { id: string; name: string };
+  teamBPlayer2: { id: string; name: string };
 };
 
-function MatchHistory({
-  matches,
-  byMatch,
+function MatchRow({ match }: { match: MatchWithPlayers }) {
+  const aWon = match.winnerTeam === "A";
+  return (
+    <div className="timeline-row">
+      <div className="match-card">
+        <TeamColumn
+          players={[match.teamAPlayer1, match.teamAPlayer2]}
+          won={aWon}
+          align="left"
+        />
+        <div className="match-vs">
+          <span className="vs">VS</span>
+        </div>
+        <TeamColumn
+          players={[match.teamBPlayer1, match.teamBPlayer2]}
+          won={!aWon}
+          align="right"
+        />
+      </div>
+    </div>
+  );
+}
+
+function TeamColumn({
+  players,
+  won,
+  align,
 }: {
-  matches: MatchWithPlayers[];
-  byMatch: ReturnType<typeof computeRatings>["byMatch"];
+  players: Array<{ id: string; name: string }>;
+  won: boolean;
+  align: "left" | "right";
 }) {
   return (
-    <div className="card stack">
-      <h2>Matches</h2>
-      {matches.length === 0 ? <div className="empty">No matches logged yet.</div> : null}
-      {matches.map((match) => {
-        const teamA = `${match.teamAPlayer1.name} / ${match.teamAPlayer2.name}`;
-        const teamB = `${match.teamBPlayer1.name} / ${match.teamBPlayer2.name}`;
-        const winner = match.winnerTeam === "A" ? teamA : teamB;
-        const loser = match.winnerTeam === "A" ? teamB : teamA;
-        const changes = byMatch.get(match.id) ?? [];
-        const avgDelta =
-          changes.reduce((sum, change) => sum + Math.abs(change.delta), 0) /
-          Math.max(changes.length, 1);
-
-        return (
-          <div className="match" key={match.id}>
-            <div className="row">
-              <strong>
-                {match.orderIndex}. {winner} beat {loser}
-              </strong>
-              <span className="score">±{displayDelta(avgDelta).replace("+", "")}</span>
-            </div>
-          </div>
-        );
-      })}
+    <div className={`team-col ${align}${won ? "" : " lost"}`}>
+      {players.map((player) => (
+        <div className="team-player" key={player.id}>
+          <Avatar name={player.name} size={20} tone={won ? "forest" : "mint"} />
+          <span className="name">{player.name.split(" ")[0]}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
 function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en", { weekday: "short", month: "short", day: "numeric" }).format(
-    date,
-  );
+  return new Intl.DateTimeFormat("en", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(date);
 }

@@ -1,0 +1,301 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Avatar } from "@/components/Avatar";
+
+type Attendee = { id: string; name: string };
+type Team = "A" | "B";
+type SlotKey = "a1" | "a2" | "b1" | "b2";
+type Slots = Record<SlotKey, string>;
+type Status = "idle" | "saving";
+
+const EMPTY_SLOTS: Slots = { a1: "", a2: "", b1: "", b2: "" };
+const SLOT_ORDER: SlotKey[] = ["a1", "a2", "b1", "b2"];
+
+// Slot 1 = A front (top-left); 2 = A back (bottom-left);
+// 3 = B front (top-right); 4 = B back (bottom-right).
+const SLOT_STYLES: Record<SlotKey, React.CSSProperties> = {
+  a1: { top: 18, left: 18, right: "calc(50% + 4px)", bottom: "calc(50% + 4px)" },
+  a2: { bottom: 18, left: 18, right: "calc(50% + 4px)", top: "calc(50% + 4px)" },
+  b1: { top: 18, right: 18, left: "calc(50% + 4px)", bottom: "calc(50% + 4px)" },
+  b2: { bottom: 18, right: 18, left: "calc(50% + 4px)", top: "calc(50% + 4px)" },
+};
+
+const SLOT_NUMBERS: Record<SlotKey, number> = { a1: 1, a2: 2, b1: 3, b2: 4 };
+
+export function LogMatchSheet({
+  sessionId,
+  attendees,
+  open,
+  onClose,
+}: {
+  sessionId: string;
+  attendees: Attendee[];
+  open: boolean;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [slots, setSlots] = useState<Slots>(EMPTY_SLOTS);
+  const [status, setStatus] = useState<Status>("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) {
+      setSlots(EMPTY_SLOTS);
+      setStatus("idle");
+      setError(null);
+      dialog.showModal();
+    } else if (!open && dialog.open) {
+      dialog.close();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog || !open) return;
+    const onBackdropClick = (event: MouseEvent) => {
+      if (status !== "idle") return;
+      // The browser dispatches click events on the dialog element when
+      // the user clicks the backdrop (outside the inner content rect).
+      const rect = dialog.getBoundingClientRect();
+      const inside =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+      if (!inside) onClose();
+    };
+    dialog.addEventListener("click", onBackdropClick);
+    return () => dialog.removeEventListener("click", onBackdropClick);
+  }, [open, status, onClose]);
+
+  const attendeeById = new Map(attendees.map((a) => [a.id, a]));
+  const assignedIds = new Set(Object.values(slots).filter(Boolean));
+  const bench = attendees.filter((a) => !assignedIds.has(a.id));
+  const placedCount = SLOT_ORDER.filter((k) => slots[k]).length;
+  const ready = placedCount === 4;
+  const nextEmpty = SLOT_ORDER.find((k) => !slots[k]) ?? null;
+  const busy = status !== "idle";
+
+  function placeOnBench(attendeeId: string) {
+    if (busy || !nextEmpty) return;
+    setSlots({ ...slots, [nextEmpty]: attendeeId });
+  }
+
+  function clearSlot(slotKey: SlotKey) {
+    if (busy) return;
+    setSlots({ ...slots, [slotKey]: "" });
+  }
+
+  async function saveWith(winner: Team) {
+    if (busy || !ready) return;
+    setError(null);
+    setStatus("saving");
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}/matches`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamAPlayer1Id: slots.a1,
+          teamAPlayer2Id: slots.a2,
+          teamBPlayer1Id: slots.b1,
+          teamBPlayer2Id: slots.b2,
+          winnerTeam: winner,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not save match");
+      router.refresh();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save match");
+      setStatus("idle");
+    }
+  }
+
+  const teamA: Attendee[] = [slots.a1, slots.a2]
+    .map((id) => attendeeById.get(id))
+    .filter((a): a is Attendee => Boolean(a));
+  const teamB: Attendee[] = [slots.b1, slots.b2]
+    .map((id) => attendeeById.get(id))
+    .filter((a): a is Attendee => Boolean(a));
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="sheet"
+      aria-label="Log a match"
+      onClose={onClose}
+      onCancel={(event) => {
+        if (busy) event.preventDefault();
+      }}
+    >
+      <div className="sheet-inner">
+          <div className="sheet-grabber">
+            <span />
+          </div>
+
+          <div className="sheet-header">
+            <div>
+              <h2 className="sheet-title">Set the teams</h2>
+              <div className="sheet-sub">
+                {ready
+                  ? "Tap the winning team to save"
+                  : placedCount === 0
+                    ? "Tap 4 players from the bench"
+                    : `Tap ${4 - placedCount} more from the bench`}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="sheet-close"
+              aria-label="Close"
+              onClick={onClose}
+              disabled={busy}
+            >
+              ×
+            </button>
+          </div>
+
+          {error ? <div className="error sheet-error">{error}</div> : null}
+
+          <div className="court-wrap">
+            <div className="court-team-labels">
+              <span>TEAM A</span>
+              <span>TEAM B</span>
+            </div>
+            <div className="court">
+              <div className="court-outline" />
+              <div className="court-net" />
+              {SLOT_ORDER.map((key) => {
+                const id = slots[key];
+                const attendee = id ? attendeeById.get(id) : null;
+                const isActive = !attendee && key === nextEmpty;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`court-slot${attendee ? " filled" : " empty"}${
+                      isActive ? " active" : ""
+                    }`}
+                    style={SLOT_STYLES[key]}
+                    onClick={() => attendee && clearSlot(key)}
+                    aria-label={
+                      attendee ? `Remove ${attendee.name} from slot ${SLOT_NUMBERS[key]}` : `Slot ${SLOT_NUMBERS[key]} empty`
+                    }
+                    disabled={!attendee || busy}
+                  >
+                    {attendee ? (
+                      <>
+                        <Avatar name={attendee.name} size={34} tone="forest" />
+                        <span className="slot-name">{firstName(attendee.name)}</span>
+                      </>
+                    ) : (
+                      <span className="slot-num">{SLOT_NUMBERS[key]}</span>
+                    )}
+                  </button>
+                );
+              })}
+              <span className="court-vs">VS</span>
+            </div>
+          </div>
+
+          <div className="bench">
+            <div className="bench-label">
+              {ready ? "Sitting out" : "On the bench · tap to place"}
+            </div>
+            <div className="bench-strip">
+              {bench.length === 0 ? (
+                <div className="bench-empty">Nobody — everyone&apos;s on court</div>
+              ) : (
+                bench.map((player) => (
+                  <button
+                    key={player.id}
+                    type="button"
+                    className="bench-chip"
+                    onClick={() => placeOnBench(player.id)}
+                    disabled={ready || busy}
+                  >
+                    <Avatar
+                      name={player.name}
+                      size={22}
+                      tone={ready ? "mint" : "forest"}
+                    />
+                    {firstName(player.name)}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {ready ? (
+            <div className="win-pick-row">
+              <WinPick
+                label="Team A"
+                players={teamA}
+                onPick={() => saveWith("A")}
+                disabled={busy}
+              />
+              <WinPick
+                label="Team B"
+                players={teamB}
+                onPick={() => saveWith("B")}
+                disabled={busy}
+              />
+            </div>
+          ) : null}
+
+          {busy ? <div className="sheet-status">Saving…</div> : null}
+        </div>
+    </dialog>
+  );
+}
+
+function WinPick({
+  label,
+  players,
+  onPick,
+  disabled,
+}: {
+  label: string;
+  players: Attendee[];
+  onPick: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className="win-pick"
+      onClick={onPick}
+      disabled={disabled}
+      aria-label={`${label} won`}
+    >
+      <div className="win-pick-head">
+        <span>{label.toUpperCase()} WON</span>
+        <span className="arrow" aria-hidden>
+          →
+        </span>
+      </div>
+      <div className="win-pick-body">
+        <div className="win-pick-stack">
+          {players.map((p) => (
+            <span className="frame" key={p.id}>
+              <Avatar name={p.name} size={26} tone="forest" />
+            </span>
+          ))}
+        </div>
+        <span className="win-pick-names">
+          {players.map((p) => firstName(p.name)).join(" & ")}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function firstName(full: string) {
+  return full.split(" ")[0];
+}
