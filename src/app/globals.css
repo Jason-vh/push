@@ -880,7 +880,7 @@ h3 {
   z-index: 1;
 }
 .log-button:disabled {
-  opacity: 0.55;
+  background: color-mix(in srgb, var(--forest) 55%, var(--bg-cream));
   cursor: not-allowed;
 }
 
