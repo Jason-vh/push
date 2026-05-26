@@ -25,7 +25,9 @@ export function LogMatchButton({
         aria-haspopup="dialog"
       >
         <span className="log-plus" aria-hidden>
-          +
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+            <path d="M4 0h2v10H4z M0 4h10v2H0z" />
+          </svg>
         </span>
         {disabled ? `Add ${4 - attendees.length} more player${4 - attendees.length === 1 ? "" : "s"}` : "Log a match"}
       </button>
