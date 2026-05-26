@@ -47,4 +47,6 @@ jobs:
 
       - name: Prune unused docker resources
         if: always()
-        run: docker system prune -af
+        run: |
+          docker image prune -af
+          docker builder prune -f --keep-storage 2GB
