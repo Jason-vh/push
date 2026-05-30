@@ -181,6 +181,8 @@ a {
   justify-content: space-between;
   align-items: center;
   padding: 4px 4px 18px;
+  position: relative;
+  z-index: 20;
 }
 .app-header .brand-link {
   text-decoration: none;
@@ -810,6 +812,8 @@ h3 {
   justify-content: space-between;
   align-items: flex-start;
   padding: 4px 4px 0;
+  position: relative;
+  z-index: 20;
 }
 .session-header .brand-link {
   text-decoration: none;
