@@ -150,7 +150,6 @@ function Landing() {
       <section className="auth-card-wrap">
         <div className="auth-brand">
           <div className="brand-blob">P</div>
-          <strong>Push Padel</strong>
         </div>
         <AuthPanel />
       </section>
