@@ -10,6 +10,9 @@ type SlotKey = "a1" | "a2" | "b1" | "b2";
 type Slots = Record<SlotKey, string>;
 type Status = "idle" | "saving" | "deleting";
 
+const CLOSE_ANIMATION_MS = 280;
+const DELETE_CONFIRM_MS = 4000;
+
 export type EditingMatch = {
   id: string;
   teamAPlayer1Id: string;
@@ -60,6 +63,9 @@ export function LogMatchSheet({
   const [slots, setSlots] = useState<Slots>(EMPTY_SLOTS);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const confirmTimeoutRef = useRef<number | null>(null);
   const isEditing = Boolean(match);
 
   useEffect(() => {
@@ -69,11 +75,24 @@ export function LogMatchSheet({
       setSlots(match ? slotsFromMatch(match) : EMPTY_SLOTS);
       setStatus("idle");
       setError(null);
+      setClosing(false);
+      setConfirmingDelete(false);
       dialog.showModal();
     } else if (!open && dialog.open) {
-      dialog.close();
+      setClosing(true);
+      const timer = window.setTimeout(() => {
+        dialog.close();
+        setClosing(false);
+      }, CLOSE_ANIMATION_MS);
+      return () => window.clearTimeout(timer);
     }
   }, [open, match]);
+
+  useEffect(() => {
+    return () => {
+      if (confirmTimeoutRef.current) window.clearTimeout(confirmTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -143,7 +162,19 @@ export function LogMatchSheet({
 
   async function deleteMatch() {
     if (busy || !match) return;
-    if (!window.confirm("Delete this match? This will recompute ratings.")) return;
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      if (confirmTimeoutRef.current) window.clearTimeout(confirmTimeoutRef.current);
+      confirmTimeoutRef.current = window.setTimeout(
+        () => setConfirmingDelete(false),
+        DELETE_CONFIRM_MS,
+      );
+      return;
+    }
+    if (confirmTimeoutRef.current) {
+      window.clearTimeout(confirmTimeoutRef.current);
+      confirmTimeoutRef.current = null;
+    }
     setError(null);
     setStatus("deleting");
     try {
@@ -157,6 +188,7 @@ export function LogMatchSheet({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete match");
       setStatus("idle");
+      setConfirmingDelete(false);
     }
   }
 
@@ -170,11 +202,12 @@ export function LogMatchSheet({
   return (
     <dialog
       ref={dialogRef}
-      className="sheet"
+      className={`sheet${closing ? " is-closing" : ""}`}
       aria-label={isEditing ? "Edit match" : "Log a match"}
       onClose={onClose}
       onCancel={(event) => {
-        if (busy) event.preventDefault();
+        event.preventDefault();
+        if (!busy) onClose();
       }}
     >
       <div className="sheet-inner">
@@ -295,11 +328,15 @@ export function LogMatchSheet({
           {isEditing ? (
             <button
               type="button"
-              className="sheet-delete"
+              className={`sheet-delete${confirmingDelete ? " is-confirming" : ""}`}
               onClick={deleteMatch}
               disabled={busy}
             >
-              {status === "deleting" ? "Deleting…" : "Delete match"}
+              {status === "deleting"
+                ? "Deleting…"
+                : confirmingDelete
+                  ? "Tap again to delete"
+                  : "Delete match"}
             </button>
           ) : null}
 

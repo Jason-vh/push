@@ -89,7 +89,7 @@ export function SessionAttendeesForm({
       </div>
 
       {editing ? (
-        <div className="card" style={{ marginTop: 12 }}>
+        <div className="card edit-panel" style={{ marginTop: 12 }}>
           <div className="row" style={{ marginBottom: 10 }}>
             <h2 style={{ margin: 0 }}>Players</h2>
             {status !== "idle" ? (

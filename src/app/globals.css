@@ -132,6 +132,25 @@ a {
   }
 }
 
+/* Sections that mount after the initial page load (e.g. the edit-players
+   card when the user toggles edit) should not inherit the page-rise
+   stagger — they need to feel responsive to the tap, not delayed. */
+.shell > .edit-panel {
+  animation: edit-panel-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0ms;
+}
+@keyframes edit-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scaleY(0.96);
+    transform-origin: top center;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shell > *,
   .auth-card-wrap > * {
@@ -1051,10 +1070,16 @@ h3 {
   flex-direction: column;
   animation: sheet-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+.sheet.is-closing {
+  animation: sheet-down 280ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
 .sheet::backdrop {
   background: rgba(13, 32, 21, 0.45);
   backdrop-filter: blur(6px);
   animation: scrim-in 200ms ease-out;
+}
+.sheet.is-closing::backdrop {
+  animation: scrim-out 280ms ease forwards;
 }
 @keyframes scrim-in {
   from {
@@ -1062,6 +1087,14 @@ h3 {
   }
   to {
     opacity: 1;
+  }
+}
+@keyframes scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 @keyframes sheet-up {
@@ -1072,6 +1105,16 @@ h3 {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+@keyframes sheet-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(60%);
+    opacity: 0;
   }
 }
 .sheet-inner {
@@ -1375,15 +1418,21 @@ h3 {
 .sheet-delete {
   align-self: center;
   margin-top: 8px;
-  padding: 10px 16px;
+  padding: 10px 18px;
   background: transparent;
-  border: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
   color: #8e3b3c;
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    transform 120ms ease;
 }
 .sheet-delete:hover:not(:disabled) {
   text-decoration: underline;
@@ -1391,4 +1440,23 @@ h3 {
 .sheet-delete:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.sheet-delete.is-confirming {
+  background: #8e3b3c;
+  color: #fff;
+  border-color: #8e3b3c;
+  text-decoration: none;
+  animation: delete-pulse 1.4s ease-in-out infinite;
+}
+.sheet-delete.is-confirming:hover:not(:disabled) {
+  text-decoration: none;
+}
+@keyframes delete-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(142, 59, 60, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(142, 59, 60, 0);
+  }
 }
