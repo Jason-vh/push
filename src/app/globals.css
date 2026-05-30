@@ -176,17 +176,22 @@ a {
 }
 
 /* ─────────────────────────────────────────────
-   App header — P logo left, avatar menu right
+   App-level nav — P logo left, avatar menu right.
+   Lives in the root layout so it persists across
+   route changes (and never replays the page-rise).
    ───────────────────────────────────────────── */
-.app-header {
+.app-nav {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 22px 22px 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 4px 18px;
   position: relative;
   z-index: 20;
 }
-.app-header .brand-link {
+.app-nav .brand-link {
   text-decoration: none;
   display: inline-flex;
 }
@@ -810,21 +815,7 @@ h3 {
    Session page — header + timeline + roster
    ───────────────────────────────────────────── */
 .session-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   padding: 4px 4px 0;
-  position: relative;
-  z-index: 20;
-}
-.session-header .brand-link {
-  text-decoration: none;
-  display: inline-flex;
-}
-.session-header-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 .session-title {
   font-size: 22px;

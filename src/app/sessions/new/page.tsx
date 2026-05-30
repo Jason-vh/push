@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppHeader } from "@/components/AppHeader";
 import { CreateSessionForm } from "@/components/CreateSessionForm";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -18,7 +17,6 @@ export default async function NewSessionPage() {
 
   return (
     <main className="shell">
-      <AppHeader userName={user.name} />
       <CreateSessionForm knownUsers={users} />
     </main>
   );

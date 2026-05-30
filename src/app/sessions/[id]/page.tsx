@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { AvatarMenu } from "@/components/AvatarMenu";
 import { LogMatchButton } from "@/components/LogMatchButton";
 import { MatchCard } from "@/components/MatchCard";
 import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
@@ -47,29 +45,19 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     name: sessionPlayer.user.name,
   }));
 
-  const headerInitial = user.name.trim().charAt(0).toUpperCase() || "?";
-
   return (
     <main className="shell">
       <header className="session-header">
-        <div className="session-header-content">
-          <Link className="brand-link" href="/" aria-label="Dashboard">
-            <div className="brand-blob">P</div>
-          </Link>
-          <div>
-            <h1 className="session-title">{formatDate(session.playedAt)}</h1>
-            {(session.venue || session.courtNumber) ? (
-              <div className="session-subtitle">
-                {session.courtNumber ? <span>Court {session.courtNumber}</span> : null}
-                {session.courtNumber && session.venue ? (
-                  <span className="dotsep">·</span>
-                ) : null}
-                {session.venue ? <span>{session.venue}</span> : null}
-              </div>
+        <h1 className="session-title">{formatDate(session.playedAt)}</h1>
+        {(session.venue || session.courtNumber) ? (
+          <div className="session-subtitle">
+            {session.courtNumber ? <span>Court {session.courtNumber}</span> : null}
+            {session.courtNumber && session.venue ? (
+              <span className="dotsep">·</span>
             ) : null}
+            {session.venue ? <span>{session.venue}</span> : null}
           </div>
-        </div>
-        <AvatarMenu initial={headerInitial} />
+        ) : null}
       </header>
 
       <SessionAttendeesForm

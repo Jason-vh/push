@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { AppHeader } from "@/components/AppHeader";
 import { AuthPanel } from "@/components/AuthPanel";
 import { Avatar } from "@/components/Avatar";
 import { prisma } from "@/lib/db";
@@ -93,8 +92,6 @@ export default async function Home() {
 
   return (
     <main className="shell">
-      <AppHeader userName={user.name} />
-
       <RatingHero rating={currentStats.rating} rank={currentRank} />
 
       <Leaderboard entries={leaderboard} />
