@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM node:24-bookworm-slim AS base
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -10,7 +11,7 @@ RUN apt-get update \
 FROM base AS deps
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
