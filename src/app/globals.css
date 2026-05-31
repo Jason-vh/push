@@ -49,15 +49,15 @@ body {
 
 /* Paint the gradient on <html> so it always covers the full screen,
    including the iOS safe areas above the status bar and below the home
-   indicator. Radial focal points are nudged down so their warm peaks
-   land inside the visible content area instead of behind the status
-   bar. Linear is symmetric so both safe-area edges blend with the
-   theme-color tint applied to Safari's chrome. */
+   indicator. The linear runs warm peach at the top through cream at
+   the bottom; the bottom cream matches theme-color so it merges with
+   Safari's URL bar tint. Radials are anchored near the top with enough
+   size to reach all the way up into the status-bar safe area. */
 html {
   background:
-    radial-gradient(120% 65% at 78% 14%, #f5d99c 0%, transparent 55%),
-    radial-gradient(120% 65% at 12% 20%, #f1e7c9 0%, transparent 50%),
-    linear-gradient(180deg, #f4e9cf 0%, #ece1bc 55%, #f4e9cf 100%);
+    radial-gradient(140% 80% at 78% 0%, #f5d99c 0%, transparent 60%),
+    radial-gradient(140% 70% at 12% 8%, #f1e7c9 0%, transparent 55%),
+    linear-gradient(180deg, #f1e1b1 0%, #f4e9cf 100%);
   background-color: #f4e9cf;
   background-attachment: fixed;
 }
