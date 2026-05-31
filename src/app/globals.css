@@ -220,17 +220,11 @@ a {
   position: relative;
 }
 .avatar-menu-button {
-  width: 36px;
-  height: 36px;
   border: 0;
   border-radius: 999px;
-  background: var(--forest);
-  color: #f4ead0;
-  font-weight: 700;
-  font-size: 14px;
-  display: grid;
-  place-items: center;
+  background: transparent;
   padding: 0;
+  display: inline-flex;
 }
 .avatar-dropdown {
   position: absolute;

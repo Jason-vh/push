@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Avatar } from "@/components/Avatar";
 
-export function AvatarMenu({ initial }: { initial: string }) {
+export function AvatarMenu({ name }: { name: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -23,8 +24,9 @@ export function AvatarMenu({ initial }: { initial: string }) {
         onClick={() => setOpen((current) => !current)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Account menu"
       >
-        {initial}
+        <Avatar name={name} size={36} />
       </button>
       {open ? (
         <div className="avatar-dropdown" role="menu">

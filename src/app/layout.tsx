@@ -11,7 +11,6 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
-  const initial = user?.name.trim().charAt(0).toUpperCase() || "?";
 
   return (
     <html lang="en">
@@ -21,7 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Link className="brand-link" href="/" aria-label="Dashboard">
               <div className="brand-blob">P</div>
             </Link>
-            <AvatarMenu initial={initial} />
+            <AvatarMenu name={user.name} />
           </nav>
         ) : null}
         {children}
