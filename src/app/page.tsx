@@ -56,12 +56,32 @@ export default async function Home() {
         wins: s.wins,
         losses: s.losses,
         isMe: u.id === user.id,
+        rank: 0,
       };
     })
-    .sort((a, b) => b.rating - a.rating);
+    .sort((a, b) => {
+      const ar = displayRating(a.rating);
+      const br = displayRating(b.rating);
+      if (ar !== br) return br - ar;
+      if (a.wins !== b.wins) return b.wins - a.wins;
+      if (a.losses !== b.losses) return a.losses - b.losses;
+      return a.name.localeCompare(b.name);
+    });
+
+  // Dense ranking: tied players share a rank, the next group is rank+1 (no skip).
+  let lastDisplay: number | null = null;
+  let lastRank = 0;
+  for (const entry of leaderboard) {
+    const d = displayRating(entry.rating);
+    if (d !== lastDisplay) {
+      lastRank += 1;
+      lastDisplay = d;
+    }
+    entry.rank = lastRank;
+  }
 
   const currentStats = statsFor(stats, user.id);
-  const currentRank = leaderboard.findIndex((entry) => entry.id === user.id) + 1 || null;
+  const currentRank = leaderboard.find((entry) => entry.isMe)?.rank ?? null;
 
   const teammate = bestTeammate(orderedMatches, user.id);
   const opponent = toughestOpponent(orderedMatches, user.id);
@@ -180,6 +200,7 @@ type LeaderboardEntry = {
   wins: number;
   losses: number;
   isMe: boolean;
+  rank: number;
 };
 
 function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
@@ -191,9 +212,9 @@ function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
           No players yet. Create a session.
         </div>
       ) : null}
-      {entries.map((entry, index) => (
+      {entries.map((entry) => (
         <div className="lb-row" key={entry.id}>
-          <div className="lb-rank">{index + 1}</div>
+          <div className="lb-rank">{entry.rank}</div>
           <Avatar name={entry.name} size={28} />
           <div style={{ minWidth: 0 }}>
             <div className="lb-name">{entry.isMe ? "You" : entry.name}</div>
