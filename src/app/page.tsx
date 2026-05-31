@@ -212,9 +212,11 @@ function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
           No players yet. Create a session.
         </div>
       ) : null}
-      {entries.map((entry) => (
+      {entries.map((entry, index) => (
         <div className="lb-row" key={entry.id}>
-          <div className="lb-rank">{entry.rank}</div>
+          <div className="lb-rank">
+            {index > 0 && entries[index - 1].rank === entry.rank ? "" : entry.rank}
+          </div>
           <Avatar name={entry.name} size={28} />
           <div style={{ minWidth: 0 }}>
             <div className="lb-name">{entry.isMe ? "You" : entry.name}</div>
