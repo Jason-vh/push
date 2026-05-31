@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { AvatarMenu } from "@/components/AvatarMenu";
 import { getCurrentUser } from "@/lib/session";
@@ -7,6 +7,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Push Padel",
   description: "Private padel sessions, scores, and lifetime doubles ELO.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f4e9cf",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
