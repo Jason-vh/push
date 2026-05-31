@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AuthPanel } from "@/components/AuthPanel";
+import { redirect } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { prisma } from "@/lib/db";
 import { displayRating } from "@/lib/elo";
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const user = await getCurrentUser();
-  if (!user) return <Landing />;
+  if (!user) redirect("/login");
 
   const [users, recentSessions, orderedMatches] = await Promise.all([
     prisma.user.findMany({
@@ -136,19 +136,6 @@ export default async function Home() {
             ))}
           </div>
         )}
-      </section>
-    </main>
-  );
-}
-
-function Landing() {
-  return (
-    <main className="auth-shell">
-      <section className="auth-card-wrap">
-        <div className="auth-brand">
-          <div className="brand-blob">P</div>
-        </div>
-        <AuthPanel />
       </section>
     </main>
   );

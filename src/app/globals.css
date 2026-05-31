@@ -103,28 +103,27 @@ a {
 }
 
 .auth-shell {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding-top: max(32px, env(safe-area-inset-top));
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
   padding-right: max(16px, env(safe-area-inset-right));
-  padding-bottom: max(32px, env(safe-area-inset-bottom));
   padding-left: max(16px, env(safe-area-inset-left));
 }
 
 .shell > *,
-.auth-card-wrap > * {
+.auth-editorial > * {
   animation: page-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .shell > *:nth-child(1),
-.auth-card-wrap > *:nth-child(1) {
+.auth-editorial > *:nth-child(1) {
   animation-delay: 0ms;
 }
 .shell > *:nth-child(2),
-.auth-card-wrap > *:nth-child(2) {
+.auth-editorial > *:nth-child(2) {
   animation-delay: 90ms;
 }
-.shell > *:nth-child(3) {
+.shell > *:nth-child(3),
+.auth-editorial > *:nth-child(3) {
   animation-delay: 180ms;
 }
 .shell > *:nth-child(4) {
@@ -174,46 +173,87 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .shell > *,
-  .auth-card-wrap > * {
+  .auth-editorial > * {
     animation: none;
   }
 }
-.auth-card-wrap {
-  width: min(430px, 100%);
-  display: grid;
-  gap: 22px;
-}
-.auth-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 22px;
-  letter-spacing: -0.04em;
-}
 
-/* Wrapper inside .auth-card-wrap — stable across signin↔signup so the
-   page-rise only plays once on initial load. */
-.auth-panel {
+/* ─────────────────────────────────────────────
+   Editorial auth layout (/login + /register).
+   Brand + display headline pinned to the top,
+   action buttons pushed to the bottom of the
+   viewport via margin-top: auto on .auth-actions.
+   ───────────────────────────────────────────── */
+.auth-editorial {
+  width: min(430px, 100%);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(22px + env(safe-area-inset-top));
+  padding-bottom: max(32px, env(safe-area-inset-bottom));
+}
+.auth-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+.auth-display {
+  font-size: clamp(48px, 16vw, 72px);
+  line-height: 0.88;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  color: var(--forest);
+  margin: 28px 0 0;
+}
+.auth-display em {
+  font-style: normal;
+  color: var(--court);
+}
+.auth-name-field {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.auth-name-field label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.auth-name-field input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-bottom: 2px solid rgba(13, 63, 36, 0.25);
+  padding: 6px 0 10px;
+  font-family: inherit;
+  /* iOS auto-zooms below 16px; 22px is also the display tone we want. */
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 160ms ease;
+}
+.auth-name-field input::placeholder {
+  color: rgba(13, 63, 36, 0.3);
+  font-weight: 500;
+}
+.auth-name-field input:focus {
+  border-bottom-color: var(--forest);
+}
+.auth-actions {
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-top: 32px;
 }
-
-/* The inner .auth-view re-mounts via React `key` when the user toggles
-   between signin and signup, so this animation fires on every toggle. */
-.auth-view {
-  animation: auth-view-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes auth-view-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.auth-error {
+  margin-bottom: 4px;
 }
 
 /* ─────────────────────────────────────────────
