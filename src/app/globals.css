@@ -237,6 +237,18 @@ a {
   border: 1px solid var(--surface-line);
   box-shadow: var(--pop-shadow);
   padding: 6px;
+  transform-origin: top right;
+  animation: dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 .avatar-dropdown button {
   width: 100%;
