@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { startAuthentication } from "@simplewebauthn/browser";
 
 async function postJson(url: string, body: unknown) {
@@ -24,39 +24,6 @@ export function LoginActions() {
   const [mode, setMode] = useState<"idle" | "signin">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  function enterApp() {
-    window.location.href = "/";
-  }
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function promptPasskey() {
-      try {
-        const { challengeId, options } = await postJson("/api/auth/login/options", {});
-        if (cancelled) return;
-        const response = await startAuthentication({ optionsJSON: options });
-        if (cancelled) return;
-        await postJson("/api/auth/login/verify", { challengeId, response });
-        enterApp();
-      } catch (err) {
-        // User dismissed the sheet, or no passkey is available for this RP.
-        // Either case, fall through silently — the "Log in" button stays
-        // available for a manual retry.
-        const errorName = err instanceof Error ? err.name : null;
-        if (errorName !== "AbortError" && errorName !== "NotAllowedError") {
-          console.debug("Auto passkey prompt failed", err);
-        }
-      }
-    }
-
-    promptPasskey();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   async function signIn() {
     setError(null);
     setMode("signin");
@@ -64,7 +31,7 @@ export function LoginActions() {
       const { challengeId, options } = await postJson("/api/auth/login/options", {});
       const response = await startAuthentication({ optionsJSON: options });
       await postJson("/api/auth/login/verify", { challengeId, response });
-      enterApp();
+      window.location.href = "/";
     } catch (err) {
       if (!isCanceledAuthDialog(err)) {
         setError(err instanceof Error ? err.message : "Could not sign in");
