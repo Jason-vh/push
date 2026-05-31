@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { AuthChallengeType } from "@prisma/client";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
@@ -13,12 +14,10 @@ export async function POST(request: Request) {
   const input = schema.parse(await request.json());
   const name = input.name.trim();
 
-  const user = await prisma.user.create({ data: { name } });
-
   const options = await generateRegistrationOptions({
     rpName,
     rpID,
-    userID: new TextEncoder().encode(user.id),
+    userID: new Uint8Array(randomBytes(16)),
     userName: name,
     userDisplayName: name,
     attestationType: "none",
@@ -30,9 +29,9 @@ export async function POST(request: Request) {
 
   const challenge = await prisma.authChallenge.create({
     data: {
-      userId: user.id,
       type: AuthChallengeType.REGISTRATION,
       challenge: options.challenge,
+      pendingName: name,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     },
   });

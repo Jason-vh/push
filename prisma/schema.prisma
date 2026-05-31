@@ -97,14 +97,15 @@ model AuthSession {
 }
 
 model AuthChallenge {
-  id        String   @id @default(cuid())
-  userId    String?
-  type      AuthChallengeType
-  challenge String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String?
+  pendingName String?
+  type        AuthChallengeType
+  challenge   String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
 
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Team {

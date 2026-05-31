@@ -16,13 +16,12 @@ export async function POST(request: Request) {
 
   const challenge = await prisma.authChallenge.findUnique({
     where: { id: input.challengeId },
-    include: { user: true },
   });
 
   if (
     !challenge ||
     challenge.type !== AuthChallengeType.REGISTRATION ||
-    !challenge.user ||
+    !challenge.pendingName ||
     challenge.expiresAt < new Date()
   ) {
     return NextResponse.json({ error: "Registration challenge expired." }, { status: 400 });
@@ -41,20 +40,24 @@ export async function POST(request: Request) {
 
   const { credential } = verification.registrationInfo;
 
-  await prisma.webAuthnCredential.create({
-    data: {
-      userId: challenge.user.id,
-      credentialId: credential.id,
-      publicKey: Buffer.from(credential.publicKey),
-      counter: BigInt(credential.counter),
-      transports: JSON.stringify(
-        credential.transports ?? input.response.response?.transports ?? [],
-      ),
-    },
+  const user = await prisma.$transaction(async (tx) => {
+    const created = await tx.user.create({ data: { name: challenge.pendingName! } });
+    await tx.webAuthnCredential.create({
+      data: {
+        userId: created.id,
+        credentialId: credential.id,
+        publicKey: Buffer.from(credential.publicKey),
+        counter: BigInt(credential.counter),
+        transports: JSON.stringify(
+          credential.transports ?? input.response.response?.transports ?? [],
+        ),
+      },
+    });
+    await tx.authChallenge.delete({ where: { id: challenge.id } });
+    return created;
   });
 
-  await prisma.authChallenge.delete({ where: { id: challenge.id } });
-  await createSession(challenge.user.id);
+  await createSession(user.id);
 
   return NextResponse.json({ ok: true });
 }
