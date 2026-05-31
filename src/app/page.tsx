@@ -96,20 +96,26 @@ export default async function Home() {
 
       <Leaderboard entries={leaderboard} />
 
-      <div className="callout-grid" style={{ marginTop: 14 }}>
-        <CalloutCard
-          title="Best teammate"
-          record={teammate}
-          name={teammate ? usersById.get(teammate.otherUserId)?.name ?? null : null}
-          tone="positive"
-        />
-        <CalloutCard
-          title="Toughest opponent"
-          record={opponent}
-          name={opponent ? usersById.get(opponent.otherUserId)?.name ?? null : null}
-          tone="negative"
-        />
-      </div>
+      {teammate || opponent ? (
+        <div className="callout-grid" style={{ marginTop: 14 }}>
+          {teammate ? (
+            <CalloutCard
+              title="Best teammate"
+              record={teammate}
+              name={usersById.get(teammate.otherUserId)?.name ?? null}
+              tone="positive"
+            />
+          ) : null}
+          {opponent ? (
+            <CalloutCard
+              title="Toughest opponent"
+              record={opponent}
+              name={usersById.get(opponent.otherUserId)?.name ?? null}
+              tone="negative"
+            />
+          ) : null}
+        </div>
+      ) : null}
 
       <section style={{ marginTop: 22 }}>
         <div className="section-head">
