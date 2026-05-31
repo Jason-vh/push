@@ -94,8 +94,8 @@ export function LoginActions() {
         ) : null}
         {mode === "signin" ? "Logging in…" : "Log in"}
       </button>
-      <Link className="btn secondary full" href="/register">
-        Create account
+      <Link className="auth-toggle" href="/register">
+        Create an account
       </Link>
     </div>
   );

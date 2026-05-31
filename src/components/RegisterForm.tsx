@@ -73,7 +73,7 @@ export function RegisterForm() {
         >
           {mode === "signup" ? "Creating account…" : "Create account"}
         </button>
-        <Link className="btn secondary full" href="/login">
+        <Link className="auth-toggle" href="/login">
           Sign in instead
         </Link>
       </div>

@@ -451,15 +451,27 @@ h3 {
   color: var(--forest);
   box-shadow: none;
 }
-.btn.secondary {
-  background: rgba(255, 255, 255, 0.55);
-  color: var(--ink);
-  border: 1px solid rgba(13, 63, 36, 0.18);
-  box-shadow: none;
+/* Secondary action under the primary CTA on auth screens — small,
+   text-link style instead of a second pill so the hierarchy is clear
+   and the tap feels lighter / faster than committing to a button. */
+.auth-toggle {
+  align-self: center;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-mute);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  transition: color 120ms ease, background 120ms ease;
 }
-.btn.secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 4px 12px -6px rgba(13, 63, 36, 0.18);
+.auth-toggle:hover {
+  color: var(--forest);
+  background: rgba(13, 63, 36, 0.06);
+}
+.auth-toggle:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
 }
 .btn-pill {
   border: 0;
