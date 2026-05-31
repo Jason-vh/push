@@ -55,13 +55,14 @@ body {
    size to reach all the way up into the status-bar safe area. */
 html {
   background:
-    radial-gradient(140% 80% at 78% 0%, #f5d99c 0%, transparent 60%),
-    radial-gradient(140% 70% at 12% 8%, #f1e7c9 0%, transparent 55%),
-    linear-gradient(180deg, #f1e1b1 0%, #f4e9cf 100%);
-  /* The top safe area shows html's background-color (not the gradient),
-     so match it to the gradient's top tone for a seamless blend. The
-     bottom safe area is independently tinted by theme-color above. */
-  background-color: #f1e1b1;
+    radial-gradient(85% 55% at 75% 45%, #f5d99c 0%, transparent 65%),
+    radial-gradient(80% 50% at 15% 50%, #f1e7c9 0%, transparent 60%),
+    linear-gradient(180deg, #f4e9cf 0%, #ece1bc 50%, #f4e9cf 100%);
+  /* Both ends of the linear converge to the same cream as theme-color
+     and html background-color, so the top safe area and Safari's URL
+     bar tint both blend with the gradient's top and bottom edges. The
+     warm peach lives in the middle as a centered glow. */
+  background-color: #f4e9cf;
   background-attachment: fixed;
   min-height: 100dvh;
 }
