@@ -114,16 +114,13 @@ a {
 .auth-editorial > * {
   animation: page-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.shell > *:nth-child(1),
-.auth-editorial > *:nth-child(1) {
+.shell > *:nth-child(1) {
   animation-delay: 0ms;
 }
-.shell > *:nth-child(2),
-.auth-editorial > *:nth-child(2) {
+.shell > *:nth-child(2) {
   animation-delay: 90ms;
 }
-.shell > *:nth-child(3),
-.auth-editorial > *:nth-child(3) {
+.shell > *:nth-child(3) {
   animation-delay: 180ms;
 }
 .shell > *:nth-child(4) {
@@ -138,6 +135,10 @@ a {
 .shell > *:nth-child(n + 7) {
   animation-delay: 540ms;
 }
+/* No nth-child stagger for .auth-editorial — the brand mark lives in the
+   shared layout and stays mounted, while the page-level children should
+   fade in immediately on route change instead of inheriting a position
+   delay that depends on whether the brand mark is the 1st child. */
 
 @keyframes page-rise {
   from {
@@ -449,6 +450,16 @@ h3 {
   background: var(--mint-pill);
   color: var(--forest);
   box-shadow: none;
+}
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink);
+  border: 1px solid rgba(13, 63, 36, 0.18);
+  box-shadow: none;
+}
+.btn.secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 4px 12px -6px rgba(13, 63, 36, 0.18);
 }
 .btn-pill {
   border: 0;
