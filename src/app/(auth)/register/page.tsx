@@ -1,7 +1,13 @@
+import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/RegisterForm";
+import { getCurrentUser } from "@/lib/session";
 
-// See /login — kept static so the Link from /login commits instantly.
-export default function RegisterPage() {
+export const dynamic = "force-dynamic";
+
+export default async function RegisterPage() {
+  const user = await getCurrentUser();
+  if (user) redirect("/");
+
   return (
     <>
       <h1 className="auth-display">
