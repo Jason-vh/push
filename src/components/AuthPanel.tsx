@@ -101,61 +101,57 @@ export function AuthPanel() {
   }
 
   return (
-    <div className="card stack">
-      <h2>{authView === "signin" ? "Sign in" : "Create account"}</h2>
-
-      {error ? <div className="error">{error}</div> : null}
-
-      {authView === "signup" ? (
-        <label className="label">
-          Name
-          <input
-            className="input"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Your name"
-          />
-        </label>
-      ) : null}
-
-      {authView === "signin" ? (
-        <div className="stack">
-          <button className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
-            {mode === "signin" ? <span className="button-spinner" aria-hidden="true" /> : null}
-            {mode === "signin" ? "Logging in…" : "Log in"}
-          </button>
-          <button
-            className="btn secondary full"
-            onClick={() => {
-              setError(null);
-              setAuthView("signup");
-            }}
-            disabled={mode !== "idle"}
-          >
-            Create account
-          </button>
-        </div>
-      ) : (
-        <div className="stack">
-          <button
-            className="btn dark full"
-            onClick={signUp}
-            disabled={!name.trim() || mode !== "idle"}
-          >
-            {mode === "signup" ? "Creating account…" : "Create account"}
-          </button>
-          <button
-            className="btn secondary full"
-            onClick={() => {
-              setError(null);
-              setAuthView("signin");
-            }}
-            disabled={mode !== "idle"}
-          >
-            Sign in instead
-          </button>
-        </div>
-      )}
+    <div className="auth-panel">
+      {error ? <div className="error auth-error">{error}</div> : null}
+      <div className="auth-view" key={authView}>
+        {authView === "signin" ? (
+          <div className="stack">
+            <button className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
+              {mode === "signin" ? <span className="button-spinner" aria-hidden="true" /> : null}
+              {mode === "signin" ? "Logging in…" : "Log in"}
+            </button>
+            <button
+              className="btn secondary full"
+              onClick={() => {
+                setError(null);
+                setAuthView("signup");
+              }}
+              disabled={mode !== "idle"}
+            >
+              Create account
+            </button>
+          </div>
+        ) : (
+          <div className="card stack">
+            <label className="label">
+              Name
+              <input
+                className="input"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Your name"
+              />
+            </label>
+            <button
+              className="btn dark full"
+              onClick={signUp}
+              disabled={!name.trim() || mode !== "idle"}
+            >
+              {mode === "signup" ? "Creating account…" : "Create account"}
+            </button>
+            <button
+              className="btn secondary full"
+              onClick={() => {
+                setError(null);
+                setAuthView("signin");
+              }}
+              disabled={mode !== "idle"}
+            >
+              Sign in instead
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
