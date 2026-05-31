@@ -55,6 +55,8 @@ export function RegisterForm() {
           type="text"
           autoComplete="name"
           autoCapitalize="words"
+          autoCorrect="off"
+          spellCheck={false}
           value={name}
           onChange={(event) => setName(event.target.value)}
           onKeyDown={(event) => {
