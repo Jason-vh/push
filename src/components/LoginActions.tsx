@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  browserSupportsWebAuthnAutofill,
-  startAuthentication,
-} from "@simplewebauthn/browser";
+import { startAuthentication } from "@simplewebauthn/browser";
 
 async function postJson(url: string, body: unknown) {
   const response = await fetch(url, {
@@ -34,29 +31,26 @@ export function LoginActions() {
   useEffect(() => {
     let cancelled = false;
 
-    async function startConditionalSignIn() {
+    async function promptPasskey() {
       try {
-        const supportsAutofill = await browserSupportsWebAuthnAutofill();
-        if (!supportsAutofill || cancelled) return;
-
         const { challengeId, options } = await postJson("/api/auth/login/options", {});
-        const response = await startAuthentication({
-          optionsJSON: options,
-          useBrowserAutofill: true,
-        });
-
+        if (cancelled) return;
+        const response = await startAuthentication({ optionsJSON: options });
         if (cancelled) return;
         await postJson("/api/auth/login/verify", { challengeId, response });
         enterApp();
       } catch (err) {
+        // User dismissed the sheet, or no passkey is available for this RP.
+        // Either case, fall through silently — the "Log in" button stays
+        // available for a manual retry.
         const errorName = err instanceof Error ? err.name : null;
         if (errorName !== "AbortError" && errorName !== "NotAllowedError") {
-          console.debug("Conditional sign-in unavailable", err);
+          console.debug("Auto passkey prompt failed", err);
         }
       }
     }
 
-    startConditionalSignIn();
+    promptPasskey();
 
     return () => {
       cancelled = true;
