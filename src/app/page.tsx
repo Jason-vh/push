@@ -117,17 +117,18 @@ export default async function Home() {
       <Leaderboard entries={leaderboard} />
 
       {teammate || opponent ? (
-        <div className="callout-grid" style={{ marginTop: 14 }}>
+        <div className="callout-card" style={{ marginTop: 14 }}>
           {teammate ? (
-            <CalloutCard
+            <CalloutRow
               title="Best teammate"
               record={teammate}
               name={usersById.get(teammate.otherUserId)?.name ?? null}
               tone="positive"
             />
           ) : null}
+          {teammate && opponent ? <div className="callout-sep" /> : null}
           {opponent ? (
-            <CalloutCard
+            <CalloutRow
               title="Toughest opponent"
               record={opponent}
               name={usersById.get(opponent.otherUserId)?.name ?? null}
@@ -233,35 +234,50 @@ function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
   );
 }
 
-function CalloutCard({
+function CalloutRow({
   title,
   record,
   name,
   tone,
 }: {
   title: string;
-  record: PairRecord | null;
+  record: PairRecord;
   name: string | null;
   tone: "positive" | "negative";
 }) {
+  const total = record.wins + record.losses;
+  const pips = record.results.slice(-10);
+  const statsText =
+    total > 10
+      ? `last 10 · ${record.wins} won · ${record.losses} lost`
+      : `${record.wins} won · ${record.losses} lost`;
+
   return (
-    <div className={`callout ${tone}`}>
-      <div className="callout-title">{title}</div>
-      {record && name ? (
-        <div className="callout-body">
-          <Avatar name={name} size={36} />
-          <div style={{ minWidth: 0 }}>
-            <div className="callout-name">{name.split(" ")[0]}</div>
-            <div className="callout-stats">
-              {record.winRate}% · {record.wins}–{record.losses}
-            </div>
-          </div>
+    <div className={`callout-row ${tone}`}>
+      <Avatar name={name ?? "?"} size={40} tone="forest" />
+      <div className="callout-text">
+        <div className="callout-title">{title}</div>
+        <div className="callout-name">{name ? shortName(name) : "Unknown"}</div>
+      </div>
+      <div className="callout-meta">
+        <div className="callout-pips" aria-hidden>
+          {pips.map((won, i) => (
+            <span
+              key={i}
+              className={`callout-pip${won ? " filled" : ""}`}
+            />
+          ))}
         </div>
-      ) : (
-        <div className="callout-empty">Not enough games yet.</div>
-      )}
+        <div className="callout-stats">{statsText}</div>
+      </div>
     </div>
   );
+}
+
+function shortName(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
 }
 
 function SessionRow({

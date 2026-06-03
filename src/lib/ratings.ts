@@ -97,10 +97,11 @@ export type PairRecord = {
   wins: number;
   losses: number;
   winRate: number;
+  results: boolean[];
 };
 
 function emptyRecord(otherUserId: string): PairRecord {
-  return { otherUserId, wins: 0, losses: 0, winRate: 0 };
+  return { otherUserId, wins: 0, losses: 0, winRate: 0, results: [] };
 }
 
 function finalize(records: Map<string, PairRecord>): PairRecord[] {
@@ -139,6 +140,7 @@ export function partnerRecords(matches: MatchInput[], userId: string): PairRecor
     const record = records.get(partner) ?? emptyRecord(partner);
     if (won) record.wins += 1;
     else record.losses += 1;
+    record.results.push(won);
     records.set(partner, record);
   }
   return finalize(records);
@@ -163,6 +165,7 @@ export function opponentRecords(matches: MatchInput[], userId: string): PairReco
       const record = records.get(opponentId) ?? emptyRecord(opponentId);
       if (won) record.wins += 1;
       else record.losses += 1;
+      record.results.push(won);
       records.set(opponentId, record);
     }
   }
