@@ -6,7 +6,6 @@ import { getCurrentUser } from "@/lib/session";
 const sessionSchema = z.object({
   playedAt: z.string().min(1),
   venue: z.string().trim().max(120).optional(),
-  courtNumber: z.string().trim().max(40).optional(),
   attendeeUserIds: z.array(z.string().min(1)).default([]),
 });
 
@@ -33,7 +32,6 @@ export async function POST(request: Request) {
         data: {
           playedAt: new Date(input.playedAt),
           venue: input.venue || null,
-          courtNumber: input.courtNumber || null,
           createdById: user.id,
           players: {
             create: attendeeUserIds.map((userId) => ({ userId })),

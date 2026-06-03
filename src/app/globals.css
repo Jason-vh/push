@@ -973,10 +973,6 @@ h3 {
   font-weight: 700;
   white-space: nowrap;
 }
-.session-subtitle .dotsep {
-  opacity: 0.5;
-}
-
 .roster-strip {
   display: flex;
   align-items: center;

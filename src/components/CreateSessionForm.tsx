@@ -10,7 +10,6 @@ export function CreateSessionForm({ knownUsers }: { knownUsers: KnownUser[] }) {
   const router = useRouter();
   const [playedAt, setPlayedAt] = useState(new Date().toISOString().slice(0, 10));
   const [venue, setVenue] = useState("");
-  const [courtNumber, setCourtNumber] = useState("");
   const [players, setPlayers] = useState<string[]>(
     knownUsers.slice(0, 4).map((user) => user.id),
   );
@@ -28,7 +27,6 @@ export function CreateSessionForm({ knownUsers }: { knownUsers: KnownUser[] }) {
         body: JSON.stringify({
           playedAt,
           venue,
-          courtNumber,
           attendeeUserIds: players,
         }),
       });
@@ -65,15 +63,6 @@ export function CreateSessionForm({ knownUsers }: { knownUsers: KnownUser[] }) {
             value={venue}
             onChange={(event) => setVenue(event.target.value)}
             placeholder="The Padellers"
-          />
-        </label>
-        <label className="label">
-          Court
-          <input
-            className="input"
-            value={courtNumber}
-            onChange={(event) => setCourtNumber(event.target.value)}
-            placeholder="3"
           />
         </label>
       </div>

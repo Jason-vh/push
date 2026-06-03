@@ -17,7 +17,6 @@ const FALLBACK_ME_NAME = "You";
 const SESSIONS: Array<{
   daysAgo: number;
   venue: string;
-  courtNumber: string;
   // Each match: [team A pair indices, team B pair indices, winner ("A"|"B")]
   // indices reference PLAYER_NAMES.
   matches: Array<[number, number, number, number, Team]>;
@@ -25,7 +24,6 @@ const SESSIONS: Array<{
   {
     daysAgo: 21,
     venue: "Padelhuset Nørrebro",
-    courtNumber: "3",
     matches: [
       [0, 1, 2, 3, "A"],
       [0, 2, 1, 3, "B"],
@@ -37,7 +35,6 @@ const SESSIONS: Array<{
   {
     daysAgo: 14,
     venue: "Padelklub Vest",
-    courtNumber: "1",
     matches: [
       [0, 1, 3, 4, "A"],
       [0, 4, 1, 2, "B"],
@@ -50,7 +47,6 @@ const SESSIONS: Array<{
   {
     daysAgo: 7,
     venue: "Padelhuset Nørrebro",
-    courtNumber: "3",
     matches: [
       [0, 1, 2, 4, "A"],
       [1, 2, 0, 3, "A"],
@@ -64,7 +60,6 @@ const SESSIONS: Array<{
   {
     daysAgo: 1,
     venue: "Padelhuset Nørrebro",
-    courtNumber: "5",
     matches: [
       [0, 2, 1, 3, "A"],
       [0, 1, 3, 4, "B"],
@@ -143,7 +138,6 @@ async function main() {
       data: {
         playedAt,
         venue: session.venue,
-        courtNumber: session.courtNumber,
         createdById: me.id,
         players: {
           create: userByIndex.map((u) => ({ userId: u.id })),

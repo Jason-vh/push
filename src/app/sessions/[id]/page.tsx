@@ -49,13 +49,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     <main className="shell">
       <header className="session-header">
         <h1 className="session-title">{formatDate(session.playedAt)}</h1>
-        {(session.venue || session.courtNumber) ? (
+        {session.venue ? (
           <div className="session-subtitle">
-            {session.courtNumber ? <span>Court {session.courtNumber}</span> : null}
-            {session.courtNumber && session.venue ? (
-              <span className="dotsep">·</span>
-            ) : null}
-            {session.venue ? <span>{session.venue}</span> : null}
+            <span>{session.venue}</span>
           </div>
         ) : null}
       </header>

@@ -30,7 +30,6 @@ model GameSession {
   id          String        @id @default(cuid())
   playedAt    DateTime
   venue       String?
-  courtNumber String?
   createdById String
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
