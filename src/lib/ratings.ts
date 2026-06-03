@@ -1,5 +1,9 @@
 import type { PrismaClient } from "@prisma/client";
+import { unstable_cache } from "next/cache";
+import { prisma } from "@/lib/db";
 import { STARTING_RATING, doublesEloDelta } from "@/lib/elo";
+
+export const RATINGS_CACHE_TAG = "ratings";
 
 export type Winner = "A" | "B";
 
@@ -210,3 +214,9 @@ export async function loadAllMatchesOrdered(prisma: PrismaClient): Promise<Match
     winnerTeam: match.winnerTeam as Winner,
   }));
 }
+
+export const getCachedOrderedMatches = unstable_cache(
+  () => loadAllMatchesOrdered(prisma),
+  ["all-matches-ordered"],
+  { tags: [RATINGS_CACHE_TAG] },
+);

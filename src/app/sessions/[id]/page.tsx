@@ -5,8 +5,6 @@ import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
-
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/");

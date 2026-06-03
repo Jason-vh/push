@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { Team } from "@prisma/client";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { RATINGS_CACHE_TAG } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 
 const matchSchema = z.object({
@@ -67,6 +69,7 @@ export async function PATCH(
       });
     });
 
+    revalidateTag(RATINGS_CACHE_TAG);
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json(
@@ -91,6 +94,7 @@ export async function DELETE(
     }
 
     await prisma.match.delete({ where: { id: matchId } });
+    revalidateTag(RATINGS_CACHE_TAG);
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json(

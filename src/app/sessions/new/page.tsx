@@ -3,8 +3,6 @@ import { CreateSessionForm } from "@/components/CreateSessionForm";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
-
 export default async function NewSessionPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/");

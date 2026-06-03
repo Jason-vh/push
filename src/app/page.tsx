@@ -6,14 +6,12 @@ import { displayRating } from "@/lib/elo";
 import {
   bestTeammate,
   computeRatings,
-  loadAllMatchesOrdered,
+  getCachedOrderedMatches,
   statsFor,
   toughestOpponent,
   type PairRecord,
 } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
-
-export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const user = await getCurrentUser();
@@ -40,7 +38,7 @@ export default async function Home() {
         },
       },
     }),
-    loadAllMatchesOrdered(prisma),
+    getCachedOrderedMatches(),
   ]);
 
   const { stats, byMatch } = computeRatings(orderedMatches);
