@@ -774,14 +774,14 @@ h3 {
 
 /* Partner / opponent callouts */
 .callout-card {
-  background: var(--surface);
+  background: var(--forest);
   border-radius: var(--r-tile);
   padding: 14px 16px;
   box-shadow: var(--card-shadow);
 }
 .callout-sep {
   height: 1px;
-  background: var(--hairline);
+  background: rgba(244, 234, 208, 0.12);
   margin: 12px 0;
 }
 .callout-row {
@@ -800,15 +800,15 @@ h3 {
   text-transform: uppercase;
 }
 .callout-row.positive .callout-title {
-  color: var(--forest);
+  color: #8fc09a;
 }
 .callout-row.negative .callout-title {
-  color: var(--clay);
+  color: #d9a06b;
 }
 .callout-name {
   font-size: 16px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--bg-cream);
   letter-spacing: -0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -830,24 +830,26 @@ h3 {
   width: 9px;
   height: 9px;
   border-radius: 999px;
-  border: 1.5px solid var(--forest);
   box-sizing: border-box;
 }
-.callout-pip.filled {
-  background: var(--forest);
+.callout-row.positive .callout-pip {
+  border: 1.5px solid #8fc09a;
+}
+.callout-row.positive .callout-pip.filled {
+  background: #8fc09a;
 }
 .callout-row.negative .callout-pip {
-  border-color: var(--clay);
+  border: 1.5px solid #d9a06b;
 }
 .callout-row.negative .callout-pip.filled {
-  background: var(--clay);
+  background: #d9a06b;
 }
 .callout-stats {
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  color: var(--ink-mute);
+  color: rgba(244, 234, 208, 0.65);
 }
 
 /* Sessions list */

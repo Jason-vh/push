@@ -254,7 +254,7 @@ function CalloutRow({
 
   return (
     <div className={`callout-row ${tone}`}>
-      <Avatar name={name ?? "?"} size={40} tone="forest" />
+      <Avatar name={name ?? "?"} size={40} />
       <div className="callout-text">
         <div className="callout-title">{title}</div>
         <div className="callout-name">{name ? shortName(name) : "Unknown"}</div>
