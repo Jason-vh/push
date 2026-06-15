@@ -456,6 +456,8 @@ h3 {
   color: var(--clay);
   box-shadow: none;
   border: 1px solid rgba(160, 83, 42, 0.35);
+  position: relative;
+  z-index: 1;
 }
 .btn.danger.armed {
   background: var(--clay);
