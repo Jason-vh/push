@@ -434,6 +434,8 @@ h3 {
   font-family: inherit;
   box-shadow: 0 8px 18px -10px rgba(13, 63, 36, 0.35);
   transition: transform 80ms ease, box-shadow 140ms ease;
+  position: relative;
+  z-index: 1;
 }
 .btn:hover:not(:disabled) {
   transform: translateY(-1px);
@@ -456,8 +458,6 @@ h3 {
   color: var(--clay);
   box-shadow: none;
   border: 1px solid rgba(160, 83, 42, 0.35);
-  position: relative;
-  z-index: 1;
 }
 .btn.danger.armed {
   background: var(--clay);
@@ -1084,30 +1084,6 @@ h3 {
 .timeline > .empty {
   position: relative;
   z-index: 1;
-}
-
-.log-button {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 16px;
-  background: var(--forest);
-  color: #f4ead0;
-  border: 0;
-  border-radius: 18px;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  font-family: inherit;
-  box-shadow: 0 8px 18px -10px rgba(13, 63, 36, 0.35);
-  position: relative;
-  z-index: 1;
-}
-.log-button:disabled {
-  background: color-mix(in srgb, var(--forest) 55%, var(--bg-cream));
-  cursor: not-allowed;
 }
 
 .match-card {

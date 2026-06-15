@@ -18,7 +18,7 @@ export function LogMatchButton({
     <>
       <button
         type="button"
-        className="log-button"
+        className="btn full"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
       >
