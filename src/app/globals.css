@@ -1025,26 +1025,24 @@ h3 {
   gap: 10px;
   padding: 14px 4px 0;
 }
-button.roster-strip {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: inherit;
-  cursor: pointer;
-  border-radius: 14px;
-  transition: background 120ms ease;
-}
-button.roster-strip:hover {
-  background: rgba(13, 63, 36, 0.04);
-}
-button.roster-strip:focus-visible {
-  outline: 2px solid var(--forest);
-  outline-offset: 2px;
-}
 .roster-stack {
   display: flex;
+}
+button.roster-stack {
+  border: 0;
+  background: transparent;
+  padding: 4px;
+  margin: -4px;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: background 120ms ease;
+}
+button.roster-stack:hover {
+  background: rgba(13, 63, 36, 0.06);
+}
+button.roster-stack:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
 }
 .roster-stack > * + * {
   margin-left: -10px;

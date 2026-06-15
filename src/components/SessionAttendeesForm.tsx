@@ -70,41 +70,38 @@ export function SessionAttendeesForm({
       ? `${matchCount} ${matchCount === 1 ? "game" : "games"} logged`
       : null;
 
-  const stripContent = (
-    <>
-      <div className="roster-stack">
-        {roster.map((player) => (
-          <span className="roster-avatar-frame" key={player.id}>
-            <Avatar name={player.name} size={30} />
-          </span>
-        ))}
-      </div>
-      <div className="roster-count">
-        <strong>{roster.length} here</strong>
-        {status ? (
-          <>
-            {" · "}
-            {status}
-          </>
-        ) : null}
-      </div>
-    </>
-  );
+  const avatars = roster.map((player) => (
+    <span className="roster-avatar-frame" key={player.id}>
+      <Avatar name={player.name} size={30} />
+    </span>
+  ));
 
   return (
     <>
-      {canCollapse ? (
-        <button
-          type="button"
-          className="roster-strip is-clickable"
-          onClick={() => setEditing((v) => !v)}
-          aria-expanded={editing}
-        >
-          {stripContent}
-        </button>
-      ) : (
-        <div className="roster-strip">{stripContent}</div>
-      )}
+      <div className="roster-strip">
+        {canCollapse ? (
+          <button
+            type="button"
+            className="roster-stack is-clickable"
+            onClick={() => setEditing((v) => !v)}
+            aria-expanded={editing}
+            aria-label={editing ? "Close player editor" : "Edit players"}
+          >
+            {avatars}
+          </button>
+        ) : (
+          <div className="roster-stack">{avatars}</div>
+        )}
+        <div className="roster-count">
+          <strong>{roster.length} here</strong>
+          {status ? (
+            <>
+              {" · "}
+              {status}
+            </>
+          ) : null}
+        </div>
+      </div>
 
       {editing ? (
         <div className="card edit-panel" style={{ marginTop: 12 }}>
