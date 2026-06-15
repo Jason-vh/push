@@ -672,30 +672,6 @@ h3 {
   background: rgba(13, 63, 36, 0.06);
 }
 
-.players-panel {
-  margin-top: 14px;
-  display: grid;
-  gap: 10px;
-}
-.players-status {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 4px;
-}
-.players-status-title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--forest);
-}
-.players-status-meta {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink-mute);
-}
 
 /* ─────────────────────────────────────────────
    Dashboard

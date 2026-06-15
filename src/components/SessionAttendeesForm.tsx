@@ -64,22 +64,11 @@ export function SessionAttendeesForm({
     }
   }
 
-  if (!canCollapse) {
-    return (
-      <section className="players-panel">
-        <div className="players-status">
-          <h2 className="players-status-title">
-            {needed === 0 ? "Ready to play" : `Need ${needed} more player${needed === 1 ? "" : "s"}`}
-          </h2>
-          <span className="players-status-meta">
-            {players.length}/{REQUIRED_PLAYERS}
-          </span>
-        </div>
-        {error ? <div className="error" style={{ marginBottom: 10 }}>{error}</div> : null}
-        <PlayerCheckList knownUsers={knownUsers} value={players} onChange={save} />
-      </section>
-    );
-  }
+  const status = !canCollapse
+    ? `Need ${needed} more player${needed === 1 ? "" : "s"}`
+    : matchCount > 0
+      ? `${matchCount} ${matchCount === 1 ? "game" : "games"} logged`
+      : "Ready to play";
 
   return (
     <>
@@ -93,26 +82,23 @@ export function SessionAttendeesForm({
         </div>
         <div className="roster-count">
           <strong>{roster.length} here</strong>
-          {matchCount > 0 ? (
-            <>
-              {" · "}
-              {matchCount} {matchCount === 1 ? "game" : "games"}
-            </>
-          ) : null}
+          {" · "}
+          {status}
         </div>
-        <button
-          type="button"
-          className="roster-edit"
-          onClick={() => setEditing((v) => !v)}
-          aria-expanded={editing}
-        >
-          {editing ? "Done" : "Edit"}
-        </button>
+        {canCollapse ? (
+          <button
+            type="button"
+            className="roster-edit"
+            onClick={() => setEditing((v) => !v)}
+            aria-expanded={editing}
+          >
+            {editing ? "Done" : "Edit"}
+          </button>
+        ) : null}
       </div>
 
       {editing ? (
         <div className="card edit-panel" style={{ marginTop: 12 }}>
-          <h2 style={{ margin: 0, marginBottom: 10 }}>Players</h2>
           {error ? <div className="error" style={{ marginBottom: 10 }}>{error}</div> : null}
           <PlayerCheckList
             knownUsers={knownUsers}
