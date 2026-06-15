@@ -49,7 +49,7 @@ export function DeleteSessionButton({ sessionId }: { sessionId: string }) {
       : "Delete session";
 
   return (
-    <div style={{ marginTop: 12 }}>
+    <div style={{ marginTop: 14 }}>
       <button
         type="button"
         className={`btn danger full${status === "armed" ? " armed" : ""}`}

@@ -71,7 +71,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
         {session.matches.length === 0 ? (
           <>
-            <div className="empty" style={{ marginTop: 12 }}>
+            <div className="empty">
               No matches yet. Tap “Log a match” to add the first one.
             </div>
             <DeleteSessionButton sessionId={session.id} />
