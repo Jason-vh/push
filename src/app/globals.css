@@ -452,7 +452,7 @@ h3 {
   box-shadow: none;
 }
 .btn.danger {
-  background: transparent;
+  background: var(--surface);
   color: var(--clay);
   box-shadow: none;
   border: 1px solid rgba(160, 83, 42, 0.35);
