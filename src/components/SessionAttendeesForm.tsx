@@ -68,7 +68,7 @@ export function SessionAttendeesForm({
     ? `Need ${needed} more player${needed === 1 ? "" : "s"}`
     : matchCount > 0
       ? `${matchCount} ${matchCount === 1 ? "game" : "games"} logged`
-      : "Ready to play";
+      : null;
 
   return (
     <>
@@ -82,8 +82,12 @@ export function SessionAttendeesForm({
         </div>
         <div className="roster-count">
           <strong>{roster.length} here</strong>
-          {" · "}
-          {status}
+          {status ? (
+            <>
+              {" · "}
+              {status}
+            </>
+          ) : null}
         </div>
         {canCollapse ? (
           <button
