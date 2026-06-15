@@ -601,76 +601,100 @@ h3 {
 }
 
 /* ─────────────────────────────────────────────
-   Attendee picker (used on create-session)
+   Player check list
    ───────────────────────────────────────────── */
-.attendee-picker {
-  display: grid;
-  gap: 12px;
-}
-.attendee-autocomplete-group {
-  min-width: 0;
-}
-.attendee-positioner {
-  z-index: 20;
-}
-.attendee-popup {
-  width: var(--anchor-width);
-  max-height: min(280px, var(--available-height));
-  overflow: auto;
-  border: 1px solid var(--surface-line);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: var(--pop-shadow);
-  padding: 6px;
-}
-.attendee-option {
-  display: grid;
-  gap: 2px;
-  border-radius: 13px;
-  cursor: pointer;
-  padding: 10px 11px;
-}
-.attendee-option[data-highlighted],
-.attendee-option:hover {
-  background: var(--mint-pill);
-}
-.attendee-empty {
-  padding: 10px 11px;
-  color: var(--ink-mute);
-  font-size: 12px;
-}
-/* base-ui keeps the empty <div> mounted for aria-live; collapse it when
-   there are matches so it doesn't pad the popup with phantom space. */
-.attendee-empty:empty {
+.player-check-list {
+  list-style: none;
+  margin: 0;
   padding: 0;
-  line-height: 0;
+  display: grid;
+  gap: 6px;
 }
-.chip-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.player-check-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--surface-line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
 }
-.attendee-chip {
+.player-check-row:hover:not(.locked) {
+  border-color: rgba(13, 63, 36, 0.18);
+}
+.player-check-row:active:not(.locked) {
+  transform: scale(0.995);
+}
+.player-check-row.selected {
+  background: var(--mint-pill);
+  border-color: rgba(13, 63, 36, 0.18);
+}
+.player-check-row.locked {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+.player-check-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.player-check-pip {
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
-  padding: 6px 10px;
+  border: 1.5px solid rgba(13, 63, 36, 0.22);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #f4ead0;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.player-check-row.selected .player-check-pip {
+  background: var(--forest);
+  border-color: var(--forest);
+}
+.player-check-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(13, 63, 36, 0.06);
+}
+
+.players-panel {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+.players-status {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px;
+}
+.players-status-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--forest);
+}
+.players-status-meta {
   font-size: 12px;
   font-weight: 700;
-  background: var(--mint-pill);
-  color: var(--forest);
-  align-items: center;
-  display: inline-flex;
-  gap: 7px;
-}
-.attendee-chip button {
-  width: 19px;
-  height: 19px;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(13, 63, 36, 0.18);
-  color: var(--forest);
-  font-weight: 800;
-  line-height: 1;
-  padding: 0;
+  color: var(--ink-mute);
 }
 
 /* ─────────────────────────────────────────────
@@ -982,6 +1006,24 @@ h3 {
    ───────────────────────────────────────────── */
 .session-header {
   padding: 4px 4px 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 8px;
+}
+.session-header-main {
+  min-width: 0;
+}
+.session-header .btn-pill.subtle {
+  background: var(--mint-pill);
+  color: var(--forest);
+  box-shadow: none;
+}
+.session-edit-panel {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
 }
 .session-title {
   font-size: 22px;

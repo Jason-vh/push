@@ -30,7 +30,32 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         if (existing.length !== attendeeUserIds.length) {
           throw new Error("One or more attendees do not exist.");
         }
+      }
 
+      const playersWithMatches = await tx.match.findMany({
+        where: { sessionId },
+        select: {
+          teamAPlayer1Id: true,
+          teamAPlayer2Id: true,
+          teamBPlayer1Id: true,
+          teamBPlayer2Id: true,
+        },
+      });
+      const locked = new Set<string>();
+      for (const match of playersWithMatches) {
+        locked.add(match.teamAPlayer1Id);
+        locked.add(match.teamAPlayer2Id);
+        locked.add(match.teamBPlayer1Id);
+        locked.add(match.teamBPlayer2Id);
+      }
+      const nextSet = new Set(attendeeUserIds);
+      for (const lockedId of locked) {
+        if (!nextSet.has(lockedId)) {
+          throw new Error("Cannot remove a player who has already played a match.");
+        }
+      }
+
+      if (attendeeUserIds.length > 0) {
         await tx.sessionPlayer.deleteMany({
           where: { sessionId, userId: { notIn: attendeeUserIds } },
         });

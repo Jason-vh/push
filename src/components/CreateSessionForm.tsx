@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AttendeePicker } from "@/components/AttendeePicker";
+import { PlayerCheckList } from "@/components/PlayerCheckList";
 
 type KnownUser = { id: string; name: string };
 
@@ -69,7 +69,7 @@ export function CreateSessionForm({ knownUsers }: { knownUsers: KnownUser[] }) {
 
       <div className="label">
         Players
-        <AttendeePicker knownUsers={knownUsers} value={players} onChange={setPlayers} />
+        <PlayerCheckList knownUsers={knownUsers} value={players} onChange={setPlayers} />
       </div>
 
       <button className="btn dark full" onClick={submit} disabled={status === "saving"}>
