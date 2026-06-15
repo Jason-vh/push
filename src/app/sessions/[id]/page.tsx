@@ -1,8 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { DeleteSessionButton } from "@/components/DeleteSessionButton";
-import { LogMatchButton } from "@/components/LogMatchButton";
-import { MatchCard } from "@/components/MatchCard";
-import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
+import { SessionBody } from "@/components/SessionBody";
 import { SessionHeader } from "@/components/SessionHeader";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -40,10 +37,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
   if (!session) notFound();
 
-  const attendees = session.players.map((sessionPlayer) => ({
-    id: sessionPlayer.user.id,
-    name: sessionPlayer.user.name,
-  }));
+  const initialAttendees = session.players.map((sessionPlayer) => sessionPlayer.user.id);
 
   const lockedUserIds = new Set<string>();
   for (const match of session.matches) {
@@ -53,9 +47,16 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     lockedUserIds.add(match.teamBPlayer2Id);
   }
 
+  const matches = session.matches.map((match) => ({
+    id: match.id,
+    winnerTeam: match.winnerTeam as "A" | "B",
+    teamAPlayer1: match.teamAPlayer1,
+    teamAPlayer2: match.teamAPlayer2,
+    teamBPlayer1: match.teamBPlayer1,
+    teamBPlayer2: match.teamBPlayer2,
+  }));
+
   const playedAtIso = session.playedAt.toISOString().slice(0, 10);
-  const readyToLog = attendees.length >= 4;
-  const hasMatches = session.matches.length > 0;
 
   return (
     <main className="shell">
@@ -64,41 +65,13 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         initialPlayedAt={playedAtIso}
         initialVenue={session.venue}
       />
-
-      <SessionAttendeesForm
+      <SessionBody
         sessionId={session.id}
         knownUsers={knownUsers}
-        initialAttendees={attendees.map((attendee) => attendee.id)}
-        matchCount={session.matches.length}
+        initialAttendees={initialAttendees}
+        matches={matches}
         lockedUserIds={Array.from(lockedUserIds)}
       />
-
-      {readyToLog || hasMatches ? (
-        <section className="timeline">
-          <div className="timeline-spine" aria-hidden />
-
-          <div className="timeline-row first">
-            <LogMatchButton sessionId={session.id} attendees={attendees} />
-          </div>
-
-          {session.matches.length === 0 ? (
-            <div className="empty">
-              No matches yet. Tap “Log a match” to add the first one.
-            </div>
-          ) : (
-            session.matches.map((match) => (
-              <MatchCard
-                key={match.id}
-                sessionId={session.id}
-                attendees={attendees}
-                match={match}
-              />
-            ))
-          )}
-        </section>
-      ) : null}
-
-      {!hasMatches ? <DeleteSessionButton sessionId={session.id} /> : null}
     </main>
   );
 }

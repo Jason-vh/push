@@ -7,8 +7,6 @@ import { PlayerCheckList } from "@/components/PlayerCheckList";
 
 type KnownUser = { id: string; name: string };
 
-type SaveStatus = "idle" | "saving" | "saved";
-
 const REQUIRED_PLAYERS = 4;
 
 export function SessionAttendeesForm({
@@ -17,17 +15,18 @@ export function SessionAttendeesForm({
   initialAttendees,
   matchCount,
   lockedUserIds,
+  onPlayersChange,
 }: {
   sessionId: string;
   knownUsers: KnownUser[];
   initialAttendees: string[];
   matchCount: number;
   lockedUserIds: string[];
+  onPlayersChange?: (playerIds: string[]) => void;
 }) {
   const router = useRouter();
   const startExpanded = matchCount === 0;
   const [players, setPlayers] = useState(initialAttendees);
-  const [status, setStatus] = useState<SaveStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(startExpanded);
 
@@ -41,8 +40,8 @@ export function SessionAttendeesForm({
   async function save(nextPlayers: string[]) {
     const previousPlayers = players;
     setPlayers(nextPlayers);
+    onPlayersChange?.(nextPlayers);
     setError(null);
-    setStatus("saving");
 
     try {
       const response = await fetch(`/api/sessions/${sessionId}/attendees`, {
@@ -52,18 +51,14 @@ export function SessionAttendeesForm({
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Could not save players");
-      setStatus("saved");
       router.refresh();
-      window.setTimeout(() => setStatus("idle"), 1200);
     } catch (err) {
       setPlayers(previousPlayers);
-      setStatus("idle");
+      onPlayersChange?.(previousPlayers);
       setError(err instanceof Error ? err.message : "Could not save players");
     }
   }
 
-  // When the session already has matches, render the compact roster strip with
-  // an Edit affordance; tapping it expands the picker (with locked rows).
   if (!startExpanded) {
     return (
       <>
@@ -100,14 +95,7 @@ export function SessionAttendeesForm({
 
         {editing ? (
           <div className="card edit-panel" style={{ marginTop: 12 }}>
-            <div className="row" style={{ marginBottom: 10 }}>
-              <h2 style={{ margin: 0 }}>Players</h2>
-              {status !== "idle" ? (
-                <span className="save-status">
-                  {status === "saving" ? "Saving…" : "Saved"}
-                </span>
-              ) : null}
-            </div>
+            <h2 style={{ margin: 0, marginBottom: 10 }}>Players</h2>
             {error ? <div className="error" style={{ marginBottom: 10 }}>{error}</div> : null}
             <PlayerCheckList
               knownUsers={knownUsers}
@@ -121,8 +109,6 @@ export function SessionAttendeesForm({
     );
   }
 
-  // No matches yet — the player picker is the page. Always-expanded list with a
-  // status line above; no compact roster strip.
   return (
     <section className="players-panel">
       <div className="players-status">
@@ -131,7 +117,6 @@ export function SessionAttendeesForm({
         </h2>
         <span className="players-status-meta">
           {players.length}/{REQUIRED_PLAYERS}
-          {status === "saving" ? " · Saving…" : status === "saved" ? " · Saved" : ""}
         </span>
       </div>
       {error ? <div className="error" style={{ marginBottom: 10 }}>{error}</div> : null}

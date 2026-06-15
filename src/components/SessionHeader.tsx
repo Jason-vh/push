@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type SaveStatus = "idle" | "saving" | "saved";
-
 export function SessionHeader({
   sessionId,
   initialPlayedAt,
@@ -18,12 +16,10 @@ export function SessionHeader({
   const [playedAt, setPlayedAt] = useState(initialPlayedAt);
   const [venue, setVenue] = useState(initialVenue ?? "");
   const [editing, setEditing] = useState(false);
-  const [status, setStatus] = useState<SaveStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
   async function save(patch: { playedAt?: string; venue?: string | null }) {
     setError(null);
-    setStatus("saving");
     try {
       const response = await fetch(`/api/sessions/${sessionId}`, {
         method: "PATCH",
@@ -32,11 +28,8 @@ export function SessionHeader({
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Could not save");
-      setStatus("saved");
       router.refresh();
-      window.setTimeout(() => setStatus("idle"), 1200);
     } catch (err) {
-      setStatus("idle");
       setError(err instanceof Error ? err.message : "Could not save");
     }
   }
@@ -86,11 +79,6 @@ export function SessionHeader({
               placeholder="The Padellers"
             />
           </label>
-          {status !== "idle" ? (
-            <div className="save-status">
-              {status === "saving" ? "Saving…" : "Saved"}
-            </div>
-          ) : null}
           {error ? <div className="error">{error}</div> : null}
         </div>
       ) : null}
