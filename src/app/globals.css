@@ -1152,6 +1152,9 @@ h3 {
 .timeline-row.first {
   padding-bottom: 14px;
 }
+.timeline-row.last {
+  padding-bottom: 0;
+}
 .match-vs {
   display: grid;
   place-items: center;

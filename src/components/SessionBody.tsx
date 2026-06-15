@@ -64,9 +64,9 @@ export function SessionBody({
 
       {renderTimeline ? (
         <section className={`timeline${isLeaving ? " is-leaving" : ""}`}>
-          <div className="timeline-spine" aria-hidden />
+          {matches.length > 0 ? <div className="timeline-spine" aria-hidden /> : null}
 
-          <div className="timeline-row first">
+          <div className={`timeline-row${matches.length > 0 ? " first" : " last"}`}>
             <LogMatchButton sessionId={sessionId} attendees={liveAttendees} />
           </div>
 
