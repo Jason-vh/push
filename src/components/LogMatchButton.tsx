@@ -13,7 +13,6 @@ export function LogMatchButton({
   attendees: Attendee[];
 }) {
   const [open, setOpen] = useState(false);
-  const disabled = attendees.length < 4;
 
   return (
     <>
@@ -21,7 +20,6 @@ export function LogMatchButton({
         type="button"
         className="log-button"
         onClick={() => setOpen(true)}
-        disabled={disabled}
         aria-haspopup="dialog"
       >
         <span className="log-plus" aria-hidden>
@@ -29,7 +27,7 @@ export function LogMatchButton({
             <path d="M4 0h2v10H4z M0 4h10v2H0z" />
           </svg>
         </span>
-        {disabled ? `Add ${4 - attendees.length} more player${4 - attendees.length === 1 ? "" : "s"}` : "Log a match"}
+        Log a match
       </button>
       <LogMatchSheet
         sessionId={sessionId}
