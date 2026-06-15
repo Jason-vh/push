@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { LogMatchButton } from "@/components/LogMatchButton";
 import { MatchCard, type MatchCardData } from "@/components/MatchCard";
@@ -9,6 +9,7 @@ import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
 type KnownUser = { id: string; name: string };
 
 const REQUIRED_PLAYERS = 4;
+const TIMELINE_LEAVE_MS = 220;
 
 export function SessionBody({
   sessionId,
@@ -30,7 +31,25 @@ export function SessionBody({
     .filter((u): u is KnownUser => Boolean(u));
 
   const hasMatches = matches.length > 0;
-  const readyToLog = liveAttendees.length >= REQUIRED_PLAYERS;
+  const shouldShowTimeline = liveAttendees.length >= REQUIRED_PLAYERS || hasMatches;
+
+  const [renderTimeline, setRenderTimeline] = useState(shouldShowTimeline);
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  useEffect(() => {
+    if (shouldShowTimeline) {
+      setRenderTimeline(true);
+      setIsLeaving(false);
+      return;
+    }
+    if (!renderTimeline) return;
+    setIsLeaving(true);
+    const t = window.setTimeout(() => {
+      setRenderTimeline(false);
+      setIsLeaving(false);
+    }, TIMELINE_LEAVE_MS);
+    return () => window.clearTimeout(t);
+  }, [shouldShowTimeline, renderTimeline]);
 
   return (
     <>
@@ -43,28 +62,22 @@ export function SessionBody({
         onPlayersChange={setLivePlayers}
       />
 
-      {readyToLog || hasMatches ? (
-        <section className="timeline">
+      {renderTimeline ? (
+        <section className={`timeline${isLeaving ? " is-leaving" : ""}`}>
           <div className="timeline-spine" aria-hidden />
 
           <div className="timeline-row first">
             <LogMatchButton sessionId={sessionId} attendees={liveAttendees} />
           </div>
 
-          {matches.length === 0 ? (
-            <div className="empty">
-              No matches yet. Tap “Log a match” to add the first one.
-            </div>
-          ) : (
-            matches.map((match) => (
-              <MatchCard
-                key={match.id}
-                sessionId={sessionId}
-                attendees={liveAttendees}
-                match={match}
-              />
-            ))
-          )}
+          {matches.map((match) => (
+            <MatchCard
+              key={match.id}
+              sessionId={sessionId}
+              attendees={liveAttendees}
+              match={match}
+            />
+          ))}
         </section>
       ) : null}
 
