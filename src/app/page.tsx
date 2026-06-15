@@ -23,6 +23,7 @@ export default async function Home() {
       select: { id: true, name: true },
     }),
     prisma.gameSession.findMany({
+      where: { deletedAt: null },
       take: 5,
       orderBy: { playedAt: "desc" },
       include: {

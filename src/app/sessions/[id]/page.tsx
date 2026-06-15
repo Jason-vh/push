@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { LogMatchButton } from "@/components/LogMatchButton";
 import { MatchCard } from "@/components/MatchCard";
 import { SessionAttendeesForm } from "@/components/SessionAttendeesForm";
@@ -11,8 +12,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
   const { id } = await params;
   const [session, knownUsers] = await Promise.all([
-    prisma.gameSession.findUnique({
-      where: { id },
+    prisma.gameSession.findFirst({
+      where: { id, deletedAt: null },
       include: {
         players: {
           include: { user: true },
@@ -69,9 +70,12 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         </div>
 
         {session.matches.length === 0 ? (
-          <div className="empty" style={{ marginTop: 12 }}>
-            No matches yet. Tap “Log a match” to add the first one.
-          </div>
+          <>
+            <div className="empty" style={{ marginTop: 12 }}>
+              No matches yet. Tap “Log a match” to add the first one.
+            </div>
+            <DeleteSessionButton sessionId={session.id} />
+          </>
         ) : (
           session.matches.map((match) => (
             <MatchCard

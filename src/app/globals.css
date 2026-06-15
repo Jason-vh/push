@@ -451,6 +451,17 @@ h3 {
   color: var(--forest);
   box-shadow: none;
 }
+.btn.danger {
+  background: transparent;
+  color: var(--clay);
+  box-shadow: none;
+  border: 1px solid rgba(160, 83, 42, 0.35);
+}
+.btn.danger.armed {
+  background: var(--clay);
+  color: #f8ecd9;
+  border-color: var(--clay);
+}
 /* Secondary action under the primary CTA on auth screens — small,
    text-link style instead of a second pill so the hierarchy is clear
    and the tap feels lighter / faster than committing to a button. */

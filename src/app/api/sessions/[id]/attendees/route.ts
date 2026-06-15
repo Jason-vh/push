@@ -17,7 +17,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const attendeeUserIds = Array.from(new Set(input.attendeeUserIds));
 
     await prisma.$transaction(async (tx) => {
-      const session = await tx.gameSession.findUnique({ where: { id: sessionId } });
+      const session = await tx.gameSession.findFirst({
+        where: { id: sessionId, deletedAt: null },
+      });
       if (!session) throw new Error("Session not found.");
 
       if (attendeeUserIds.length > 0) {

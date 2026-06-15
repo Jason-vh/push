@@ -36,8 +36,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const match = await prisma.$transaction(async (tx) => {
-      const session = await tx.gameSession.findUnique({
-        where: { id: sessionId },
+      const session = await tx.gameSession.findFirst({
+        where: { id: sessionId, deletedAt: null },
         include: { players: true },
       });
 

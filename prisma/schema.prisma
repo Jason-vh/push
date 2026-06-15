@@ -33,6 +33,7 @@ model GameSession {
   createdById String
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
 
   createdBy   User          @relation("CreatedGameSessions", fields: [createdById], references: [id], onDelete: Cascade)
   players     SessionPlayer[]

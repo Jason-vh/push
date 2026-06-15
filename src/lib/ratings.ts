@@ -195,6 +195,7 @@ export function toughestOpponent(matches: MatchInput[], userId: string): PairRec
 
 export async function loadAllMatchesOrdered(prisma: PrismaClient): Promise<MatchInput[]> {
   const matches = await prisma.match.findMany({
+    where: { session: { deletedAt: null } },
     orderBy: [{ session: { playedAt: "asc" } }, { orderIndex: "asc" }],
     select: {
       id: true,
