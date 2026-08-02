@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server";
 import { Team } from "@prisma/client";
 import { revalidateTag } from "next/cache";
-import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { matchInputSchema, winnerFromScore } from "@/lib/matchInput";
 import { RATINGS_CACHE_TAG } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
-
-const matchSchema = z.object({
-  teamAPlayer1Id: z.string().min(1),
-  teamAPlayer2Id: z.string().min(1),
-  teamBPlayer1Id: z.string().min(1),
-  teamBPlayer2Id: z.string().min(1),
-  winnerTeam: z.enum(["A", "B"]),
-});
 
 export async function PATCH(
   request: Request,
@@ -23,7 +15,13 @@ export async function PATCH(
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id: sessionId, matchId } = await params;
-    const input = matchSchema.parse(await request.json());
+    const parsed = matchInputSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      const message = parsed.error.issues[0]?.message ?? "Invalid match";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    const input = parsed.data;
     const userIds = [
       input.teamAPlayer1Id,
       input.teamAPlayer2Id,
@@ -64,7 +62,9 @@ export async function PATCH(
           teamAPlayer2Id: input.teamAPlayer2Id,
           teamBPlayer1Id: input.teamBPlayer1Id,
           teamBPlayer2Id: input.teamBPlayer2Id,
-          winnerTeam: input.winnerTeam === "A" ? Team.A : Team.B,
+          teamAScore: input.teamAScore,
+          teamBScore: input.teamBScore,
+          winnerTeam: winnerFromScore(input.teamAScore, input.teamBScore) === "A" ? Team.A : Team.B,
         },
       });
     });

@@ -10,6 +10,8 @@ type Player = { id: string; name: string };
 export type MatchCardData = {
   id: string;
   winnerTeam: "A" | "B";
+  teamAScore: number | null;
+  teamBScore: number | null;
   teamAPlayer1: Player;
   teamAPlayer2: Player;
   teamBPlayer1: Player;
@@ -27,6 +29,7 @@ export function MatchCard({
 }) {
   const [open, setOpen] = useState(false);
   const aWon = match.winnerTeam === "A";
+  const hasScore = match.teamAScore != null && match.teamBScore != null;
   return (
     <>
       <div className="timeline-row">
@@ -42,7 +45,13 @@ export function MatchCard({
             align="left"
           />
           <div className="match-vs">
-            <span className="vs">VS</span>
+            {hasScore ? (
+              <span className="match-score">
+                {match.teamAScore}–{match.teamBScore}
+              </span>
+            ) : (
+              <span className="vs">VS</span>
+            )}
           </div>
           <TeamColumn
             players={[match.teamBPlayer1, match.teamBPlayer2]}
@@ -62,7 +71,8 @@ export function MatchCard({
           teamAPlayer2Id: match.teamAPlayer2.id,
           teamBPlayer1Id: match.teamBPlayer1.id,
           teamBPlayer2Id: match.teamBPlayer2.id,
-          winnerTeam: match.winnerTeam,
+          teamAScore: match.teamAScore,
+          teamBScore: match.teamBScore,
         }}
       />
     </>

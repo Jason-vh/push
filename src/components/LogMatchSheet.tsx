@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { MAX_SCORE, winnerFromScore } from "@/lib/matchInput";
 
 type Attendee = { id: string; name: string };
 type Team = "A" | "B";
@@ -19,8 +20,15 @@ export type EditingMatch = {
   teamAPlayer2Id: string;
   teamBPlayer1Id: string;
   teamBPlayer2Id: string;
-  winnerTeam: Team;
+  teamAScore: number | null;
+  teamBScore: number | null;
 };
+
+const SCORE_DIGITS = String(MAX_SCORE).length;
+
+function scoreText(score: number | null | undefined) {
+  return score == null ? "" : String(score);
+}
 
 const EMPTY_SLOTS: Slots = { a1: "", a2: "", b1: "", b2: "" };
 const SLOT_ORDER: SlotKey[] = ["a1", "a2", "b1", "b2"];
@@ -61,11 +69,16 @@ export function LogMatchSheet({
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [slots, setSlots] = useState<Slots>(EMPTY_SLOTS);
+  const [scoreA, setScoreA] = useState("");
+  const [scoreB, setScoreB] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const confirmTimeoutRef = useRef<number | null>(null);
+  const scoreBRef = useRef<HTMLInputElement>(null);
+  // Blur-triggered auto-save can race the save button's click; a ref settles it.
+  const savingRef = useRef(false);
   const isEditing = Boolean(match);
 
   useEffect(() => {
@@ -73,6 +86,9 @@ export function LogMatchSheet({
     if (!dialog) return;
     if (open && !dialog.open) {
       setSlots(match ? slotsFromMatch(match) : EMPTY_SLOTS);
+      setScoreA(scoreText(match?.teamAScore));
+      setScoreB(scoreText(match?.teamBScore));
+      savingRef.current = false;
       setStatus("idle");
       setError(null);
       setClosing(false);
@@ -121,6 +137,14 @@ export function LogMatchSheet({
   const nextEmpty = SLOT_ORDER.find((k) => !slots[k]) ?? null;
   const busy = status !== "idle";
 
+  const teamAScore = scoreA === "" ? null : Number(scoreA);
+  const teamBScore = scoreB === "" ? null : Number(scoreB);
+  const hasBothScores = teamAScore !== null && teamBScore !== null;
+  const isTie = hasBothScores && teamAScore === teamBScore;
+  const winner: Team | null =
+    hasBothScores && !isTie ? winnerFromScore(teamAScore, teamBScore) : null;
+  const canSave = ready && winner !== null;
+
   function placeOnBench(attendeeId: string) {
     if (busy || !nextEmpty) return;
     setSlots({ ...slots, [nextEmpty]: attendeeId });
@@ -131,8 +155,14 @@ export function LogMatchSheet({
     setSlots({ ...slots, [slotKey]: "" });
   }
 
-  async function saveWith(winner: Team) {
-    if (busy || !ready) return;
+  function changeScore(raw: string, setScore: (value: string) => void) {
+    if (busy) return;
+    setScore(raw.replace(/\D/g, "").slice(0, SCORE_DIGITS));
+  }
+
+  async function save() {
+    if (savingRef.current || busy || !canSave) return;
+    savingRef.current = true;
     setError(null);
     setStatus("saving");
     try {
@@ -147,7 +177,8 @@ export function LogMatchSheet({
           teamAPlayer2Id: slots.a2,
           teamBPlayer1Id: slots.b1,
           teamBPlayer2Id: slots.b2,
-          winnerTeam: winner,
+          teamAScore,
+          teamBScore,
         }),
       });
       const data = await response.json();
@@ -157,6 +188,8 @@ export function LogMatchSheet({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save match");
       setStatus("idle");
+    } finally {
+      savingRef.current = false;
     }
   }
 
@@ -192,6 +225,16 @@ export function LogMatchSheet({
     }
   }
 
+  const scoreHint = !ready
+    ? placedCount === 0
+      ? "Tap 4 players from the bench"
+      : `Tap ${4 - placedCount} more from the bench`
+    : isTie
+      ? "A match can't end in a tie"
+      : !hasBothScores
+        ? "Enter the final score"
+        : `Team ${winner} wins ${teamAScore}–${teamBScore}`;
+
   const teamA: Attendee[] = [slots.a1, slots.a2]
     .map((id) => attendeeById.get(id))
     .filter((a): a is Attendee => Boolean(a));
@@ -218,15 +261,7 @@ export function LogMatchSheet({
           <div className="sheet-header">
             <div>
               <h2 className="sheet-title">{isEditing ? "Edit match" : "Set the teams"}</h2>
-              <div className="sheet-sub">
-                {ready
-                  ? isEditing
-                    ? "Tap the winning team to save changes"
-                    : "Tap the winning team to save"
-                  : placedCount === 0
-                    ? "Tap 4 players from the bench"
-                    : `Tap ${4 - placedCount} more from the bench`}
-              </div>
+              <div className="sheet-sub">{scoreHint}</div>
             </div>
             <button
               type="button"
@@ -307,22 +342,48 @@ export function LogMatchSheet({
           </div>
 
           {ready ? (
-            <div className="win-pick-row">
-              <WinPick
-                label="Team A"
-                players={teamA}
-                onPick={() => saveWith("A")}
-                disabled={busy}
-                isCurrent={isEditing && match?.winnerTeam === "A"}
-              />
-              <WinPick
-                label="Team B"
-                players={teamB}
-                onPick={() => saveWith("B")}
-                disabled={busy}
-                isCurrent={isEditing && match?.winnerTeam === "B"}
-              />
-            </div>
+            <>
+              <div className="score-entry">
+                <ScoreField
+                  label="Team A"
+                  players={teamA}
+                  value={scoreA}
+                  onChange={(value) => changeScore(value, setScoreA)}
+                  onEnter={() => scoreBRef.current?.focus()}
+                  onBlur={save}
+                  leading={winner === "A"}
+                  disabled={busy}
+                  enterKeyHint="next"
+                />
+                <span className="score-dash" aria-hidden>
+                  –
+                </span>
+                <ScoreField
+                  label="Team B"
+                  players={teamB}
+                  value={scoreB}
+                  onChange={(value) => changeScore(value, setScoreB)}
+                  onEnter={() => scoreBRef.current?.blur()}
+                  onBlur={save}
+                  leading={winner === "B"}
+                  disabled={busy}
+                  enterKeyHint="done"
+                  inputRef={scoreBRef}
+                />
+              </div>
+              <button
+                type="button"
+                className="score-save"
+                onClick={save}
+                disabled={!canSave || busy}
+              >
+                {status === "saving"
+                  ? "Saving…"
+                  : winner
+                    ? `Save · Team ${winner} wins ${teamAScore}–${teamBScore}`
+                    : "Enter both scores"}
+              </button>
+            </>
           ) : null}
 
           {isEditing ? (
@@ -340,53 +401,63 @@ export function LogMatchSheet({
             </button>
           ) : null}
 
-          {status === "saving" ? <div className="sheet-status">Saving…</div> : null}
         </div>
     </dialog>
   );
 }
 
-function WinPick({
+function ScoreField({
   label,
   players,
-  onPick,
+  value,
+  onChange,
+  onEnter,
+  onBlur,
+  leading,
   disabled,
-  isCurrent,
+  enterKeyHint,
+  inputRef,
 }: {
   label: string;
   players: Attendee[];
-  onPick: () => void;
+  value: string;
+  onChange: (value: string) => void;
+  onEnter: () => void;
+  onBlur: () => void;
+  leading: boolean;
   disabled: boolean;
-  isCurrent?: boolean;
+  enterKeyHint: "next" | "done";
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }) {
+  const names = players.map((player) => firstName(player.name)).join(" & ");
   return (
-    <button
-      type="button"
-      className={`win-pick${isCurrent ? " is-current" : ""}`}
-      onClick={onPick}
-      disabled={disabled}
-      aria-label={`${label} won`}
-      aria-pressed={isCurrent}
-    >
-      <div className="win-pick-head">
-        <span>{label.toUpperCase()} WON</span>
-        <span className="arrow" aria-hidden>
-          →
-        </span>
-      </div>
-      <div className="win-pick-body">
-        <div className="win-pick-stack">
-          {players.map((p) => (
-            <span className="frame" key={p.id}>
-              <Avatar name={p.name} size={26} />
-            </span>
-          ))}
-        </div>
-        <span className="win-pick-names">
-          {players.map((p) => firstName(p.name)).join(" & ")}
-        </span>
-      </div>
-    </button>
+    <label className={`score-field${leading ? " leading" : ""}`}>
+      <span className="score-team">
+        <span className="score-tag">{label.toUpperCase()}</span>
+        <span className="score-names">{names}</span>
+      </span>
+      <input
+        ref={inputRef}
+        className="score-input"
+        type="number"
+        inputMode="numeric"
+        enterKeyHint={enterKeyHint}
+        min={0}
+        max={MAX_SCORE}
+        step={1}
+        placeholder="–"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          onEnter();
+        }}
+        onBlur={onBlur}
+        disabled={disabled}
+        aria-label={`${label} score`}
+      />
+    </label>
   );
 }
 

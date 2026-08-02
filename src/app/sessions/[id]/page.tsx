@@ -50,6 +50,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const matches = session.matches.map((match) => ({
     id: match.id,
     winnerTeam: match.winnerTeam as "A" | "B",
+    teamAScore: match.teamAScore,
+    teamBScore: match.teamBScore,
     teamAPlayer1: match.teamAPlayer1,
     teamAPlayer2: match.teamAPlayer2,
     teamBPlayer1: match.teamBPlayer1,

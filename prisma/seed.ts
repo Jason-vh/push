@@ -1,4 +1,4 @@
-import { PrismaClient, type Team } from "@prisma/client";
+import { PrismaClient, Team } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -17,54 +17,54 @@ const FALLBACK_ME_NAME = "You";
 const SESSIONS: Array<{
   daysAgo: number;
   venue: string;
-  // Each match: [team A pair indices, team B pair indices, winner ("A"|"B")]
-  // indices reference PLAYER_NAMES.
-  matches: Array<[number, number, number, number, Team]>;
+  // Each match: [team A pair indices, team B pair indices, team A score, team B score].
+  // Indices reference PLAYER_NAMES; the winner follows the score.
+  matches: Array<[number, number, number, number, number, number]>;
 }> = [
   {
     daysAgo: 21,
     venue: "Padelhuset Nørrebro",
     matches: [
-      [0, 1, 2, 3, "A"],
-      [0, 2, 1, 3, "B"],
-      [3, 4, 0, 1, "A"],
-      [0, 3, 2, 4, "A"],
-      [1, 4, 0, 2, "B"],
+      [0, 1, 2, 3, 6, 3],
+      [0, 2, 1, 3, 4, 6],
+      [3, 4, 0, 1, 7, 5],
+      [0, 3, 2, 4, 6, 2],
+      [1, 4, 0, 2, 3, 6],
     ],
   },
   {
     daysAgo: 14,
     venue: "Padelklub Vest",
     matches: [
-      [0, 1, 3, 4, "A"],
-      [0, 4, 1, 2, "B"],
-      [2, 3, 0, 1, "B"],
-      [1, 3, 2, 4, "A"],
-      [0, 2, 3, 4, "A"],
-      [1, 4, 0, 3, "B"],
+      [0, 1, 3, 4, 6, 4],
+      [0, 4, 1, 2, 5, 7],
+      [2, 3, 0, 1, 2, 6],
+      [1, 3, 2, 4, 6, 1],
+      [0, 2, 3, 4, 7, 6],
+      [1, 4, 0, 3, 4, 6],
     ],
   },
   {
     daysAgo: 7,
     venue: "Padelhuset Nørrebro",
     matches: [
-      [0, 1, 2, 4, "A"],
-      [1, 2, 0, 3, "A"],
-      [3, 4, 0, 2, "B"],
-      [0, 4, 1, 3, "A"],
-      [2, 3, 1, 4, "A"],
-      [0, 3, 2, 4, "B"],
-      [1, 4, 0, 2, "B"],
+      [0, 1, 2, 4, 6, 4],
+      [1, 2, 0, 3, 6, 0],
+      [3, 4, 0, 2, 3, 6],
+      [0, 4, 1, 3, 7, 5],
+      [2, 3, 1, 4, 6, 3],
+      [0, 3, 2, 4, 4, 6],
+      [1, 4, 0, 2, 2, 6],
     ],
   },
   {
     daysAgo: 1,
     venue: "Padelhuset Nørrebro",
     matches: [
-      [0, 2, 1, 3, "A"],
-      [0, 1, 3, 4, "B"],
-      [2, 4, 0, 3, "A"],
-      [1, 2, 0, 4, "A"],
+      [0, 2, 1, 3, 6, 2],
+      [0, 1, 3, 4, 5, 7],
+      [2, 4, 0, 3, 6, 4],
+      [1, 2, 0, 4, 6, 5],
     ],
   },
 ];
@@ -146,7 +146,7 @@ async function main() {
     });
 
     for (let i = 0; i < session.matches.length; i += 1) {
-      const [a1, a2, b1, b2, winner] = session.matches[i];
+      const [a1, a2, b1, b2, teamAScore, teamBScore] = session.matches[i];
       await prisma.match.create({
         data: {
           sessionId: created.id,
@@ -155,7 +155,9 @@ async function main() {
           teamAPlayer2Id: userByIndex[a2].id,
           teamBPlayer1Id: userByIndex[b1].id,
           teamBPlayer2Id: userByIndex[b2].id,
-          winnerTeam: winner,
+          teamAScore,
+          teamBScore,
+          winnerTeam: teamAScore > teamBScore ? Team.A : Team.B,
         },
       });
     }
