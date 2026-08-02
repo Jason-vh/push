@@ -201,7 +201,6 @@ function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
           <div className="lb-rating">{displayRating(entry.rating)}</div>
         </Link>
       ))}
-      <p className="leaderboard-note">Players who haven&apos;t played in a month are hidden.</p>
     </div>
   );
 }
