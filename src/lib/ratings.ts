@@ -234,7 +234,12 @@ function finalize(records: Map<string, PairRecord>): PairRecord[] {
     });
 }
 
-export function partnerRecords(matches: MatchInput[], userId: string): PairRecord[] {
+/** `eligible`, when given, limits the counterparts a record is kept for. */
+export function partnerRecords(
+  matches: MatchInput[],
+  userId: string,
+  eligible?: ReadonlySet<string>,
+): PairRecord[] {
   const records = new Map<string, PairRecord>();
   for (const match of matches) {
     const team = teamOf(match, userId);
@@ -245,7 +250,7 @@ export function partnerRecords(matches: MatchInput[], userId: string): PairRecor
         : [match.teamBPlayer1Id, match.teamBPlayer2Id];
     const won = match.winnerTeam === team;
     const partner = myTeam.find((id) => id !== userId);
-    if (!partner) continue;
+    if (!partner || (eligible && !eligible.has(partner))) continue;
     const record = records.get(partner) ?? emptyRecord(partner);
     if (won) record.wins += 1;
     else record.losses += 1;
@@ -255,7 +260,11 @@ export function partnerRecords(matches: MatchInput[], userId: string): PairRecor
   return finalize(records);
 }
 
-export function opponentRecords(matches: MatchInput[], userId: string): PairRecord[] {
+export function opponentRecords(
+  matches: MatchInput[],
+  userId: string,
+  eligible?: ReadonlySet<string>,
+): PairRecord[] {
   const records = new Map<string, PairRecord>();
   for (const match of matches) {
     const team = teamOf(match, userId);
@@ -266,6 +275,7 @@ export function opponentRecords(matches: MatchInput[], userId: string): PairReco
         : [match.teamAPlayer1Id, match.teamAPlayer2Id];
     const won = match.winnerTeam === team;
     for (const opponentId of opponents) {
+      if (eligible && !eligible.has(opponentId)) continue;
       const record = records.get(opponentId) ?? emptyRecord(opponentId);
       if (won) record.wins += 1;
       else record.losses += 1;
@@ -276,21 +286,27 @@ export function opponentRecords(matches: MatchInput[], userId: string): PairReco
   return finalize(records);
 }
 
-export function bestTeammate(matches: MatchInput[], userId: string): PairRecord | null {
-  const eligible = partnerRecords(matches, userId).filter((r) => r.wins + r.losses > 0);
-  return eligible[0] ?? null;
+export function bestTeammate(
+  matches: MatchInput[],
+  userId: string,
+  eligible?: ReadonlySet<string>,
+): PairRecord | null {
+  const played = partnerRecords(matches, userId, eligible).filter((r) => r.wins + r.losses > 0);
+  return played[0] ?? null;
 }
 
-export function toughestOpponent(matches: MatchInput[], userId: string): PairRecord | null {
+export function toughestOpponent(
+  matches: MatchInput[],
+  userId: string,
+  eligible?: ReadonlySet<string>,
+): PairRecord | null {
   // Toughest = opponent with the highest win rate AGAINST me (i.e. my lowest win rate vs them).
-  const eligible = opponentRecords(matches, userId).filter((r) => r.wins + r.losses > 0);
-  if (eligible.length === 0) return null;
-  return eligible
-    .slice()
-    .sort((a, b) => {
-      if (a.winRate !== b.winRate) return a.winRate - b.winRate;
-      return b.wins + b.losses - (a.wins + a.losses);
-    })[0];
+  const played = opponentRecords(matches, userId, eligible).filter((r) => r.wins + r.losses > 0);
+  if (played.length === 0) return null;
+  return played.slice().sort((a, b) => {
+    if (a.winRate !== b.winRate) return a.winRate - b.winRate;
+    return b.wins + b.losses - (a.wins + a.losses);
+  })[0];
 }
 
 export async function loadAllMatchesOrdered(prisma: PrismaClient): Promise<MatchInput[]> {

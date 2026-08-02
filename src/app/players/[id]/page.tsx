@@ -4,6 +4,7 @@ import { Avatar } from "@/components/Avatar";
 import { CalloutRow, shortName } from "@/components/CalloutRow";
 import { RatingSparkline } from "@/components/RatingSparkline";
 import { SessionRow } from "@/components/SessionRow";
+import { loadActivePlayerIds } from "@/lib/activity";
 import { prisma } from "@/lib/db";
 import { displayRating } from "@/lib/elo";
 import {
@@ -34,29 +35,31 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   const { id } = await params;
   const sessionsWhere = { deletedAt: null, players: { some: { userId: id } } };
-  const [player, users, orderedMatches, sessions, sessionCount] = await Promise.all([
-    prisma.user.findUnique({ where: { id }, select: { id: true, name: true } }),
-    prisma.user.findMany({ where: { active: true }, select: { id: true, name: true } }),
-    getCachedOrderedMatches(),
-    prisma.gameSession.findMany({
-      where: sessionsWhere,
-      take: 5,
-      orderBy: { playedAt: "desc" },
-      include: {
-        matches: {
-          select: {
-            id: true,
-            winnerTeam: true,
-            teamAPlayer1Id: true,
-            teamAPlayer2Id: true,
-            teamBPlayer1Id: true,
-            teamBPlayer2Id: true,
+  const [player, users, orderedMatches, sessions, sessionCount, activePlayerIds] =
+    await Promise.all([
+      prisma.user.findUnique({ where: { id }, select: { id: true, name: true } }),
+      prisma.user.findMany({ where: { active: true }, select: { id: true, name: true } }),
+      getCachedOrderedMatches(),
+      prisma.gameSession.findMany({
+        where: sessionsWhere,
+        take: 5,
+        orderBy: { playedAt: "desc" },
+        include: {
+          matches: {
+            select: {
+              id: true,
+              winnerTeam: true,
+              teamAPlayer1Id: true,
+              teamAPlayer2Id: true,
+              teamBPlayer1Id: true,
+              teamBPlayer2Id: true,
+            },
           },
         },
-      },
-    }),
-    prisma.gameSession.count({ where: sessionsWhere }),
-  ]);
+      }),
+      prisma.gameSession.count({ where: sessionsWhere }),
+      loadActivePlayerIds(),
+    ]);
 
   if (!player) notFound();
 
@@ -64,7 +67,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const { stats, byMatch } = computeRatings(orderedMatches);
   const usersById = new Map(users.map((user) => [user.id, user]));
   const playerStats = statsFor(stats, player.id);
-  const rank = rankPlayers(users, stats).find((entry) => entry.id === player.id)?.rank ?? null;
+  const isActive = activePlayerIds.has(player.id);
+  const rank = isActive
+    ? (rankPlayers(
+        users.filter((u) => activePlayerIds.has(u.id)),
+        stats,
+      ).find((entry) => entry.id === player.id)?.rank ?? null)
+    : null;
+  const lastPlayedAt = sessions[0]?.playedAt ?? null;
 
   const results = playerResults(orderedMatches, player.id);
   const history = ratingHistory(orderedMatches, byMatch, player.id);
@@ -72,10 +82,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const played = playerStats.wins + playerStats.losses;
   const winRate = played === 0 ? 0 : Math.round((playerStats.wins * 100) / played);
 
-  const teammate = bestTeammate(orderedMatches, player.id);
-  const opponent = toughestOpponent(orderedMatches, player.id);
-  const partners = partnerRecords(orderedMatches, player.id).slice(0, PAIRS_SHOWN);
-  const opponents = opponentRecords(orderedMatches, player.id).slice(0, PAIRS_SHOWN);
+  const teammate = bestTeammate(orderedMatches, player.id, activePlayerIds);
+  const opponent = toughestOpponent(orderedMatches, player.id, activePlayerIds);
+  const partners = partnerRecords(orderedMatches, player.id, activePlayerIds).slice(0, PAIRS_SHOWN);
+  const opponents = opponentRecords(orderedMatches, player.id, activePlayerIds).slice(
+    0,
+    PAIRS_SHOWN,
+  );
 
   return (
     <main className="shell">
@@ -87,6 +100,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
             {isMe ? "That's you · " : ""}
             {played} {played === 1 ? "match" : "matches"} · {sessionCount}{" "}
             {sessionCount === 1 ? "session" : "sessions"}
+            {lastPlayedAt ? ` · last played ${formatDate(lastPlayedAt)}` : ""}
           </div>
         </div>
       </header>
@@ -96,8 +110,16 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           <div className="hero-label">{isMe ? "YOUR RATING" : "RATING"}</div>
           <div className="hero-rating">{displayRating(playerStats.rating)}</div>
         </div>
-        <div className="hero-rank">{rank ? `Rank #${rank}` : "Unranked"}</div>
+        <div className="hero-rank">
+          {rank ? `Rank #${rank}` : isActive ? "Unranked" : "Inactive"}
+        </div>
       </div>
+
+      {isActive ? null : (
+        <p className="profile-note">
+          Hidden from the leaderboard and stats until {isMe ? "you play" : "they play"} again.
+        </p>
+      )}
 
       <div className="stat-grid">
         <StatTile label="Won" value={String(playerStats.wins)} tone="positive" />
@@ -191,6 +213,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       </section>
     </main>
   );
+}
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en", { day: "numeric", month: "short" }).format(date);
 }
 
 function toMatchInput(match: {

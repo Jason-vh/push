@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { CalloutRow } from "@/components/CalloutRow";
 import { SessionRow } from "@/components/SessionRow";
+import { loadActivePlayerIds } from "@/lib/activity";
 import { prisma } from "@/lib/db";
 import { displayRating } from "@/lib/elo";
 import {
@@ -22,7 +23,7 @@ export default async function Home() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const [users, recentSessions, orderedMatches] = await Promise.all([
+  const [users, recentSessions, orderedMatches, activePlayerIds] = await Promise.all([
     prisma.user.findMany({
       where: { active: true },
       select: { id: true, name: true },
@@ -45,12 +46,15 @@ export default async function Home() {
       },
     }),
     getCachedOrderedMatches(),
+    loadActivePlayerIds(),
   ]);
 
   const { stats, byMatch } = computeRatings(orderedMatches);
   const usersById = new Map(users.map((u) => [u.id, u]));
 
-  const leaderboard = rankPlayers(users, stats).map((entry) => ({
+  // Lapsed players drop off the board; you always stay on your own.
+  const ranked = users.filter((u) => activePlayerIds.has(u.id) || u.id === user.id);
+  const leaderboard = rankPlayers(ranked, stats).map((entry) => ({
     ...entry,
     isMe: entry.id === user.id,
   }));
@@ -58,8 +62,8 @@ export default async function Home() {
   const currentStats = statsFor(stats, user.id);
   const currentRank = leaderboard.find((entry) => entry.isMe)?.rank ?? null;
 
-  const teammate = bestTeammate(orderedMatches, user.id);
-  const opponent = toughestOpponent(orderedMatches, user.id);
+  const teammate = bestTeammate(orderedMatches, user.id, activePlayerIds);
+  const opponent = toughestOpponent(orderedMatches, user.id, activePlayerIds);
 
   const sessionSummaries = new Map<string, SessionSummary>(
     recentSessions.map((session) => [
@@ -197,7 +201,7 @@ function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
           <div className="lb-rating">{displayRating(entry.rating)}</div>
         </Link>
       ))}
+      <p className="leaderboard-note">Players who haven&apos;t played in a month are hidden.</p>
     </div>
   );
 }
-

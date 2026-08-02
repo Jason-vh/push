@@ -783,6 +783,14 @@ h3 {
 .lb-wl .sep {
   opacity: 0.4;
 }
+.leaderboard-note {
+  margin: 4px 0 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
 .lb-rating {
   font-size: 18px;
   font-weight: 800;
@@ -815,6 +823,13 @@ h3 {
   font-weight: 700;
   color: var(--ink-mute);
   margin-top: 4px;
+}
+.profile-note {
+  margin: -6px 4px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-mute);
+  font-style: italic;
 }
 .stat-grid {
   display: grid;
