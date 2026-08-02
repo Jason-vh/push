@@ -339,17 +339,22 @@ a {
     transform: translateY(0) scale(1);
   }
 }
-.avatar-dropdown button {
+.avatar-dropdown button,
+.avatar-dropdown a {
+  display: block;
   width: 100%;
   border: 0;
   border-radius: 12px;
   background: transparent;
   color: var(--ink);
   font-weight: 700;
+  font-size: 14px;
   padding: 10px 12px;
   text-align: left;
+  text-decoration: none;
 }
-.avatar-dropdown button:hover {
+.avatar-dropdown button:hover,
+.avatar-dropdown a:hover {
   background: var(--mint-pill);
   color: var(--forest);
 }
@@ -741,6 +746,8 @@ h3 {
   gap: 12px;
   align-items: center;
   padding: 10px 0;
+  color: inherit;
+  text-decoration: none;
 }
 .lb-row + .lb-row {
   border-top: 1px solid var(--hairline);
@@ -785,6 +792,160 @@ h3 {
   text-align: right;
 }
 
+/* ─────────────────────────────────────────────
+   Player profile
+   ───────────────────────────────────────────── */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 4px 16px;
+}
+.profile-name {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-sub {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.stat-tile {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 12px 10px;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+}
+.stat-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+.stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+  color: var(--ink);
+}
+.stat-value.positive {
+  color: var(--forest);
+}
+.stat-value.negative {
+  color: var(--clay);
+}
+.card-panel {
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 16px 18px;
+  box-shadow: var(--card-shadow);
+  margin-top: 14px;
+}
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.panel-head h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.panel-note {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sparkline {
+  display: block;
+  width: 100%;
+  height: 72px;
+  overflow: visible;
+}
+.sparkline-empty {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-mute);
+  font-style: italic;
+  padding: 20px 0;
+  text-align: center;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+.form-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+}
+.form-pips {
+  display: flex;
+  gap: 5px;
+}
+.form-pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-sizing: border-box;
+}
+.form-pip.win {
+  background: var(--forest);
+}
+.form-pip.loss {
+  border: 1.5px solid var(--clay);
+}
+.pair-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  color: inherit;
+  text-decoration: none;
+}
+.pair-row + .pair-row {
+  border-top: 1px solid var(--hairline);
+}
+.pair-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pair-rate {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
 /* Partner / opponent callouts */
 .callout-card {
   background: var(--forest);
@@ -802,6 +963,8 @@ h3 {
   grid-template-columns: 40px 1fr auto;
   align-items: center;
   gap: 12px;
+  color: inherit;
+  text-decoration: none;
 }
 .callout-text {
   min-width: 0;

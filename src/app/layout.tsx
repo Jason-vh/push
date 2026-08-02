@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Link className="brand-link" href="/" aria-label="Dashboard">
               <div className="brand-blob">P</div>
             </Link>
-            <AvatarMenu name={user.name} />
+            <AvatarMenu userId={user.id} name={user.name} />
           </nav>
         ) : null}
         {children}

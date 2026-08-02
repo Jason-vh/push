@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { CalloutRow } from "@/components/CalloutRow";
+import { SessionRow } from "@/components/SessionRow";
 import { prisma } from "@/lib/db";
 import { displayRating } from "@/lib/elo";
 import {
   bestTeammate,
   computeRatings,
   getCachedOrderedMatches,
+  rankPlayers,
   statsFor,
+  summarizeSession,
   toughestOpponent,
-  type PairRecord,
+  type SessionSummary,
+  type Winner,
 } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 
@@ -45,39 +50,10 @@ export default async function Home() {
   const { stats, byMatch } = computeRatings(orderedMatches);
   const usersById = new Map(users.map((u) => [u.id, u]));
 
-  const leaderboard = users
-    .map((u) => {
-      const s = statsFor(stats, u.id);
-      return {
-        id: u.id,
-        name: u.name,
-        rating: s.rating,
-        wins: s.wins,
-        losses: s.losses,
-        isMe: u.id === user.id,
-        rank: 0,
-      };
-    })
-    .sort((a, b) => {
-      const ar = displayRating(a.rating);
-      const br = displayRating(b.rating);
-      if (ar !== br) return br - ar;
-      if (a.wins !== b.wins) return b.wins - a.wins;
-      if (a.losses !== b.losses) return a.losses - b.losses;
-      return a.name.localeCompare(b.name);
-    });
-
-  // Dense ranking: tied players share a rank, the next group is rank+1 (no skip).
-  let lastDisplay: number | null = null;
-  let lastRank = 0;
-  for (const entry of leaderboard) {
-    const d = displayRating(entry.rating);
-    if (d !== lastDisplay) {
-      lastRank += 1;
-      lastDisplay = d;
-    }
-    entry.rank = lastRank;
-  }
+  const leaderboard = rankPlayers(users, stats).map((entry) => ({
+    ...entry,
+    isMe: entry.id === user.id,
+  }));
 
   const currentStats = statsFor(stats, user.id);
   const currentRank = leaderboard.find((entry) => entry.isMe)?.rank ?? null;
@@ -85,29 +61,16 @@ export default async function Home() {
   const teammate = bestTeammate(orderedMatches, user.id);
   const opponent = toughestOpponent(orderedMatches, user.id);
 
-  // Per-session "my delta" + my W/L. total = all matches in the session.
-  const sessionDelta = new Map<string, number>();
-  const sessionMyResults = new Map<string, { won: number; lost: number; total: number }>();
-  for (const session of recentSessions) {
-    let delta = 0;
-    let won = 0;
-    let lost = 0;
-    for (const match of session.matches) {
-      const onTeamA =
-        match.teamAPlayer1Id === user.id || match.teamAPlayer2Id === user.id;
-      const onTeamB =
-        match.teamBPlayer1Id === user.id || match.teamBPlayer2Id === user.id;
-      if (onTeamA || onTeamB) {
-        const myTeam: "A" | "B" = onTeamA ? "A" : "B";
-        if (match.winnerTeam === myTeam) won += 1;
-        else lost += 1;
-        const change = byMatch.get(match.id)?.find((c) => c.userId === user.id);
-        if (change) delta += change.delta;
-      }
-    }
-    sessionDelta.set(session.id, Math.round(delta));
-    sessionMyResults.set(session.id, { won, lost, total: session.matches.length });
-  }
+  const sessionSummaries = new Map<string, SessionSummary>(
+    recentSessions.map((session) => [
+      session.id,
+      summarizeSession(
+        session.matches.map((match) => ({ ...match, winnerTeam: match.winnerTeam as Winner })),
+        byMatch,
+        user.id,
+      ),
+    ]),
+  );
 
   return (
     <main className="shell">
@@ -123,6 +86,7 @@ export default async function Home() {
               record={teammate}
               name={usersById.get(teammate.otherUserId)?.name ?? null}
               tone="positive"
+              href={`/players/${teammate.otherUserId}`}
             />
           ) : null}
           {teammate && opponent ? <div className="callout-sep" /> : null}
@@ -132,6 +96,7 @@ export default async function Home() {
               record={opponent}
               name={usersById.get(opponent.otherUserId)?.name ?? null}
               tone="negative"
+              href={`/players/${opponent.otherUserId}`}
             />
           ) : null}
         </div>
@@ -150,16 +115,19 @@ export default async function Home() {
           <div className="empty">No sessions logged yet. Start one to see it here.</div>
         ) : (
           <div className="session-list">
-            {recentSessions.map((session) => (
-              <SessionRow
-                key={session.id}
-                href={`/sessions/${session.id}`}
-                playedAt={session.playedAt}
-                venue={session.venue}
-                results={sessionMyResults.get(session.id) ?? { won: 0, lost: 0, total: 0 }}
-                delta={sessionDelta.get(session.id) ?? 0}
-              />
-            ))}
+            {recentSessions.map((session) => {
+              const summary = sessionSummaries.get(session.id);
+              return (
+                <SessionRow
+                  key={session.id}
+                  href={`/sessions/${session.id}`}
+                  playedAt={session.playedAt}
+                  venue={session.venue}
+                  results={summary ?? { won: 0, lost: 0, total: 0 }}
+                  delta={summary?.delta ?? 0}
+                />
+              );
+            })}
           </div>
         )}
       </section>
@@ -213,7 +181,7 @@ function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
         </div>
       ) : null}
       {entries.map((entry, index) => (
-        <div className="lb-row" key={entry.id}>
+        <Link className="lb-row" key={entry.id} href={`/players/${entry.id}`}>
           <div className="lb-rank">
             {index > 0 && entries[index - 1].rank === entry.rank ? "" : entry.rank}
           </div>
@@ -227,120 +195,9 @@ function Leaderboard({ entries }: { entries: LeaderboardEntry[] }) {
             </div>
           </div>
           <div className="lb-rating">{displayRating(entry.rating)}</div>
-        </div>
+        </Link>
       ))}
     </div>
   );
 }
 
-function CalloutRow({
-  title,
-  record,
-  name,
-  tone,
-}: {
-  title: string;
-  record: PairRecord;
-  name: string | null;
-  tone: "positive" | "negative";
-}) {
-  const total = record.wins + record.losses;
-  const pips = record.results.slice(-10);
-  const statsText =
-    total > 10
-      ? `last 10 · ${record.wins} won · ${record.losses} lost`
-      : `${record.wins} won · ${record.losses} lost`;
-
-  return (
-    <div className={`callout-row ${tone}`}>
-      <Avatar name={name ?? "?"} size={40} />
-      <div className="callout-text">
-        <div className="callout-title">{title}</div>
-        <div className="callout-name">{name ? shortName(name) : "Unknown"}</div>
-      </div>
-      <div className="callout-meta">
-        <div className="callout-pips" aria-hidden>
-          {pips.map((won, i) => (
-            <span
-              key={i}
-              className={`callout-pip${won ? " filled" : ""}`}
-            />
-          ))}
-        </div>
-        <div className="callout-stats">{statsText}</div>
-      </div>
-    </div>
-  );
-}
-
-function shortName(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0];
-  return `${parts[0]} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
-}
-
-function SessionRow({
-  href,
-  playedAt,
-  venue,
-  results,
-  delta,
-}: {
-  href: string;
-  playedAt: Date;
-  venue: string | null;
-  results: { won: number; lost: number; total: number };
-  delta: number;
-}) {
-  const { dow, day } = splitDate(playedAt);
-  return (
-    <Link className="session-row" href={href}>
-      <div className="session-date">
-        <span className="dow">{dow}</span>
-        <span className="day">{day}</span>
-      </div>
-      <div style={{ minWidth: 0 }}>
-        <div className="session-meta-line">
-          {results.total} {results.total === 1 ? "game" : "games"}
-          {results.won + results.lost > 0 ? (
-            <>
-              {" · "}
-              <span className="w">{results.won}W</span>
-              <span className="sep"> · </span>
-              <span className="l">{results.lost}L</span>
-            </>
-          ) : null}
-        </div>
-        {venue ? <div className="session-venue">{venue}</div> : null}
-      </div>
-      <DeltaPill value={delta} />
-    </Link>
-  );
-}
-
-function DeltaPill({ value }: { value: number }) {
-  const direction = value > 0 ? "up" : value < 0 ? "down" : "flat";
-  const abs = Math.abs(value);
-  return (
-    <span className={`delta-pill ${direction}`}>
-      {direction === "flat" ? (
-        <svg width="9" height="9" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
-          <rect x="2" y="4.3" width="6" height="1.4" rx="0.7" />
-        </svg>
-      ) : (
-        <svg width="9" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
-          <path d="M5 1.5L9 6.5H1L5 1.5Z" />
-        </svg>
-      )}
-      {direction === "flat" ? "0" : abs}
-    </span>
-  );
-}
-
-function splitDate(date: Date) {
-  const formatter = new Intl.DateTimeFormat("en", { weekday: "short", day: "numeric" });
-  const parts = formatter.formatToParts(date);
-  const dow = parts.find((p) => p.type === "weekday")?.value.toUpperCase() ?? "";
-  const day = parts.find((p) => p.type === "day")?.value ?? "";
-  return { dow, day };
-}

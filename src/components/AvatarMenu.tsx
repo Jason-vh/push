@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 
-export function AvatarMenu({ name }: { name: string }) {
+export function AvatarMenu({ userId, name }: { userId: string; name: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -30,6 +31,9 @@ export function AvatarMenu({ name }: { name: string }) {
       </button>
       {open ? (
         <div className="avatar-dropdown" role="menu">
+          <Link href={`/players/${userId}`} onClick={() => setOpen(false)}>
+            My profile
+          </Link>
           <button
             type="button"
             onClick={async () => {

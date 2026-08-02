@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
-import { STARTING_RATING, doublesEloDelta } from "@/lib/elo";
+import { STARTING_RATING, displayRating, doublesEloDelta } from "@/lib/elo";
 
 export const RATINGS_CACHE_TAG = "ratings";
 
@@ -96,6 +96,116 @@ export function statsFor(stats: Map<string, PlayerStats>, userId: string): Playe
   return stats.get(userId) ?? { userId, rating: STARTING_RATING, wins: 0, losses: 0 };
 }
 
+export type RankedPlayer = {
+  id: string;
+  name: string;
+  rating: number;
+  wins: number;
+  losses: number;
+  rank: number;
+};
+
+/** Leaderboard order with dense ranking: ties share a rank and the next group is rank + 1. */
+export function rankPlayers(
+  users: Array<{ id: string; name: string }>,
+  stats: Map<string, PlayerStats>,
+): RankedPlayer[] {
+  const ranked = users
+    .map((user) => {
+      const playerStats = statsFor(stats, user.id);
+      return {
+        id: user.id,
+        name: user.name,
+        rating: playerStats.rating,
+        wins: playerStats.wins,
+        losses: playerStats.losses,
+        rank: 0,
+      };
+    })
+    .sort((a, b) => {
+      const ar = displayRating(a.rating);
+      const br = displayRating(b.rating);
+      if (ar !== br) return br - ar;
+      if (a.wins !== b.wins) return b.wins - a.wins;
+      if (a.losses !== b.losses) return a.losses - b.losses;
+      return a.name.localeCompare(b.name);
+    });
+
+  let lastDisplay: number | null = null;
+  let lastRank = 0;
+  for (const entry of ranked) {
+    const display = displayRating(entry.rating);
+    if (display !== lastDisplay) {
+      lastRank += 1;
+      lastDisplay = display;
+    }
+    entry.rank = lastRank;
+  }
+
+  return ranked;
+}
+
+function teamOf(match: MatchInput, userId: string): Winner | null {
+  if (match.teamAPlayer1Id === userId || match.teamAPlayer2Id === userId) return "A";
+  if (match.teamBPlayer1Id === userId || match.teamBPlayer2Id === userId) return "B";
+  return null;
+}
+
+/** One entry per match the player featured in, oldest first; true = won. */
+export function playerResults(matches: MatchInput[], userId: string): boolean[] {
+  const results: boolean[] = [];
+  for (const match of matches) {
+    const team = teamOf(match, userId);
+    if (team) results.push(match.winnerTeam === team);
+  }
+  return results;
+}
+
+/** Rating after every match the player featured in, starting from their first rating. */
+export function ratingHistory(
+  matches: MatchInput[],
+  byMatch: Map<string, RatingChange[]>,
+  userId: string,
+): number[] {
+  const history = [STARTING_RATING];
+  for (const match of matches) {
+    const change = byMatch.get(match.id)?.find((entry) => entry.userId === userId);
+    if (change) history.push(change.after);
+  }
+  return history;
+}
+
+export type SessionSummary = { won: number; lost: number; total: number; delta: number };
+
+/** A player's result and rating swing across one session's matches. */
+export function summarizeSession(
+  matches: MatchInput[],
+  byMatch: Map<string, RatingChange[]>,
+  userId: string,
+): SessionSummary {
+  let won = 0;
+  let lost = 0;
+  let delta = 0;
+  for (const match of matches) {
+    const team = teamOf(match, userId);
+    if (!team) continue;
+    if (match.winnerTeam === team) won += 1;
+    else lost += 1;
+    const change = byMatch.get(match.id)?.find((entry) => entry.userId === userId);
+    if (change) delta += change.delta;
+  }
+  return { won, lost, total: matches.length, delta: Math.round(delta) };
+}
+
+/** Positive = current winning streak, negative = losing streak. */
+export function currentStreak(results: boolean[]): number {
+  const last = results.at(-1);
+  if (last === undefined) return 0;
+  let length = 0;
+  for (let i = results.length - 1; i >= 0 && results[i] === last; i -= 1) length += 1;
+  return last ? length : -length;
+}
+
 export type PairRecord = {
   otherUserId: string;
   wins: number;
@@ -127,18 +237,13 @@ function finalize(records: Map<string, PairRecord>): PairRecord[] {
 export function partnerRecords(matches: MatchInput[], userId: string): PairRecord[] {
   const records = new Map<string, PairRecord>();
   for (const match of matches) {
-    const teamA = [match.teamAPlayer1Id, match.teamAPlayer2Id];
-    const teamB = [match.teamBPlayer1Id, match.teamBPlayer2Id];
-    let myTeam: string[] | null = null;
-    let won = false;
-    if (teamA.includes(userId)) {
-      myTeam = teamA;
-      won = match.winnerTeam === "A";
-    } else if (teamB.includes(userId)) {
-      myTeam = teamB;
-      won = match.winnerTeam === "B";
-    }
-    if (!myTeam) continue;
+    const team = teamOf(match, userId);
+    if (!team) continue;
+    const myTeam =
+      team === "A"
+        ? [match.teamAPlayer1Id, match.teamAPlayer2Id]
+        : [match.teamBPlayer1Id, match.teamBPlayer2Id];
+    const won = match.winnerTeam === team;
     const partner = myTeam.find((id) => id !== userId);
     if (!partner) continue;
     const record = records.get(partner) ?? emptyRecord(partner);
@@ -153,18 +258,13 @@ export function partnerRecords(matches: MatchInput[], userId: string): PairRecor
 export function opponentRecords(matches: MatchInput[], userId: string): PairRecord[] {
   const records = new Map<string, PairRecord>();
   for (const match of matches) {
-    const teamA = [match.teamAPlayer1Id, match.teamAPlayer2Id];
-    const teamB = [match.teamBPlayer1Id, match.teamBPlayer2Id];
-    let opponents: string[] | null = null;
-    let won = false;
-    if (teamA.includes(userId)) {
-      opponents = teamB;
-      won = match.winnerTeam === "A";
-    } else if (teamB.includes(userId)) {
-      opponents = teamA;
-      won = match.winnerTeam === "B";
-    }
-    if (!opponents) continue;
+    const team = teamOf(match, userId);
+    if (!team) continue;
+    const opponents =
+      team === "A"
+        ? [match.teamBPlayer1Id, match.teamBPlayer2Id]
+        : [match.teamAPlayer1Id, match.teamAPlayer2Id];
+    const won = match.winnerTeam === team;
     for (const opponentId of opponents) {
       const record = records.get(opponentId) ?? emptyRecord(opponentId);
       if (won) record.wins += 1;
