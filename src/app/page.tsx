@@ -9,7 +9,7 @@ import { loadActivePlayerIds } from "@/lib/activity";
 import { prisma } from "@/lib/db";
 import { displayRating } from "@/lib/elo";
 import { loadKeenDays, loadVenueSuggestions, todayKey } from "@/lib/keen";
-import { isPlaying } from "@/lib/keenDays";
+import { addDays, dateFromKey, isPlaying } from "@/lib/keenDays";
 import {
   bestTeammate,
   computeRatings,
@@ -37,7 +37,7 @@ export default async function Home() {
         select: { id: true, name: true },
       }),
       prisma.gameSession.findMany({
-        where: { deletedAt: null },
+        where: { deletedAt: null, playedAt: { lt: dateFromKey(addDays(today, 1)) } },
         take: 5,
         orderBy: { playedAt: "desc" },
         include: {

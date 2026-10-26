@@ -24,6 +24,8 @@ import {
   type PairRecord,
   type Winner,
 } from "@/lib/ratings";
+import { todayKey } from "@/lib/keen";
+import { addDays, dateFromKey } from "@/lib/keenDays";
 import { getCurrentUser } from "@/lib/session";
 
 const PAIRS_SHOWN = 3;
@@ -34,7 +36,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   if (!viewer) redirect("/login");
 
   const { id } = await params;
-  const sessionsWhere = { deletedAt: null, players: { some: { userId: id } } };
+  const sessionsWhere = {
+    deletedAt: null,
+    playedAt: { lt: dateFromKey(addDays(todayKey(), 1)) },
+    players: { some: { userId: id } },
+  };
   const [player, users, orderedMatches, sessions, sessionCount, activePlayerIds] =
     await Promise.all([
       prisma.user.findUnique({ where: { id }, select: { id: true, name: true } }),

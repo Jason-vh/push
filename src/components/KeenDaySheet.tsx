@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { KeenBookingForm } from "@/components/KeenBookingForm";
@@ -135,7 +136,9 @@ function DayDetails({
   const lineup = lineupOf(day);
   const bench = benchOf(day);
   const me = day.keen.find((player) => player.userId === userId);
-  const canChange = !day.booking;
+  const session = day.session;
+  const canChange = !session;
+  const spotCount = session ? lineup.length : PLAYERS_PER_GAME;
 
   async function send(method: "POST" | "DELETE" | "PATCH", body?: unknown) {
     if (busy) return;
@@ -176,11 +179,13 @@ function DayDetails({
 
       <div className="keen-sheet-body">
         {error ? <div className="error keen-sheet-error">{error}</div> : null}
-        {day.booking ? <BookingTicket booking={day.booking} /> : null}
+        {session ? <BookingTicket session={session} /> : null}
 
-        <div className="keen-section-label">{day.booking ? "Playing" : "Who's keen"}</div>
+        {spotCount > 0 ? (
+          <div className="keen-section-label">{session ? "Playing" : "Who's keen"}</div>
+        ) : null}
         <div className="keen-lineup">
-          {Array.from({ length: PLAYERS_PER_GAME }, (_, index) => {
+          {Array.from({ length: spotCount }, (_, index) => {
             const player = lineup[index];
             if (player) {
               return (
@@ -219,7 +224,7 @@ function DayDetails({
 
         {bench.length > 0 ? (
           <>
-            <div className="keen-section-label">{day.booking ? "Also keen" : "On the bench"}</div>
+            <div className="keen-section-label">{session ? "Also keen" : "On the bench"}</div>
             <div className="keen-bench">
               {bench.map((player) => (
                 <span key={player.userId} className="keen-chip">
@@ -254,8 +259,15 @@ function DayDetails({
           </button>
         ) : null}
 
-        {status === "booked" && day.booking?.bookedById === userId ? (
-          <BookerActions date={day.date} onEdit={onBook} />
+        {session ? (
+          <div className="keen-booker-actions">
+            <Link className="btn full" href={`/sessions/${session.id}`}>
+              Open session
+            </Link>
+            {session.createdById === userId ? (
+              <BookerActions date={day.date} canCancel={!session.hasMatches} onEdit={onBook} />
+            ) : null}
+          </div>
         ) : null}
 
         {status === "enough" && keen ? (
@@ -339,7 +351,15 @@ function NoteInput({
   );
 }
 
-function BookerActions({ date, onEdit }: { date: string; onEdit: () => void }) {
+function BookerActions({
+  date,
+  canCancel,
+  onEdit,
+}: {
+  date: string;
+  canCancel: boolean;
+  onEdit: () => void;
+}) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -379,29 +399,31 @@ function BookerActions({ date, onEdit }: { date: string; onEdit: () => void }) {
   if (cancelling) cancelLabel = "Cancelling…";
 
   return (
-    <div className="keen-booker-actions">
+    <>
       {error ? <div className="error">{error}</div> : null}
       <button type="button" className="btn subtle full" onClick={onEdit} disabled={cancelling}>
         Edit booking
       </button>
-      <button
-        type="button"
-        className={`sheet-delete${confirming ? " is-confirming" : ""}`}
-        onClick={cancelBooking}
-        disabled={cancelling}
-      >
-        {cancelLabel}
-      </button>
-    </div>
+      {canCancel ? (
+        <button
+          type="button"
+          className={`sheet-delete${confirming ? " is-confirming" : ""}`}
+          onClick={cancelBooking}
+          disabled={cancelling}
+        >
+          {cancelLabel}
+        </button>
+      ) : null}
+    </>
   );
 }
 
 function subtitle(day: KeenDay, userId: string) {
-  const status = dayStatus(day);
-  if (status === "booked" && day.booking) {
-    const booker = { userId: day.booking.bookedById, name: day.booking.bookedByName };
+  if (day.session) {
+    const booker = { userId: day.session.createdById, name: day.session.createdByName };
     return `Booked by ${displayName(booker, userId)}`;
   }
+  const status = dayStatus(day);
   if (status === "enough") return "Four in · ready to book";
   if (status === "empty") return "Nobody's keen yet";
   return `${day.keen.length} keen · ${playersNeeded(day)} more needed`;

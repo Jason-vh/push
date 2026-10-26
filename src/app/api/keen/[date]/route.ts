@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { todayKey } from "@/lib/keen";
+import { findSessionOn, todayKey } from "@/lib/keen";
 import { dateFromKey, isValidDateKey } from "@/lib/keenDays";
 import { getCurrentUser } from "@/lib/session";
 
@@ -15,8 +15,7 @@ async function openDate(params: Params["params"]) {
   const { date } = await params;
   if (!isValidDateKey(date)) throw new Error("Invalid date.");
   if (date < todayKey()) throw new Error("That day has already passed.");
-  const booking = await prisma.booking.findUnique({ where: { date: dateFromKey(date) } });
-  if (booking) throw new Error("That day is already booked.");
+  if (await findSessionOn(date)) throw new Error("That day is already booked.");
   return dateFromKey(date);
 }
 

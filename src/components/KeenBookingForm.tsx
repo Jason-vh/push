@@ -29,25 +29,24 @@ export function KeenBookingForm({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const booking = day.booking;
-  const [venue, setVenue] = useState(booking?.venue ?? "");
-  const [startTime, setStartTime] = useState(booking?.startTime ?? DEFAULT_START_TIME);
+  const session = day.session;
+  const [venue, setVenue] = useState(session?.venue ?? "");
+  const [startTime, setStartTime] = useState(session?.startTime ?? DEFAULT_START_TIME);
   const [durationMinutes, setDurationMinutes] = useState(
-    booking?.durationMinutes ?? DEFAULT_DURATION,
+    session?.durationMinutes ?? DEFAULT_DURATION,
   );
-  const [court, setCourt] = useState(booking?.court ?? "");
-  const [playerIds, setPlayerIds] = useState(
-    () => booking?.playerIds ?? defaultLineup(day, userId),
-  );
+  const [court, setCourt] = useState(session?.court ?? "");
+  const [playerIds, setPlayerIds] = useState(() => defaultLineup(day, userId));
   const [saving, setSaving] = useState(false);
   const [refreshing, startRefresh] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const busy = saving || refreshing;
 
   const typedVenue = venueSuggestions.includes(venue) ? "" : venue;
-  const canSave = venue.trim() !== "" && startTime !== "" && playerIds.length === PLAYERS_PER_GAME;
+  const playersChosen = session !== null || playerIds.length === PLAYERS_PER_GAME;
+  const canSave = venue.trim() !== "" && startTime !== "" && playersChosen;
   const needsPicking = day.keen.length > PLAYERS_PER_GAME;
-  let saveLabel = booking ? "Save changes" : "Mark as booked";
+  let saveLabel = session ? "Save changes" : "Mark as booked";
   if (busy) saveLabel = "Saving…";
 
   function togglePlayer(id: string) {
@@ -64,14 +63,14 @@ export function KeenBookingForm({
     setSaving(true);
     try {
       const response = await fetch(`/api/keen/${day.date}/booking`, {
-        method: booking ? "PATCH" : "POST",
+        method: session ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           venue: venue.trim(),
           startTime,
           durationMinutes,
           court: court.trim() || null,
-          playerIds,
+          ...(session ? {} : { playerIds }),
         }),
       });
       const data = await response.json();
@@ -92,8 +91,10 @@ export function KeenBookingForm({
           <button type="button" className="keen-back-inline" onClick={onBack}>
             ‹ {formatDate(day.date, { weekday: "short", day: "numeric", month: "short" })}
           </button>
-          <h2 className="sheet-title">{booking ? "Edit booking" : "Mark as booked"}</h2>
-          <div className="sheet-sub">Book with the club first, then add the details.</div>
+          <h2 className="sheet-title">{session ? "Edit booking" : "Mark as booked"}</h2>
+          {session ? null : (
+            <div className="sheet-sub">Book with the club first, then add the details.</div>
+          )}
         </div>
         <button type="button" className="sheet-close" aria-label="Close" onClick={onClose}>
           ×
@@ -169,43 +170,45 @@ export function KeenBookingForm({
           </div>
         </div>
 
-        <div className="label">
-          Who&apos;s playing
-          {needsPicking ? (
-            <div className="keen-pick-list">
-              {day.keen.map((player) => {
-                const selected = playerIds.includes(player.userId);
-                return (
-                  <button
-                    key={player.userId}
-                    type="button"
-                    className={`keen-pick${selected ? " selected" : ""}`}
-                    onClick={() => togglePlayer(player.userId)}
-                    disabled={!selected && playerIds.length >= PLAYERS_PER_GAME}
-                    aria-pressed={selected}
-                  >
-                    <Avatar name={player.name} size={28} />
-                    <span className="keen-pick-name">
-                      {displayName(player, userId)}
-                      {player.note ? <small>{player.note}</small> : null}
-                    </span>
-                    <span className="keen-pip" aria-hidden>
-                      {selected ? <CheckIcon /> : null}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="keen-stack">
-              {day.keen.map((player) => (
-                <span key={player.userId} className="keen-stack-avatar">
-                  <Avatar name={player.name} size={34} />
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        {session ? null : (
+          <div className="label">
+            Who&apos;s playing
+            {needsPicking ? (
+              <div className="keen-pick-list">
+                {day.keen.map((player) => {
+                  const selected = playerIds.includes(player.userId);
+                  return (
+                    <button
+                      key={player.userId}
+                      type="button"
+                      className={`keen-pick${selected ? " selected" : ""}`}
+                      onClick={() => togglePlayer(player.userId)}
+                      disabled={!selected && playerIds.length >= PLAYERS_PER_GAME}
+                      aria-pressed={selected}
+                    >
+                      <Avatar name={player.name} size={28} />
+                      <span className="keen-pick-name">
+                        {displayName(player, userId)}
+                        {player.note ? <small>{player.note}</small> : null}
+                      </span>
+                      <span className="keen-pip" aria-hidden>
+                        {selected ? <CheckIcon /> : null}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="keen-stack">
+                {day.keen.map((player) => (
+                  <span key={player.userId} className="keen-stack-avatar">
+                    <Avatar name={player.name} size={34} />
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <button type="button" className="btn full" onClick={save} disabled={!canSave || busy}>
           {saveLabel}

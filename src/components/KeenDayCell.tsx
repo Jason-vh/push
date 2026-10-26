@@ -40,9 +40,11 @@ export function PastDayCell({ date }: { date: string }) {
 }
 
 function KeenCellFooter({ day, userId }: { day: KeenDay; userId: string }) {
-  if (day.booking) return <span className="keen-cell-time">{day.booking.startTime}</span>;
+  if (day.session?.startTime)
+    return <span className="keen-cell-time">{day.session.startTime}</span>;
 
-  const count = Math.min(PLAYERS_PER_GAME, day.keen.length);
+  const people = day.session ? day.session.players.length : day.keen.length;
+  const count = Math.min(PLAYERS_PER_GAME, people);
   if (count === 0) {
     return (
       <span className="keen-cell-dots hint" aria-hidden>
@@ -53,9 +55,19 @@ function KeenCellFooter({ day, userId }: { day: KeenDay; userId: string }) {
     );
   }
 
+  if (day.session) {
+    return (
+      <span className="keen-cell-dots" aria-label={`${people} playing`}>
+        {Array.from({ length: count }, (_, index) => (
+          <span key={index} className="keen-dot" />
+        ))}
+      </span>
+    );
+  }
+
   const mine = isKeen(day, userId);
   return (
-    <span className="keen-cell-dots" aria-label={`${day.keen.length} keen`}>
+    <span className="keen-cell-dots" aria-label={`${people} keen`}>
       {Array.from({ length: PLAYERS_PER_GAME }, (_, index) => {
         let className = "keen-dot";
         if (index === 0 && mine) className += " me";

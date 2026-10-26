@@ -12,23 +12,25 @@ export function NextGameCard({
   today: string;
   userId: string;
 }) {
-  const booking = day.booking;
-  if (!booking) return null;
-  const booker = { userId: booking.bookedById, name: booking.bookedByName };
+  const session = day.session;
+  if (!session) return null;
+  const booker = { userId: session.createdById, name: session.createdByName };
+  const where = [session.venue, session.court].filter(Boolean).join(" · ");
 
   return (
     <Link className="next-game" href={`/calendar?date=${day.date}`}>
       <BallSeam />
       <div className="next-game-label">Next game · {relativeDay(day.date, today)}</div>
       <div className="next-game-when">
-        {formatDate(day.date, { weekday: "short", day: "numeric", month: "short" })} ·{" "}
-        {booking.startTime}
+        {formatDate(day.date, { weekday: "short", day: "numeric", month: "short" })}
+        {session.startTime ? ` · ${session.startTime}` : null}
       </div>
-      <div className="next-game-where">
-        <PinIcon />
-        {booking.venue}
-        {booking.court ? ` · ${booking.court}` : ""}
-      </div>
+      {where ? (
+        <div className="next-game-where">
+          <PinIcon />
+          {where}
+        </div>
+      ) : null}
       <div className="next-game-foot">
         <div className="keen-stack on-dark">
           {lineupOf(day).map((player) => (

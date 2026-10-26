@@ -1,6 +1,6 @@
 import { appTimeZone } from "@/lib/config";
 import { prisma } from "@/lib/db";
-import { dateFromKey, keyFromDate, type KeenDay } from "@/lib/keenDays";
+import { addDays, dateFromKey, emptyDay, keyFromDate, type KeenDay } from "@/lib/keenDays";
 
 const VENUE_SUGGESTION_COUNT = 2;
 
@@ -15,17 +15,28 @@ export function todayKey() {
 
 export async function loadKeenDays(fromDate: string): Promise<KeenDay[]> {
   const from = dateFromKey(fromDate);
-  const [availabilities, bookings] = await Promise.all([
+  const [availabilities, sessions] = await Promise.all([
     prisma.availability.findMany({
       where: { date: { gte: from } },
       orderBy: { createdAt: "asc" },
       select: { date: true, note: true, user: { select: { id: true, name: true } } },
     }),
-    prisma.booking.findMany({
-      where: { date: { gte: from } },
-      include: {
-        bookedBy: { select: { name: true } },
-        players: { select: { userId: true } },
+    prisma.gameSession.findMany({
+      where: { deletedAt: null, playedAt: { gte: from } },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        playedAt: true,
+        venue: true,
+        startTime: true,
+        durationMinutes: true,
+        court: true,
+        createdBy: { select: { id: true, name: true } },
+        players: {
+          orderBy: { createdAt: "asc" },
+          select: { user: { select: { id: true, name: true } } },
+        },
+        _count: { select: { matches: true } },
       },
     }),
   ]);
@@ -34,7 +45,7 @@ export async function loadKeenDays(fromDate: string): Promise<KeenDay[]> {
   const dayFor = (date: string) => {
     let day = days.get(date);
     if (!day) {
-      day = { date, keen: [], booking: null };
+      day = emptyDay(date);
       days.set(date, day);
     }
     return day;
@@ -47,49 +58,54 @@ export async function loadKeenDays(fromDate: string): Promise<KeenDay[]> {
       note: availability.note,
     });
   }
-  for (const booking of bookings) {
-    dayFor(keyFromDate(booking.date)).booking = {
-      venue: booking.venue,
-      startTime: booking.startTime,
-      durationMinutes: booking.durationMinutes,
-      court: booking.court,
-      bookedById: booking.bookedById,
-      bookedByName: booking.bookedBy.name,
-      playerIds: booking.players.map((player) => player.userId),
+  for (const session of sessions) {
+    dayFor(keyFromDate(session.playedAt)).session ??= {
+      id: session.id,
+      venue: session.venue,
+      startTime: session.startTime,
+      durationMinutes: session.durationMinutes,
+      court: session.court,
+      createdById: session.createdBy.id,
+      createdByName: session.createdBy.name,
+      hasMatches: session._count.matches > 0,
+      players: session.players.map(({ user }) => ({ userId: user.id, name: user.name })),
     };
   }
 
   return [...days.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export async function loadVenueSuggestions() {
-  const [sessions, bookings] = await Promise.all([
-    prisma.gameSession.findMany({
-      where: { deletedAt: null, venue: { not: null } },
-      select: { venue: true, playedAt: true },
-    }),
-    prisma.booking.findMany({ select: { venue: true, date: true } }),
-  ]);
+export async function findSessionOn(date: string) {
+  return prisma.gameSession.findFirst({
+    where: {
+      deletedAt: null,
+      playedAt: { gte: dateFromKey(date), lt: dateFromKey(addDays(date, 1)) },
+    },
+    orderBy: { createdAt: "asc" },
+    include: { _count: { select: { matches: true } } },
+  });
+}
 
-  const uses = [
-    ...sessions.map((session) => ({ venue: session.venue ?? "", at: session.playedAt })),
-    ...bookings.map((booking) => ({ venue: booking.venue, at: booking.date })),
-  ];
+export async function loadVenueSuggestions() {
+  const sessions = await prisma.gameSession.findMany({
+    where: { deletedAt: null, venue: { not: null } },
+    select: { venue: true, playedAt: true },
+  });
 
   const venues = new Map<string, { name: string; count: number; lastUsed: Date }>();
-  for (const use of uses) {
-    const name = use.venue.trim();
+  for (const session of sessions) {
+    const name = session.venue?.trim();
     if (!name) continue;
     const key = name.toLowerCase().replace(/\s+/g, " ");
     const existing = venues.get(key);
     if (!existing) {
-      venues.set(key, { name, count: 1, lastUsed: use.at });
+      venues.set(key, { name, count: 1, lastUsed: session.playedAt });
       continue;
     }
     existing.count += 1;
-    if (use.at > existing.lastUsed) {
+    if (session.playedAt > existing.lastUsed) {
       existing.name = name;
-      existing.lastUsed = use.at;
+      existing.lastUsed = session.playedAt;
     }
   }
 

@@ -1915,6 +1915,9 @@ button.keen-cell:focus-visible {
 .keen-cell.is-booked .keen-cell-num {
   color: var(--bg-cream);
 }
+.keen-cell.is-booked .keen-dot {
+  background: #8fc09a;
+}
 .keen-cell.is-booked.playing {
   box-shadow: inset 0 0 0 2px var(--bg-cream), 0 0 0 1.5px var(--forest);
 }

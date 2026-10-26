@@ -3,26 +3,28 @@ export const BOOKING_DURATIONS = [60, 90, 120] as const;
 
 export type KeenPlayer = { userId: string; name: string; note: string | null };
 
-export type KeenBooking = {
-  venue: string;
-  startTime: string;
-  durationMinutes: number;
+export type KeenSession = {
+  id: string;
+  venue: string | null;
+  startTime: string | null;
+  durationMinutes: number | null;
   court: string | null;
-  bookedById: string;
-  bookedByName: string;
-  playerIds: string[];
+  createdById: string;
+  createdByName: string;
+  hasMatches: boolean;
+  players: Array<{ userId: string; name: string }>;
 };
 
 export type KeenDay = {
   date: string;
   keen: KeenPlayer[];
-  booking: KeenBooking | null;
+  session: KeenSession | null;
 };
 
 export type DayStatus = "empty" | "open" | "enough" | "booked";
 
 export function dayStatus(day: KeenDay): DayStatus {
-  if (day.booking) return "booked";
+  if (day.session) return "booked";
   if (day.keen.length >= PLAYERS_PER_GAME) return "enough";
   if (day.keen.length === 0) return "empty";
   return "open";
@@ -33,7 +35,7 @@ export function isKeen(day: KeenDay, userId: string) {
 }
 
 export function isPlaying(day: KeenDay, userId: string) {
-  return Boolean(day.booking?.playerIds.includes(userId));
+  return Boolean(day.session?.players.some((player) => player.userId === userId));
 }
 
 export function playersNeeded(day: KeenDay) {
@@ -41,22 +43,22 @@ export function playersNeeded(day: KeenDay) {
 }
 
 export function lineupOf(day: KeenDay): KeenPlayer[] {
-  if (!day.booking) return day.keen.slice(0, PLAYERS_PER_GAME);
-  const byId = new Map(day.keen.map((player) => [player.userId, player]));
-  return day.booking.playerIds.flatMap((id) => {
-    const player = byId.get(id);
-    return player ? [player] : [];
-  });
+  if (!day.session) return day.keen.slice(0, PLAYERS_PER_GAME);
+  const notes = new Map(day.keen.map((player) => [player.userId, player.note]));
+  return day.session.players.map((player) => ({
+    ...player,
+    note: notes.get(player.userId) ?? null,
+  }));
 }
 
 export function benchOf(day: KeenDay): KeenPlayer[] {
-  if (!day.booking) return day.keen.slice(PLAYERS_PER_GAME);
-  const playing = new Set(day.booking.playerIds);
+  if (!day.session) return day.keen.slice(PLAYERS_PER_GAME);
+  const playing = new Set(day.session.players.map((player) => player.userId));
   return day.keen.filter((player) => !playing.has(player.userId));
 }
 
 export function emptyDay(date: string): KeenDay {
-  return { date, keen: [], booking: null };
+  return { date, keen: [], session: null };
 }
 
 // Dates are calendar days ("YYYY-MM-DD"), so all arithmetic happens in UTC to stay timezone-free.

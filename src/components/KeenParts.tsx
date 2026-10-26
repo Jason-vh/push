@@ -1,26 +1,37 @@
 import { shortName } from "@/components/CalloutRow";
-import { endTime, type KeenBooking } from "@/lib/keenDays";
+import { endTime, type KeenSession } from "@/lib/keenDays";
 
-export function BookingTicket({ booking }: { booking: KeenBooking }) {
+export function BookingTicket({ session }: { session: KeenSession }) {
+  const time = sessionTime(session);
   return (
     <div className="keen-ticket">
       <BallSeam />
       <div className="keen-ticket-label">Booked</div>
-      <div className="keen-ticket-venue">{booking.venue}</div>
-      <div className="keen-ticket-meta">
-        <span>
-          <ClockIcon />
-          {booking.startTime}–{endTime(booking.startTime, booking.durationMinutes)}
-        </span>
-        {booking.court ? (
-          <span>
-            <CourtIcon />
-            {booking.court}
-          </span>
-        ) : null}
-      </div>
+      <div className="keen-ticket-venue">{session.venue ?? "Session"}</div>
+      {time || session.court ? (
+        <div className="keen-ticket-meta">
+          {time ? (
+            <span>
+              <ClockIcon />
+              {time}
+            </span>
+          ) : null}
+          {session.court ? (
+            <span>
+              <CourtIcon />
+              {session.court}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function sessionTime(session: KeenSession) {
+  if (!session.startTime) return null;
+  if (!session.durationMinutes) return session.startTime;
+  return `${session.startTime}–${endTime(session.startTime, session.durationMinutes)}`;
 }
 
 export function BallSeam() {

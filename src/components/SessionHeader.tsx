@@ -7,16 +7,21 @@ export function SessionHeader({
   sessionId,
   initialPlayedAt,
   initialVenue,
+  startTime,
+  court,
 }: {
   sessionId: string;
   initialPlayedAt: string;
   initialVenue: string | null;
+  startTime: string | null;
+  court: string | null;
 }) {
   const router = useRouter();
   const [playedAt, setPlayedAt] = useState(initialPlayedAt);
   const [venue, setVenue] = useState(initialVenue ?? "");
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const details = [startTime, venue, court].filter((detail): detail is string => Boolean(detail));
 
   async function save(patch: { playedAt?: string; venue?: string | null }) {
     setError(null);
@@ -38,9 +43,9 @@ export function SessionHeader({
     <header className="session-header">
       <div className="session-header-main">
         <h1 className="session-title">{formatDate(playedAt)}</h1>
-        {venue ? (
+        {details.length > 0 ? (
           <div className="session-subtitle">
-            <span>{venue}</span>
+            <span>{details.join(" · ")}</span>
           </div>
         ) : null}
       </div>

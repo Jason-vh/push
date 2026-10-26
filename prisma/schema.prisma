@@ -19,8 +19,6 @@ model User {
   challenges  AuthChallenge[]
   createdGameSessions GameSession[] @relation("CreatedGameSessions")
   availabilities      Availability[]
-  createdBookings     Booking[]      @relation("CreatedBookings")
-  bookingPlayers      BookingPlayer[]
 
   sessionPlayers SessionPlayer[]
   teamA1Matches  Match[] @relation("TeamA1")
@@ -30,17 +28,20 @@ model User {
 }
 
 model GameSession {
-  id          String        @id @default(cuid())
-  playedAt    DateTime
-  venue       String?
-  createdById String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  deletedAt   DateTime?
+  id              String          @id @default(cuid())
+  playedAt        DateTime
+  venue           String?
+  startTime       String?
+  durationMinutes Int?
+  court           String?
+  createdById     String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
 
-  createdBy   User          @relation("CreatedGameSessions", fields: [createdById], references: [id], onDelete: Cascade)
-  players     SessionPlayer[]
-  matches     Match[]
+  createdBy       User            @relation("CreatedGameSessions", fields: [createdById], references: [id], onDelete: Cascade)
+  players         SessionPlayer[]
+  matches         Match[]
 }
 
 model SessionPlayer {
@@ -90,32 +91,6 @@ model Availability {
 
   @@unique([userId, date])
   @@index([date])
-}
-
-model Booking {
-  id              String   @id @default(cuid())
-  date            DateTime @unique @db.Date
-  venue           String
-  startTime       String
-  durationMinutes Int
-  court           String?
-  bookedById      String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  bookedBy        User            @relation("CreatedBookings", fields: [bookedById], references: [id], onDelete: Cascade)
-  players         BookingPlayer[]
-}
-
-model BookingPlayer {
-  id        String   @id @default(cuid())
-  bookingId String
-  userId    String
-
-  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([bookingId, userId])
 }
 
 model WebAuthnCredential {
