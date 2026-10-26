@@ -278,14 +278,8 @@ function DayDetails({
             <strong>That&apos;s four. Game on!</strong>
             Book a court with the club, then add the details here so everyone knows where to go.
             <button type="button" className="btn full" onClick={onBook} disabled={busy}>
-              Mark as booked
+              Book
             </button>
-          </div>
-        ) : null}
-
-        {status === "open" || status === "empty" ? (
-          <div className="keen-callout">
-            Needs <strong>{playersNeededText(playersNeeded(day))}</strong> for a full game.
           </div>
         ) : null}
 
@@ -296,7 +290,7 @@ function DayDetails({
             onClick={onBook}
             disabled={busy}
           >
-            Mark as booked
+            Book
           </button>
         ) : null}
       </div>
@@ -440,9 +434,4 @@ function subtitle(day: KeenDay, userId: string) {
   if (status === "enough") return `${day.keen.length} keen · ready to book`;
   if (status === "empty") return "Nobody's keen yet";
   return `${day.keen.length} keen · ${playersNeeded(day)} more needed`;
-}
-
-function playersNeededText(count: number) {
-  if (count === 1) return "one more player";
-  return `${count} more players`;
 }

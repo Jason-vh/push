@@ -49,7 +49,7 @@ export function KeenBookingForm({
   const candidates = bookingCandidates(day, userId, userName);
   const playersChosen = session !== null || playerIds.length > 0;
   const canSave = venue.trim() !== "" && startTime !== "" && playersChosen;
-  let saveLabel = session ? "Save changes" : "Mark as booked";
+  let saveLabel = session ? "Save changes" : "Book";
   if (busy) saveLabel = "Saving…";
 
   function togglePlayer(id: string) {
@@ -94,10 +94,7 @@ export function KeenBookingForm({
           <button type="button" className="keen-back-inline" onClick={onBack}>
             ‹ {formatDate(day.date, { weekday: "short", day: "numeric", month: "short" })}
           </button>
-          <h2 className="sheet-title">{session ? "Edit booking" : "Mark as booked"}</h2>
-          {session ? null : (
-            <div className="sheet-sub">Book with the club first, then add the details.</div>
-          )}
+          <h2 className="sheet-title">{session ? "Edit booking" : "Book"}</h2>
         </div>
         <button type="button" className="sheet-close" aria-label="Close" onClick={onClose}>
           ×
