@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { DurationPicker } from "@/components/DurationPicker";
 import { PlayerCheckList } from "@/components/PlayerCheckList";
+import { DEFAULT_DURATION, DEFAULT_START_TIME } from "@/lib/keenDays";
 
 type KnownUser = { id: string; name: string };
 
@@ -10,9 +12,10 @@ export function CreateSessionForm({ knownUsers }: { knownUsers: KnownUser[] }) {
   const router = useRouter();
   const [playedAt, setPlayedAt] = useState(new Date().toISOString().slice(0, 10));
   const [venue, setVenue] = useState("");
-  const [players, setPlayers] = useState<string[]>(
-    knownUsers.slice(0, 4).map((user) => user.id),
-  );
+  const [startTime, setStartTime] = useState(DEFAULT_START_TIME);
+  const [durationMinutes, setDurationMinutes] = useState(DEFAULT_DURATION);
+  const [court, setCourt] = useState("");
+  const [players, setPlayers] = useState<string[]>(knownUsers.slice(0, 4).map((user) => user.id));
   const [status, setStatus] = useState<"idle" | "saving">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -27,6 +30,9 @@ export function CreateSessionForm({ knownUsers }: { knownUsers: KnownUser[] }) {
         body: JSON.stringify({
           playedAt,
           venue,
+          startTime,
+          durationMinutes,
+          court: court.trim() || null,
           attendeeUserIds: players,
         }),
       });
@@ -67,12 +73,43 @@ export function CreateSessionForm({ knownUsers }: { knownUsers: KnownUser[] }) {
         </label>
       </div>
 
+      <div className="form-grid">
+        <label className="label">
+          Start
+          <input
+            className="input"
+            type="time"
+            value={startTime}
+            onChange={(event) => setStartTime(event.target.value)}
+          />
+        </label>
+        <label className="label">
+          Court
+          <input
+            className="input"
+            value={court}
+            maxLength={40}
+            onChange={(event) => setCourt(event.target.value)}
+            placeholder="Optional"
+          />
+        </label>
+      </div>
+
+      <div className="label">
+        Length
+        <DurationPicker value={durationMinutes} onChange={setDurationMinutes} />
+      </div>
+
       <div className="label">
         Players
         <PlayerCheckList knownUsers={knownUsers} value={players} onChange={setPlayers} />
       </div>
 
-      <button className="btn dark full" onClick={submit} disabled={status === "saving"}>
+      <button
+        className="btn dark full"
+        onClick={submit}
+        disabled={status === "saving" || startTime === ""}
+      >
         {status === "saving" ? "Creating…" : "Create"}
       </button>
     </div>

@@ -2,17 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { findSessionOn, todayKey } from "@/lib/keen";
-import { BOOKING_DURATIONS, dateFromKey, isValidDateKey } from "@/lib/keenDays";
+import { dateFromKey, isValidDateKey } from "@/lib/keenDays";
+import { courtSchema, durationSchema, startTimeSchema } from "@/lib/sessionDetails";
 import { getCurrentUser } from "@/lib/session";
 
 const detailsSchema = z.object({
   venue: z.string().trim().min(1, "Add where you're playing.").max(120),
-  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Pick a start time."),
-  durationMinutes: z
-    .number()
-    .int()
-    .refine((value) => BOOKING_DURATIONS.some((duration) => duration === value), "Pick a length."),
-  court: z.string().trim().max(40).nullable(),
+  startTime: startTimeSchema,
+  durationMinutes: durationSchema,
+  court: courtSchema,
 });
 
 const createSchema = detailsSchema.extend({

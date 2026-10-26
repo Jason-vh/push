@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
+import { courtSchema, durationSchema, startTimeSchema } from "@/lib/sessionDetails";
 
 const sessionSchema = z.object({
   playedAt: z.string().min(1),
   venue: z.string().trim().max(120).optional(),
+  startTime: startTimeSchema,
+  durationMinutes: durationSchema,
+  court: courtSchema.optional(),
   attendeeUserIds: z.array(z.string().min(1)).default([]),
 });
 
@@ -32,6 +36,9 @@ export async function POST(request: Request) {
         data: {
           playedAt: new Date(input.playedAt),
           venue: input.venue || null,
+          startTime: input.startTime,
+          durationMinutes: input.durationMinutes,
+          court: input.court || null,
           createdById: user.id,
           players: {
             create: attendeeUserIds.map((userId) => ({ userId })),

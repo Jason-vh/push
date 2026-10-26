@@ -4,17 +4,15 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { displayName } from "@/components/KeenParts";
+import { DurationPicker } from "@/components/DurationPicker";
 import {
-  BOOKING_DURATIONS,
+  DEFAULT_DURATION,
+  DEFAULT_START_TIME,
   PLAYERS_PER_GAME,
-  durationLabel,
   formatDate,
   type KeenDay,
   type KeenPlayer,
 } from "@/lib/keenDays";
-
-const DEFAULT_START_TIME = "19:30";
-const DEFAULT_DURATION = 90;
 
 export function KeenBookingForm({
   day,
@@ -156,18 +154,7 @@ export function KeenBookingForm({
 
         <div className="label">
           Length
-          <div className="keen-segmented">
-            {BOOKING_DURATIONS.map((minutes) => (
-              <button
-                key={minutes}
-                type="button"
-                className={durationMinutes === minutes ? "selected" : undefined}
-                onClick={() => setDurationMinutes(minutes)}
-              >
-                {durationLabel(minutes)}
-              </button>
-            ))}
-          </div>
+          <DurationPicker value={durationMinutes} onChange={setDurationMinutes} />
         </div>
 
         {session ? null : (

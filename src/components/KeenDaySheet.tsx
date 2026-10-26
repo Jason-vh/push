@@ -276,7 +276,6 @@ function DayDetails({
         {status === "enough" && keen ? (
           <div className="keen-callout ready">
             <strong>That&apos;s four. Game on!</strong>
-            Book a court with the club, then add the details here so everyone knows where to go.
             <button type="button" className="btn full" onClick={onBook} disabled={busy}>
               Book
             </button>

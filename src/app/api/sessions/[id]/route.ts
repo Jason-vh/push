@@ -1,11 +1,16 @@
+import type { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
+import { courtSchema, durationSchema, startTimeSchema } from "@/lib/sessionDetails";
 
 const patchSchema = z.object({
   playedAt: z.string().min(1).optional(),
   venue: z.string().trim().max(120).nullable().optional(),
+  startTime: startTimeSchema.optional(),
+  durationMinutes: durationSchema.optional(),
+  court: courtSchema.optional(),
 });
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -16,9 +21,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const { id: sessionId } = await params;
     const input = patchSchema.parse(await request.json());
 
-    const data: { playedAt?: Date; venue?: string | null } = {};
+    const data: Prisma.GameSessionUpdateManyMutationInput = {};
     if (input.playedAt !== undefined) data.playedAt = new Date(input.playedAt);
     if (input.venue !== undefined) data.venue = input.venue ? input.venue : null;
+    if (input.startTime !== undefined) data.startTime = input.startTime;
+    if (input.durationMinutes !== undefined) data.durationMinutes = input.durationMinutes;
+    if (input.court !== undefined) data.court = input.court ? input.court : null;
 
     if (Object.keys(data).length === 0) {
       return NextResponse.json({ ok: true });
@@ -59,10 +67,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
         select: { id: true },
       });
       if (!session) return NextResponse.json({ error: "Session not found." }, { status: 404 });
-      return NextResponse.json(
-        { error: "Only empty sessions can be deleted." },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Only empty sessions can be deleted." }, { status: 400 });
     }
 
     return NextResponse.json({ ok: true });

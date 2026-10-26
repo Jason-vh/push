@@ -66,8 +66,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         sessionId={session.id}
         initialPlayedAt={playedAtIso}
         initialVenue={session.venue}
-        startTime={session.startTime}
-        court={session.court}
+        initialStartTime={session.startTime}
+        initialDurationMinutes={session.durationMinutes}
+        initialCourt={session.court}
       />
       <SessionBody
         sessionId={session.id}

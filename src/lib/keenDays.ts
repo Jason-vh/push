@@ -1,5 +1,8 @@
 export const PLAYERS_PER_GAME = 4;
 export const BOOKING_DURATIONS = [60, 90, 120] as const;
+export const DEFAULT_START_TIME = "19:30";
+export const DEFAULT_DURATION = 90;
+export const START_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export type KeenPlayer = { userId: string; name: string; note: string | null };
 
