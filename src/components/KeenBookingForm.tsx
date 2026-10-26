@@ -1,0 +1,239 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Avatar } from "@/components/Avatar";
+import { displayName } from "@/components/KeenParts";
+import {
+  BOOKING_DURATIONS,
+  PLAYERS_PER_GAME,
+  durationLabel,
+  formatDate,
+  type KeenDay,
+} from "@/lib/keenDays";
+
+const DEFAULT_START_TIME = "19:30";
+const DEFAULT_DURATION = 90;
+
+export function KeenBookingForm({
+  day,
+  userId,
+  venueSuggestions,
+  onBack,
+  onClose,
+}: {
+  day: KeenDay;
+  userId: string;
+  venueSuggestions: string[];
+  onBack: () => void;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const booking = day.booking;
+  const [venue, setVenue] = useState(booking?.venue ?? "");
+  const [startTime, setStartTime] = useState(booking?.startTime ?? DEFAULT_START_TIME);
+  const [durationMinutes, setDurationMinutes] = useState(
+    booking?.durationMinutes ?? DEFAULT_DURATION,
+  );
+  const [court, setCourt] = useState(booking?.court ?? "");
+  const [playerIds, setPlayerIds] = useState(
+    () => booking?.playerIds ?? defaultLineup(day, userId),
+  );
+  const [saving, setSaving] = useState(false);
+  const [refreshing, startRefresh] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const busy = saving || refreshing;
+
+  const typedVenue = venueSuggestions.includes(venue) ? "" : venue;
+  const canSave = venue.trim() !== "" && startTime !== "" && playerIds.length === PLAYERS_PER_GAME;
+  const needsPicking = day.keen.length > PLAYERS_PER_GAME;
+  let saveLabel = booking ? "Save changes" : "Mark as booked";
+  if (busy) saveLabel = "Saving…";
+
+  function togglePlayer(id: string) {
+    if (playerIds.includes(id)) {
+      setPlayerIds(playerIds.filter((playerId) => playerId !== id));
+    } else if (playerIds.length < PLAYERS_PER_GAME) {
+      setPlayerIds([...playerIds, id]);
+    }
+  }
+
+  async function save() {
+    if (!canSave || busy) return;
+    setError(null);
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/keen/${day.date}/booking`, {
+        method: booking ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          venue: venue.trim(),
+          startTime,
+          durationMinutes,
+          court: court.trim() || null,
+          playerIds,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not save booking");
+      startRefresh(() => router.refresh());
+      onBack();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save booking");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="sheet-header">
+        <div>
+          <button type="button" className="keen-back-inline" onClick={onBack}>
+            ‹ {formatDate(day.date, { weekday: "short", day: "numeric", month: "short" })}
+          </button>
+          <h2 className="sheet-title">{booking ? "Edit booking" : "Mark as booked"}</h2>
+          <div className="sheet-sub">Book with the club first, then add the details.</div>
+        </div>
+        <button type="button" className="sheet-close" aria-label="Close" onClick={onClose}>
+          ×
+        </button>
+      </div>
+
+      <div className="keen-sheet-body keen-form">
+        {error ? <div className="error keen-sheet-error">{error}</div> : null}
+
+        <div className="label">
+          Where
+          {venueSuggestions.length > 0 ? (
+            <div className="keen-choices">
+              {venueSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  className={`keen-choice${venue === suggestion ? " selected" : ""}`}
+                  onClick={() => setVenue(venue === suggestion ? "" : suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          <input
+            className="input"
+            value={typedVenue}
+            maxLength={120}
+            placeholder={venueSuggestions.length > 0 ? "Or type another venue" : "Venue name"}
+            aria-label="Venue"
+            onChange={(event) => setVenue(event.target.value)}
+          />
+        </div>
+
+        <div className="form-grid">
+          <label className="label">
+            Start
+            <input
+              className="input"
+              type="time"
+              value={startTime}
+              onChange={(event) => setStartTime(event.target.value)}
+            />
+          </label>
+          <label className="label">
+            <span>
+              Court <span className="keen-optional">optional</span>
+            </span>
+            <input
+              className="input"
+              value={court}
+              maxLength={40}
+              placeholder="Court 4"
+              onChange={(event) => setCourt(event.target.value)}
+            />
+          </label>
+        </div>
+
+        <div className="label">
+          Length
+          <div className="keen-segmented">
+            {BOOKING_DURATIONS.map((minutes) => (
+              <button
+                key={minutes}
+                type="button"
+                className={durationMinutes === minutes ? "selected" : undefined}
+                onClick={() => setDurationMinutes(minutes)}
+              >
+                {durationLabel(minutes)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="label">
+          Who&apos;s playing
+          {needsPicking ? (
+            <div className="keen-pick-list">
+              {day.keen.map((player) => {
+                const selected = playerIds.includes(player.userId);
+                return (
+                  <button
+                    key={player.userId}
+                    type="button"
+                    className={`keen-pick${selected ? " selected" : ""}`}
+                    onClick={() => togglePlayer(player.userId)}
+                    disabled={!selected && playerIds.length >= PLAYERS_PER_GAME}
+                    aria-pressed={selected}
+                  >
+                    <Avatar name={player.name} size={28} />
+                    <span className="keen-pick-name">
+                      {displayName(player, userId)}
+                      {player.note ? <small>{player.note}</small> : null}
+                    </span>
+                    <span className="keen-pip" aria-hidden>
+                      {selected ? <CheckIcon /> : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="keen-stack">
+              {day.keen.map((player) => (
+                <span key={player.userId} className="keen-stack-avatar">
+                  <Avatar name={player.name} size={34} />
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button type="button" className="btn full" onClick={save} disabled={!canSave || busy}>
+          {saveLabel}
+        </button>
+      </div>
+    </>
+  );
+}
+
+function defaultLineup(day: KeenDay, userId: string) {
+  const others = day.keen.map((player) => player.userId).filter((id) => id !== userId);
+  return [userId, ...others].slice(0, PLAYERS_PER_GAME);
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M2.5 6.3l2.4 2.4 4.6-5" />
+    </svg>
+  );
+}

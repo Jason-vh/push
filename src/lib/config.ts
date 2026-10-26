@@ -4,3 +4,4 @@ export const rpName = "Push Padel";
 export const rpID = new URL(appUrl).hostname;
 export const expectedOrigin = appUrl;
 export const isSecureCookie = appUrl.startsWith("https://");
+export const appTimeZone = "Europe/Amsterdam";

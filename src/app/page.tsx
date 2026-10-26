@@ -2,10 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { CalloutRow } from "@/components/CalloutRow";
+import { KeenCard } from "@/components/KeenCard";
+import { NextGameCard } from "@/components/NextGameCard";
 import { SessionRow } from "@/components/SessionRow";
 import { loadActivePlayerIds } from "@/lib/activity";
 import { prisma } from "@/lib/db";
 import { displayRating } from "@/lib/elo";
+import { loadKeenDays, loadVenueSuggestions, todayKey } from "@/lib/keen";
+import { isPlaying } from "@/lib/keenDays";
 import {
   bestTeammate,
   computeRatings,
@@ -19,35 +23,41 @@ import {
 } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 
+const KEEN_CARD_DAYS = 7;
+
 export default async function Home() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const [users, recentSessions, orderedMatches, activePlayerIds] = await Promise.all([
-    prisma.user.findMany({
-      where: { active: true },
-      select: { id: true, name: true },
-    }),
-    prisma.gameSession.findMany({
-      where: { deletedAt: null },
-      take: 5,
-      orderBy: { playedAt: "desc" },
-      include: {
-        matches: {
-          select: {
-            id: true,
-            winnerTeam: true,
-            teamAPlayer1Id: true,
-            teamAPlayer2Id: true,
-            teamBPlayer1Id: true,
-            teamBPlayer2Id: true,
+  const today = todayKey();
+  const [users, recentSessions, orderedMatches, activePlayerIds, keenDays, venueSuggestions] =
+    await Promise.all([
+      prisma.user.findMany({
+        where: { active: true },
+        select: { id: true, name: true },
+      }),
+      prisma.gameSession.findMany({
+        where: { deletedAt: null },
+        take: 5,
+        orderBy: { playedAt: "desc" },
+        include: {
+          matches: {
+            select: {
+              id: true,
+              winnerTeam: true,
+              teamAPlayer1Id: true,
+              teamAPlayer2Id: true,
+              teamBPlayer1Id: true,
+              teamBPlayer2Id: true,
+            },
           },
         },
-      },
-    }),
-    getCachedOrderedMatches(),
-    loadActivePlayerIds(),
-  ]);
+      }),
+      getCachedOrderedMatches(),
+      loadActivePlayerIds(),
+      loadKeenDays(today),
+      loadVenueSuggestions(),
+    ]);
 
   const { stats, byMatch } = computeRatings(orderedMatches);
   const usersById = new Map(users.map((u) => [u.id, u]));
@@ -65,6 +75,9 @@ export default async function Home() {
   const teammate = bestTeammate(orderedMatches, user.id, activePlayerIds);
   const opponent = toughestOpponent(orderedMatches, user.id, activePlayerIds);
 
+  const nextGame = keenDays.find((day) => isPlaying(day, user.id));
+  const upcomingKeenDays = keenDays.slice(0, KEEN_CARD_DAYS);
+
   const sessionSummaries = new Map<string, SessionSummary>(
     recentSessions.map((session) => [
       session.id,
@@ -78,6 +91,8 @@ export default async function Home() {
 
   return (
     <main className="shell">
+      {nextGame ? <NextGameCard day={nextGame} today={today} userId={user.id} /> : null}
+
       <RatingHero rating={currentStats.rating} rank={currentRank} />
 
       <Leaderboard entries={leaderboard} />
@@ -135,6 +150,13 @@ export default async function Home() {
           </div>
         )}
       </section>
+
+      <KeenCard
+        days={upcomingKeenDays}
+        today={today}
+        userId={user.id}
+        venueSuggestions={venueSuggestions}
+      />
     </main>
   );
 }
@@ -142,12 +164,7 @@ export default async function Home() {
 function RatingHero({ rating, rank }: { rating: number; rank: number | null }) {
   return (
     <div className="rating-hero" style={{ marginBottom: 14 }}>
-      <svg
-        className="ball-seam"
-        viewBox="0 0 400 120"
-        preserveAspectRatio="none"
-        aria-hidden
-      >
+      <svg className="ball-seam" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden>
         <defs>
           <linearGradient id="ballPanel" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#6c8845" />

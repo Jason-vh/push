@@ -18,6 +18,9 @@ model User {
   sessions    AuthSession[]
   challenges  AuthChallenge[]
   createdGameSessions GameSession[] @relation("CreatedGameSessions")
+  availabilities      Availability[]
+  createdBookings     Booking[]      @relation("CreatedBookings")
+  bookingPlayers      BookingPlayer[]
 
   sessionPlayers SessionPlayer[]
   teamA1Matches  Match[] @relation("TeamA1")
@@ -73,6 +76,46 @@ model Match {
   teamBPlayer2   User        @relation("TeamB2", fields: [teamBPlayer2Id], references: [id])
 
   @@unique([sessionId, orderIndex])
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([date])
+}
+
+model Booking {
+  id              String   @id @default(cuid())
+  date            DateTime @unique @db.Date
+  venue           String
+  startTime       String
+  durationMinutes Int
+  court           String?
+  bookedById      String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bookedBy        User            @relation("CreatedBookings", fields: [bookedById], references: [id], onDelete: Cascade)
+  players         BookingPlayer[]
+}
+
+model BookingPlayer {
+  id        String   @id @default(cuid())
+  bookingId String
+  userId    String
+
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, userId])
 }
 
 model WebAuthnCredential {
