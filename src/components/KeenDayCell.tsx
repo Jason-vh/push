@@ -43,7 +43,15 @@ function KeenCellFooter({ day, userId }: { day: KeenDay; userId: string }) {
   if (day.booking) return <span className="keen-cell-time">{day.booking.startTime}</span>;
 
   const count = Math.min(PLAYERS_PER_GAME, day.keen.length);
-  if (count === 0) return <span className="keen-cell-dots" />;
+  if (count === 0) {
+    return (
+      <span className="keen-cell-dots hint" aria-hidden>
+        {Array.from({ length: PLAYERS_PER_GAME }, (_, index) => (
+          <span key={index} className="keen-dot open" />
+        ))}
+      </span>
+    );
+  }
 
   const mine = isKeen(day, userId);
   return (

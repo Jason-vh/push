@@ -1909,6 +1909,14 @@ button.keen-cell.is-booked:hover {
   gap: 3px;
   height: 8px;
 }
+.keen-cell-dots.hint {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+button.keen-cell:hover .keen-cell-dots.hint,
+button.keen-cell:focus-visible .keen-cell-dots.hint {
+  opacity: 1;
+}
 .keen-dot {
   width: 4px;
   height: 4px;
