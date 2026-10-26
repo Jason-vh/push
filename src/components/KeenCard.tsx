@@ -26,7 +26,7 @@ export function KeenCard({
     <section className="keen-card">
       <div className="keen-card-head">
         <h2>Who&apos;s keen</h2>
-        <Link className="keen-card-link" href="/keen">
+        <Link className="keen-card-link" href="/calendar">
           Full calendar ›
         </Link>
       </div>
@@ -34,7 +34,7 @@ export function KeenCard({
       {days.length > 0 ? (
         <KeenStrip days={days} today={today} userId={userId} onOpen={setOpenDate} />
       ) : (
-        <Link className="keen-empty" href="/keen">
+        <Link className="keen-empty" href="/calendar">
           <Image src="/empty-court.webp" alt="" width={190} height={125} />
           <strong>Nobody&apos;s keen yet</strong>
           <span>Pick a day you can play and others can join</span>

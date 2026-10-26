@@ -17,7 +17,7 @@ export function NextGameCard({
   const booker = { userId: booking.bookedById, name: booking.bookedByName };
 
   return (
-    <Link className="next-game" href={`/keen?date=${day.date}`}>
+    <Link className="next-game" href={`/calendar?date=${day.date}`}>
       <BallSeam />
       <div className="next-game-label">Next game · {relativeDay(day.date, today)}</div>
       <div className="next-game-when">

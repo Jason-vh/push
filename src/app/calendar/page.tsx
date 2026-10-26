@@ -4,7 +4,7 @@ import { loadKeenDays, loadVenueSuggestions, todayKey } from "@/lib/keen";
 import { isValidDateKey } from "@/lib/keenDays";
 import { getCurrentUser } from "@/lib/session";
 
-export default async function KeenPage({
+export default async function CalendarPage({
   searchParams,
 }: {
   searchParams: Promise<{ date?: string }>;
