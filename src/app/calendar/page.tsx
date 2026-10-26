@@ -26,6 +26,7 @@ export default async function CalendarPage({
         days={days}
         today={today}
         userId={user.id}
+        userName={user.name}
         venueSuggestions={venueSuggestions}
         initialDate={initialDate}
       />

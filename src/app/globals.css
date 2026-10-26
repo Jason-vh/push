@@ -2380,6 +2380,9 @@ button.keen-spot.open:active {
 .keen-callout .btn {
   margin-top: 12px;
 }
+.keen-book-anyway {
+  margin-top: 12px;
+}
 .keen-booker-actions {
   display: flex;
   flex-direction: column;

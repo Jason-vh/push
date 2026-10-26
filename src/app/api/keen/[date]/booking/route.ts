@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { findSessionOn, todayKey } from "@/lib/keen";
-import { BOOKING_DURATIONS, PLAYERS_PER_GAME, dateFromKey, isValidDateKey } from "@/lib/keenDays";
+import { BOOKING_DURATIONS, dateFromKey, isValidDateKey } from "@/lib/keenDays";
 import { getCurrentUser } from "@/lib/session";
 
 const detailsSchema = z.object({
@@ -16,7 +16,7 @@ const detailsSchema = z.object({
 });
 
 const createSchema = detailsSchema.extend({
-  playerIds: z.array(z.string().min(1)).length(PLAYERS_PER_GAME, "Pick four players."),
+  playerIds: z.array(z.string().min(1)).min(1, "Pick who's playing."),
 });
 
 type Params = { params: Promise<{ date: string }> };
@@ -59,7 +59,7 @@ export async function POST(request: Request, { params }: Params) {
     const date = await upcomingDate(params);
     const input = createSchema.parse(await request.json());
     if (new Set(input.playerIds).size !== input.playerIds.length) {
-      throw new Error("Pick four different players.");
+      throw new Error("Pick each player once.");
     }
     if (await findSessionOn(date)) throw new Error("That day is already booked.");
 
@@ -67,9 +67,8 @@ export async function POST(request: Request, { params }: Params) {
       where: { date: dateFromKey(date) },
       select: { userId: true },
     });
-    const keenIds = new Set(keen.map((availability) => availability.userId));
-    if (!keenIds.has(user.id)) throw new Error("Only someone who's keen can book this day.");
-    if (input.playerIds.some((id) => !keenIds.has(id))) {
+    const allowedIds = new Set([user.id, ...keen.map((availability) => availability.userId)]);
+    if (input.playerIds.some((id) => !allowedIds.has(id))) {
       throw new Error("Everyone playing has to be keen on this day.");
     }
 

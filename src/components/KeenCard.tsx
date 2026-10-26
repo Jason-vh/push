@@ -11,11 +11,13 @@ export function KeenCard({
   days,
   today,
   userId,
+  userName,
   venueSuggestions,
 }: {
   days: KeenDay[];
   today: string;
   userId: string;
+  userName: string;
   venueSuggestions: string[];
 }) {
   const [openDate, setOpenDate] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export function KeenCard({
       )}
 
       <KeenDaySheet
+        userName={userName}
         day={openDay}
         userId={userId}
         venueSuggestions={venueSuggestions}

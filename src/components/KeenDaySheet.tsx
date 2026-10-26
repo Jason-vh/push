@@ -26,11 +26,13 @@ type Step = "day" | "book";
 export function KeenDaySheet({
   day,
   userId,
+  userName,
   venueSuggestions,
   onClose,
 }: {
   day: KeenDay | null;
   userId: string;
+  userName: string;
   venueSuggestions: string[];
   onClose: () => void;
 }) {
@@ -104,6 +106,7 @@ export function KeenDaySheet({
           <KeenBookingForm
             day={shownDay}
             userId={userId}
+            userName={userName}
             venueSuggestions={venueSuggestions}
             onBack={() => setStep("day")}
             onClose={onClose}
@@ -282,9 +285,19 @@ function DayDetails({
 
         {status === "open" || status === "empty" ? (
           <div className="keen-callout">
-            Needs <strong>{playersNeededText(playersNeeded(day))}</strong> before someone can book a
-            court.
+            Needs <strong>{playersNeededText(playersNeeded(day))}</strong> for a full game.
           </div>
+        ) : null}
+
+        {!session && !(status === "enough" && keen) ? (
+          <button
+            type="button"
+            className="btn subtle full keen-book-anyway"
+            onClick={onBook}
+            disabled={busy}
+          >
+            Mark as booked
+          </button>
         ) : null}
       </div>
     </>
@@ -424,7 +437,7 @@ function subtitle(day: KeenDay, userId: string) {
     return `Booked by ${displayName(booker, userId)}`;
   }
   const status = dayStatus(day);
-  if (status === "enough") return "Four in · ready to book";
+  if (status === "enough") return `${day.keen.length} keen · ready to book`;
   if (status === "empty") return "Nobody's keen yet";
   return `${day.keen.length} keen · ${playersNeeded(day)} more needed`;
 }

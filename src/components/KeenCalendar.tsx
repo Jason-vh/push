@@ -21,12 +21,14 @@ export function KeenCalendar({
   days,
   today,
   userId,
+  userName,
   venueSuggestions,
   initialDate,
 }: {
   days: KeenDay[];
   today: string;
   userId: string;
+  userName: string;
   venueSuggestions: string[];
   initialDate: string | null;
 }) {
@@ -98,6 +100,7 @@ export function KeenCalendar({
       <div ref={sentinelRef} className="keen-sentinel" />
 
       <KeenDaySheet
+        userName={userName}
         day={openDate ? dayFor(openDate) : null}
         userId={userId}
         venueSuggestions={venueSuggestions}

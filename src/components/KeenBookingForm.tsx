@@ -10,6 +10,7 @@ import {
   durationLabel,
   formatDate,
   type KeenDay,
+  type KeenPlayer,
 } from "@/lib/keenDays";
 
 const DEFAULT_START_TIME = "19:30";
@@ -18,12 +19,14 @@ const DEFAULT_DURATION = 90;
 export function KeenBookingForm({
   day,
   userId,
+  userName,
   venueSuggestions,
   onBack,
   onClose,
 }: {
   day: KeenDay;
   userId: string;
+  userName: string;
   venueSuggestions: string[];
   onBack: () => void;
   onClose: () => void;
@@ -43,16 +46,16 @@ export function KeenBookingForm({
   const busy = saving || refreshing;
 
   const typedVenue = venueSuggestions.includes(venue) ? "" : venue;
-  const playersChosen = session !== null || playerIds.length === PLAYERS_PER_GAME;
+  const candidates = bookingCandidates(day, userId, userName);
+  const playersChosen = session !== null || playerIds.length > 0;
   const canSave = venue.trim() !== "" && startTime !== "" && playersChosen;
-  const needsPicking = day.keen.length > PLAYERS_PER_GAME;
   let saveLabel = session ? "Save changes" : "Mark as booked";
   if (busy) saveLabel = "Saving…";
 
   function togglePlayer(id: string) {
     if (playerIds.includes(id)) {
       setPlayerIds(playerIds.filter((playerId) => playerId !== id));
-    } else if (playerIds.length < PLAYERS_PER_GAME) {
+    } else {
       setPlayerIds([...playerIds, id]);
     }
   }
@@ -173,40 +176,29 @@ export function KeenBookingForm({
         {session ? null : (
           <div className="label">
             Who&apos;s playing
-            {needsPicking ? (
-              <div className="keen-pick-list">
-                {day.keen.map((player) => {
-                  const selected = playerIds.includes(player.userId);
-                  return (
-                    <button
-                      key={player.userId}
-                      type="button"
-                      className={`keen-pick${selected ? " selected" : ""}`}
-                      onClick={() => togglePlayer(player.userId)}
-                      disabled={!selected && playerIds.length >= PLAYERS_PER_GAME}
-                      aria-pressed={selected}
-                    >
-                      <Avatar name={player.name} size={28} />
-                      <span className="keen-pick-name">
-                        {displayName(player, userId)}
-                        {player.note ? <small>{player.note}</small> : null}
-                      </span>
-                      <span className="keen-pip" aria-hidden>
-                        {selected ? <CheckIcon /> : null}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="keen-stack">
-                {day.keen.map((player) => (
-                  <span key={player.userId} className="keen-stack-avatar">
-                    <Avatar name={player.name} size={34} />
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="keen-pick-list">
+              {candidates.map((player) => {
+                const selected = playerIds.includes(player.userId);
+                return (
+                  <button
+                    key={player.userId}
+                    type="button"
+                    className={`keen-pick${selected ? " selected" : ""}`}
+                    onClick={() => togglePlayer(player.userId)}
+                    aria-pressed={selected}
+                  >
+                    <Avatar name={player.name} size={28} />
+                    <span className="keen-pick-name">
+                      {displayName(player, userId)}
+                      {player.note ? <small>{player.note}</small> : null}
+                    </span>
+                    <span className="keen-pip" aria-hidden>
+                      {selected ? <CheckIcon /> : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -216,6 +208,15 @@ export function KeenBookingForm({
       </div>
     </>
   );
+}
+
+function bookingCandidates(day: KeenDay, userId: string, userName: string): KeenPlayer[] {
+  const me = day.keen.find((player) => player.userId === userId) ?? {
+    userId,
+    name: userName,
+    note: null,
+  };
+  return [me, ...day.keen.filter((player) => player.userId !== userId)];
 }
 
 function defaultLineup(day: KeenDay, userId: string) {

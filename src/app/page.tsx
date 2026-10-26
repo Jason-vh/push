@@ -155,6 +155,7 @@ export default async function Home() {
         days={upcomingKeenDays}
         today={today}
         userId={user.id}
+        userName={user.name}
         venueSuggestions={venueSuggestions}
       />
     </main>
