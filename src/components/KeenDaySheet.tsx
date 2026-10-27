@@ -334,17 +334,19 @@ function NoteInput({
 }) {
   const [note, setNote] = useState(initialNote);
   return (
-    <input
-      className="input keen-note"
-      value={note}
-      maxLength={80}
-      placeholder="Add a note, e.g. after 19:00"
-      aria-label="Note"
-      onChange={(event) => setNote(event.target.value)}
-      onBlur={() => {
-        if (note.trim() !== initialNote) onSave(note.trim());
-      }}
-    />
+    <label className="keen-note">
+      <span className="keen-section-label">Any notes?</span>
+      <input
+        className="input"
+        value={note}
+        maxLength={80}
+        placeholder="e.g. only after 19:00"
+        onChange={(event) => setNote(event.target.value)}
+        onBlur={() => {
+          if (note.trim() !== initialNote) onSave(note.trim());
+        }}
+      />
+    </label>
   );
 }
 

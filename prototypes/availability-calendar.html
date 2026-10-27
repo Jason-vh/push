@@ -358,7 +358,7 @@
       }
 
       .note-input {
-        margin-top: 8px; width: 100%; border: 1px solid var(--surface-line); background: var(--surface);
+        margin-top: 0; width: 100%; border: 1px solid var(--surface-line); background: var(--surface);
         border-radius: 12px; padding: 9px 12px; font-size: 14px; outline: none;
       }
       .note-input:focus { border-color: var(--forest); }
@@ -912,7 +912,7 @@
           .join("");
         const me = d.players.find((p) => p.name === ME);
         const noteField = me && !d.booking
-          ? `<input class="note-input" data-field="note" data-day="${key}" placeholder="Add a note, e.g. after 19:00" value="${me.note}" />`
+          ? `<div class="section-label">Any notes?</div><input class="note-input" data-field="note" data-day="${key}" placeholder="e.g. only after 19:00" value="${me.note}" />`
           : "";
         const benchJoin = lineupNames.length >= 4 && !isIn(d) && !d.booking
           ? `<button class="bench-join" data-action="toggle" data-day="${key}">
