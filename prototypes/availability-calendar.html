@@ -815,7 +815,7 @@
         const date = dateOf(key);
         const sub = [`${b.time}–${endTime(b.time, b.duration)}`, b.court].filter(Boolean).join(" · ");
         return `
-          <div class="up-row" data-action="open-day" data-day="${key}">
+          <div class="up-row" data-action="open-session">
             <div class="up-date"><span class="dow">${fmt.dow(date)}</span><span class="day">${date.getDate()}</span></div>
             <div class="up-main">
               ${featured ? `<div class="up-eyebrow">Next game</div>` : ""}
@@ -963,10 +963,7 @@
 
       function dayActions(key, d, status) {
         if (status === "booked") {
-          if (d.booking.bookedBy !== ME) return "";
-          return `
-            <button class="btn subtle booked-edit" data-action="edit-booking" data-day="${key}">Edit booking</button>
-            <button class="text-btn danger" data-action="cancel-booking" data-day="${key}">Cancel booking</button>`;
+          return `<button class="btn booked-edit" data-action="open-session">Open session</button>`;
         }
         const bookAnyway = `<button class="btn subtle booked-edit" data-action="book" data-day="${key}">Book</button>`;
         if (status === "ready") {
@@ -1211,14 +1208,7 @@
           state.form.lineup = lineup.includes(name) ? lineup.filter((n) => n !== name) : [...lineup, name];
         },
         "submit-booking": (el) => submitBooking(el.dataset.day),
-        "edit-booking": (el) => {
-          state.form = initForm(el.dataset.day);
-          state.sheet.step = "book";
-        },
-        "cancel-booking": (el) => {
-          day(el.dataset.day).booking = null;
-          showToast("Booking cancelled. The day is open to book again.");
-        },
+        "open-session": () => showToast("Opens the session page"),
         reset: () => {
           state = seed();
           pageIsNew = true;

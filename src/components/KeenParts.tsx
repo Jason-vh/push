@@ -63,23 +63,6 @@ export function displayName(player: { userId: string; name: string }, userId: st
   return player.userId === userId ? "You" : shortName(player.name);
 }
 
-export function PinIcon() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      aria-hidden
-    >
-      <path d="M8 14.5s-4.5-4.3-4.5-8a4.5 4.5 0 019 0c0 3.7-4.5 8-4.5 8z" />
-      <circle cx="8" cy="6.5" r="1.6" />
-    </svg>
-  );
-}
-
 function ClockIcon() {
   return (
     <svg

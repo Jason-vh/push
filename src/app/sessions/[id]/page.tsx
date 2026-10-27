@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { SessionBody } from "@/components/SessionBody";
 import { SessionHeader } from "@/components/SessionHeader";
 import { prisma } from "@/lib/db";
+import { todayKey } from "@/lib/keen";
 import { getCurrentUser } from "@/lib/session";
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
@@ -76,6 +77,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         initialAttendees={initialAttendees}
         matches={matches}
         lockedUserIds={Array.from(lockedUserIds)}
+        isUpcoming={playedAtIso > todayKey()}
       />
     </main>
   );

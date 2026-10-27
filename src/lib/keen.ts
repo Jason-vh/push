@@ -36,7 +36,6 @@ export async function loadKeenDays(fromDate: string): Promise<KeenDay[]> {
           orderBy: { createdAt: "asc" },
           select: { user: { select: { id: true, name: true } } },
         },
-        _count: { select: { matches: true } },
       },
     }),
   ]);
@@ -67,7 +66,6 @@ export async function loadKeenDays(fromDate: string): Promise<KeenDay[]> {
       court: session.court,
       createdById: session.createdBy.id,
       createdByName: session.createdBy.name,
-      hasMatches: session._count.matches > 0,
       players: session.players.map(({ user }) => ({ userId: user.id, name: user.name })),
     };
   }
@@ -81,8 +79,7 @@ export async function findSessionOn(date: string) {
       deletedAt: null,
       playedAt: { gte: dateFromKey(date), lt: dateFromKey(addDays(date, 1)) },
     },
-    orderBy: { createdAt: "asc" },
-    include: { _count: { select: { matches: true } } },
+    select: { id: true },
   });
 }
 

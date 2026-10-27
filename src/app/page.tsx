@@ -2,14 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { CalloutRow } from "@/components/CalloutRow";
-import { KeenCard } from "@/components/KeenCard";
-import { NextGameCard } from "@/components/NextGameCard";
 import { SessionRow } from "@/components/SessionRow";
+import { UpcomingGames } from "@/components/UpcomingGames";
 import { loadActivePlayerIds } from "@/lib/activity";
 import { prisma } from "@/lib/db";
 import { displayRating } from "@/lib/elo";
-import { loadKeenDays, loadVenueSuggestions, todayKey } from "@/lib/keen";
-import { addDays, dateFromKey, isPlaying } from "@/lib/keenDays";
+import { todayKey } from "@/lib/keen";
+import { dateFromKey } from "@/lib/keenDays";
 import {
   bestTeammate,
   computeRatings,
@@ -23,21 +22,25 @@ import {
 } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 
-const KEEN_CARD_DAYS = 7;
+const UPCOMING_GAMES_SHOWN = 3;
 
 export default async function Home() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const today = todayKey();
-  const [users, recentSessions, orderedMatches, activePlayerIds, keenDays, venueSuggestions] =
-    await Promise.all([
+  const today = dateFromKey(todayKey());
+  const [users, recentSessions, orderedMatches, activePlayerIds, upcomingGames] = await Promise.all(
+    [
       prisma.user.findMany({
         where: { active: true },
         select: { id: true, name: true },
       }),
       prisma.gameSession.findMany({
-        where: { deletedAt: null, playedAt: { lt: dateFromKey(addDays(today, 1)) } },
+        // Today's session moves from upcoming to history once a match is logged.
+        where: {
+          deletedAt: null,
+          OR: [{ playedAt: { lt: today } }, { matches: { some: {} } }],
+        },
         take: 5,
         orderBy: { playedAt: "desc" },
         include: {
@@ -55,9 +58,30 @@ export default async function Home() {
       }),
       getCachedOrderedMatches(),
       loadActivePlayerIds(),
-      loadKeenDays(today),
-      loadVenueSuggestions(),
-    ]);
+      prisma.gameSession.findMany({
+        where: {
+          deletedAt: null,
+          playedAt: { gte: today },
+          matches: { none: {} },
+          players: { some: { userId: user.id } },
+        },
+        take: UPCOMING_GAMES_SHOWN,
+        orderBy: [{ playedAt: "asc" }, { startTime: "asc" }],
+        select: {
+          id: true,
+          playedAt: true,
+          venue: true,
+          startTime: true,
+          durationMinutes: true,
+          court: true,
+          players: {
+            orderBy: { createdAt: "asc" },
+            select: { user: { select: { id: true, name: true } } },
+          },
+        },
+      }),
+    ],
+  );
 
   const { stats, byMatch } = computeRatings(orderedMatches);
   const usersById = new Map(users.map((u) => [u.id, u]));
@@ -75,9 +99,6 @@ export default async function Home() {
   const teammate = bestTeammate(orderedMatches, user.id, activePlayerIds);
   const opponent = toughestOpponent(orderedMatches, user.id, activePlayerIds);
 
-  const nextGame = keenDays.find((day) => isPlaying(day, user.id));
-  const upcomingKeenDays = keenDays.slice(0, KEEN_CARD_DAYS);
-
   const sessionSummaries = new Map<string, SessionSummary>(
     recentSessions.map((session) => [
       session.id,
@@ -91,8 +112,6 @@ export default async function Home() {
 
   return (
     <main className="shell">
-      {nextGame ? <NextGameCard day={nextGame} today={today} /> : null}
-
       <RatingHero rating={currentStats.rating} rank={currentRank} />
 
       <Leaderboard entries={leaderboard} />
@@ -121,9 +140,16 @@ export default async function Home() {
         </div>
       ) : null}
 
+      <UpcomingGames
+        games={upcomingGames.map((game) => ({
+          ...game,
+          players: game.players.map(({ user: player }) => player),
+        }))}
+      />
+
       <section style={{ marginTop: 22 }}>
         <div className="section-head">
-          <h2>Recent sessions</h2>
+          <h2>History</h2>
           <Link className="btn-pill" href="/sessions/new">
             <span className="plus">+</span>
             New
@@ -150,14 +176,6 @@ export default async function Home() {
           </div>
         )}
       </section>
-
-      <KeenCard
-        days={upcomingKeenDays}
-        today={today}
-        userId={user.id}
-        userName={user.name}
-        venueSuggestions={venueSuggestions}
-      />
     </main>
   );
 }

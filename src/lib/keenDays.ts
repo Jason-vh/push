@@ -14,7 +14,6 @@ export type KeenSession = {
   court: string | null;
   createdById: string;
   createdByName: string;
-  hasMatches: boolean;
   players: Array<{ userId: string; name: string }>;
 };
 

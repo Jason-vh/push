@@ -60,7 +60,7 @@ export function KeenCalendar({
           <Link className="keen-back" href="/" aria-label="Back to dashboard">
             ‹
           </Link>
-          <h1 className="keen-title">Who&apos;s keen</h1>
+          <h1 className="keen-title">Calendar</h1>
         </div>
         <div className="keen-weekdays">
           {WEEKDAYS.map((weekday) => (

@@ -19,7 +19,6 @@ import {
 } from "@/lib/keenDays";
 
 const CLOSE_ANIMATION_MS = 280;
-const CANCEL_CONFIRM_MS = 4000;
 
 type Step = "day" | "book";
 
@@ -263,14 +262,9 @@ function DayDetails({
         ) : null}
 
         {session ? (
-          <div className="keen-booker-actions">
-            <Link className="btn full" href={`/sessions/${session.id}`}>
-              Open session
-            </Link>
-            {session.createdById === userId ? (
-              <BookerActions date={day.date} canCancel={!session.hasMatches} onEdit={onBook} />
-            ) : null}
-          </div>
+          <Link className="btn full keen-book" href={`/sessions/${session.id}`}>
+            Open session
+          </Link>
         ) : null}
 
         {session ? null : (
@@ -347,73 +341,6 @@ function NoteInput({
         }}
       />
     </label>
-  );
-}
-
-function BookerActions({
-  date,
-  canCancel,
-  onEdit,
-}: {
-  date: string;
-  canCancel: boolean;
-  onEdit: () => void;
-}) {
-  const router = useRouter();
-  const [confirming, setConfirming] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const confirmTimeoutRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (confirmTimeoutRef.current) window.clearTimeout(confirmTimeoutRef.current);
-    };
-  }, []);
-
-  async function cancelBooking() {
-    if (!confirming) {
-      setConfirming(true);
-      confirmTimeoutRef.current = window.setTimeout(() => setConfirming(false), CANCEL_CONFIRM_MS);
-      return;
-    }
-    if (confirmTimeoutRef.current) window.clearTimeout(confirmTimeoutRef.current);
-    setError(null);
-    setCancelling(true);
-    try {
-      const response = await fetch(`/api/keen/${date}/booking`, { method: "DELETE" });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Could not cancel booking");
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not cancel booking");
-    } finally {
-      setCancelling(false);
-      setConfirming(false);
-    }
-  }
-
-  let cancelLabel = "Cancel booking";
-  if (confirming) cancelLabel = "Tap again to cancel";
-  if (cancelling) cancelLabel = "Cancelling…";
-
-  return (
-    <>
-      {error ? <div className="error">{error}</div> : null}
-      <button type="button" className="btn subtle full" onClick={onEdit} disabled={cancelling}>
-        Edit booking
-      </button>
-      {canCancel ? (
-        <button
-          type="button"
-          className={`sheet-delete${confirming ? " is-confirming" : ""}`}
-          onClick={cancelBooking}
-          disabled={cancelling}
-        >
-          {cancelLabel}
-        </button>
-      ) : null}
-    </>
   );
 }
 

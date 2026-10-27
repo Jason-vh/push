@@ -17,12 +17,14 @@ export function SessionBody({
   initialAttendees,
   matches,
   lockedUserIds,
+  isUpcoming,
 }: {
   sessionId: string;
   knownUsers: KnownUser[];
   initialAttendees: string[];
   matches: MatchCardData[];
   lockedUserIds: string[];
+  isUpcoming: boolean;
 }) {
   const [livePlayers, setLivePlayers] = useState(initialAttendees);
   const userById = new Map(knownUsers.map((u) => [u.id, u]));
@@ -31,7 +33,8 @@ export function SessionBody({
     .filter((u): u is KnownUser => Boolean(u));
 
   const hasMatches = matches.length > 0;
-  const shouldShowTimeline = liveAttendees.length >= REQUIRED_PLAYERS || hasMatches;
+  const canLogMatches = !isUpcoming && liveAttendees.length >= REQUIRED_PLAYERS;
+  const shouldShowTimeline = canLogMatches || hasMatches;
 
   const [renderTimeline, setRenderTimeline] = useState(shouldShowTimeline);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -66,9 +69,11 @@ export function SessionBody({
         <section className={`timeline${isLeaving ? " is-leaving" : ""}`}>
           {matches.length > 0 ? <div className="timeline-spine" aria-hidden /> : null}
 
-          <div className={`timeline-row${matches.length > 0 ? " first" : " last"}`}>
-            <LogMatchButton sessionId={sessionId} attendees={liveAttendees} />
-          </div>
+          {canLogMatches ? (
+            <div className={`timeline-row${matches.length > 0 ? " first" : " last"}`}>
+              <LogMatchButton sessionId={sessionId} attendees={liveAttendees} />
+            </div>
+          ) : null}
 
           {matches.map((match) => (
             <MatchCard

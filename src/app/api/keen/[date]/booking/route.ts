@@ -26,13 +26,6 @@ async function upcomingDate(params: Params["params"]) {
   return date;
 }
 
-async function ownSessionOn(date: string, userId: string) {
-  const session = await findSessionOn(date);
-  if (!session) throw new Error("Booking not found.");
-  if (session.createdById !== userId) throw new Error("Only whoever booked it can change it.");
-  return session;
-}
-
 function sessionDetails(input: z.infer<typeof detailsSchema>) {
   return {
     venue: input.venue,
@@ -82,37 +75,5 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     return errorResponse(error, "Could not save booking");
-  }
-}
-
-export async function PATCH(request: Request, { params }: Params) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const date = await upcomingDate(params);
-    const input = detailsSchema.parse(await request.json());
-    const session = await ownSessionOn(date, user.id);
-    await prisma.gameSession.update({ where: { id: session.id }, data: sessionDetails(input) });
-
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    return errorResponse(error, "Could not save booking");
-  }
-}
-
-export async function DELETE(_request: Request, { params }: Params) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const date = await upcomingDate(params);
-    const session = await ownSessionOn(date, user.id);
-    if (session._count.matches > 0) throw new Error("This session already has matches logged.");
-    await prisma.gameSession.update({ where: { id: session.id }, data: { deletedAt: new Date() } });
-
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    return errorResponse(error, "Could not cancel booking");
   }
 }
