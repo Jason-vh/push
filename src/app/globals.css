@@ -2276,32 +2276,52 @@ button.keen-spot.open:active {
 .keen-note .keen-section-label {
   display: block;
 }
-.keen-spinner {
-  width: 13px;
-  height: 13px;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 999px;
-  animation: keen-spin 700ms linear infinite;
+.keen-reveal {
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: keen-reveal-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-@keyframes keen-spin {
-  to {
-    transform: rotate(360deg);
+.keen-reveal.is-closing {
+  animation: keen-reveal-out 200ms cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+.keen-reveal-inner {
+  min-height: 0;
+  overflow: hidden;
+  /* Room for the input's focus border, which overflow would otherwise clip. */
+  padding: 2px;
+  margin: -2px;
+}
+@keyframes keen-reveal-in {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: translateY(-4px);
   }
 }
-.keen-leave .keen-spinner {
-  width: 10px;
-  height: 10px;
-  border-width: 1.5px;
+@keyframes keen-reveal-out {
+  to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }
-.keen-spot.is-pending,
-.keen-chip.is-pending {
-  opacity: 0.6;
-  transition: opacity 150ms ease;
+.keen-spot.is-arriving,
+.keen-chip.is-arriving {
+  animation: keen-arrive 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-button.keen-spot[aria-busy="true"],
-.keen-bench-join[aria-busy="true"] {
-  cursor: progress;
+@keyframes keen-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .keen-reveal,
+  .keen-reveal.is-closing,
+  .keen-spot.is-arriving,
+  .keen-chip.is-arriving {
+    animation: none;
+  }
 }
 .keen-bench-join {
   display: flex;

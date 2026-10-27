@@ -95,8 +95,10 @@ export function KeenDaySheet({
         </div>
         {shownDay && step === "day" ? (
           <DayDetails
+            key={shownDay.date}
             day={shownDay}
             userId={userId}
+            userName={userName}
             onBook={() => setStep("book")}
             onClose={onClose}
           />
@@ -117,25 +119,54 @@ export function KeenDaySheet({
 }
 
 function DayDetails({
-  day,
+  day: savedDay,
   userId,
+  userName,
   onBook,
   onClose,
 }: {
   day: KeenDay;
   userId: string;
+  userName: string;
   onBook: () => void;
   onClose: () => void;
 }) {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
-  const [refreshing, startRefresh] = useTransition();
+  const [, startRefresh] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [pendingAction, setPendingAction] = useState<"join" | "leave" | null>(null);
-  const busy = saving || refreshing;
-  const joining = busy && pendingAction === "join";
-  const leaving = busy && pendingAction === "leave";
+  const [wantKeen, setWantKeen] = useState<boolean | null>(null);
+  const [inFlight, setInFlight] = useState(0);
+  const queueRef = useRef(Promise.resolve());
 
+  // Requests run one after another so a quick join-then-leave or note edit lands in order.
+  function enqueue(method: "POST" | "DELETE" | "PATCH", body?: unknown) {
+    setError(null);
+    setInFlight((count) => count + 1);
+    queueRef.current = queueRef.current.then(async () => {
+      try {
+        const response = await fetch(`/api/keen/${savedDay.date}`, {
+          method,
+          headers: body ? { "Content-Type": "application/json" } : undefined,
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Could not save");
+        startRefresh(() => router.refresh());
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not save");
+        setWantKeen(null);
+      } finally {
+        setInFlight((count) => count - 1);
+      }
+    });
+  }
+
+  useEffect(() => {
+    if (wantKeen === null || inFlight > 0) return;
+    if (isKeen(savedDay, userId) === wantKeen) setWantKeen(null);
+  }, [savedDay, userId, wantKeen, inFlight]);
+
+  const day = wantKeen === null ? savedDay : withKeen(savedDay, userId, userName, wantKeen);
   const status = dayStatus(day);
   const keen = isKeen(day, userId);
   const lineup = lineupOf(day);
@@ -144,40 +175,20 @@ function DayDetails({
   const session = day.session;
   const canChange = !session;
   const spotCount = session ? lineup.length : PLAYERS_PER_GAME;
-
-  async function send(method: "POST" | "DELETE" | "PATCH", body?: unknown) {
-    if (busy) return;
-    setError(null);
-    setSaving(true);
-    try {
-      const response = await fetch(`/api/keen/${day.date}`, {
-        method,
-        headers: body ? { "Content-Type": "application/json" } : undefined,
-        body: body ? JSON.stringify(body) : undefined,
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Could not save");
-      startRefresh(() => router.refresh());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save");
-    } finally {
-      setSaving(false);
-    }
-  }
+  const justJoined = wantKeen === true;
 
   function join() {
-    setPendingAction("join");
-    void send("POST");
+    setWantKeen(true);
+    enqueue("POST");
   }
 
   function leave() {
-    setPendingAction("leave");
-    void send("DELETE");
+    setWantKeen(false);
+    enqueue("DELETE");
   }
 
   function saveNote(note: string) {
-    setPendingAction(null);
-    void send("PATCH", { note: note || null });
+    enqueue("PATCH", { note: note || null });
   }
 
   return (
@@ -211,8 +222,7 @@ function DayDetails({
                   player={player}
                   userId={userId}
                   onLeave={canChange && player.userId === userId ? leave : undefined}
-                  disabled={busy}
-                  pending={leaving && player.userId === userId}
+                  arriving={justJoined && player.userId === userId}
                 />
               );
             }
@@ -224,12 +234,8 @@ function DayDetails({
                   type="button"
                   className={`keen-spot open${isFirstOpen ? " take" : ""}`}
                   onClick={join}
-                  disabled={busy}
-                  aria-busy={joining}
                 >
-                  <span className="keen-spot-ghost">
-                    {isFirstOpen ? <PendingIcon pending={joining} /> : null}
-                  </span>
+                  <span className="keen-spot-ghost">{isFirstOpen ? <PlusIcon /> : null}</span>
                   <span className="keen-spot-name">{isFirstOpen ? "I'm keen" : "Open spot"}</span>
                 </button>
               );
@@ -250,33 +256,25 @@ function DayDetails({
               {bench.map((player) => (
                 <span
                   key={player.userId}
-                  className={`keen-chip${leaving && player.userId === userId ? " is-pending" : ""}`}
+                  className={`keen-chip${justJoined && player.userId === userId ? " is-arriving" : ""}`}
                 >
                   <Avatar name={player.name} size={22} />
                   {displayName(player, userId)}
-                  {canChange && player.userId === userId ? (
-                    <LeaveButton onClick={leave} disabled={busy} pending={leaving} />
-                  ) : null}
+                  {canChange && player.userId === userId ? <LeaveButton onClick={leave} /> : null}
                 </span>
               ))}
             </div>
           </>
         ) : null}
 
-        {me && canChange ? (
-          <NoteInput key={day.date} initialNote={me.note ?? ""} onSave={saveNote} />
-        ) : null}
+        <Reveal open={Boolean(me && canChange)}>
+          <NoteInput initialNote={me?.note ?? ""} onSave={saveNote} />
+        </Reveal>
 
         {canChange && !keen && lineup.length >= PLAYERS_PER_GAME ? (
-          <button
-            type="button"
-            className="keen-bench-join"
-            onClick={join}
-            disabled={busy}
-            aria-busy={joining}
-          >
+          <button type="button" className="keen-bench-join" onClick={join}>
             <span className="keen-spot-ghost">
-              <PendingIcon pending={joining} />
+              <PlusIcon />
             </span>
             <span>
               <strong>Join the bench</strong>
@@ -296,7 +294,7 @@ function DayDetails({
             type="button"
             className={`btn full keen-book${status === "enough" && keen ? "" : " subtle"}`}
             onClick={onBook}
-            disabled={busy}
+            disabled={inFlight > 0}
           >
             Book
           </button>
@@ -310,18 +308,16 @@ function PlayerSpot({
   player,
   userId,
   onLeave,
-  disabled,
-  pending,
+  arriving,
 }: {
   player: KeenPlayer;
   userId: string;
   onLeave?: () => void;
-  disabled: boolean;
-  pending: boolean;
+  arriving: boolean;
 }) {
   const classes = ["keen-spot"];
   if (player.userId === userId) classes.push("me");
-  if (pending) classes.push("is-pending");
+  if (arriving) classes.push("is-arriving");
   return (
     <div className={classes.join(" ")}>
       <Avatar name={player.name} size={32} />
@@ -329,37 +325,50 @@ function PlayerSpot({
         <div className="keen-spot-name">{displayName(player, userId)}</div>
         {player.note ? <div className="keen-spot-note">{player.note}</div> : null}
       </div>
-      {onLeave ? <LeaveButton onClick={onLeave} disabled={disabled} pending={pending} /> : null}
+      {onLeave ? <LeaveButton onClick={onLeave} /> : null}
     </div>
   );
 }
 
-function LeaveButton({
-  onClick,
-  disabled,
-  pending,
-}: {
-  onClick: () => void;
-  disabled: boolean;
-  pending: boolean;
-}) {
+function LeaveButton({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      type="button"
-      className="keen-leave"
-      aria-label="Give up your spot"
-      aria-busy={pending}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {pending ? <span className="keen-spinner" /> : "×"}
+    <button type="button" className="keen-leave" aria-label="Give up your spot" onClick={onClick}>
+      ×
     </button>
   );
 }
 
-function PendingIcon({ pending }: { pending: boolean }) {
-  if (pending) return <span className="keen-spinner" />;
-  return <PlusIcon />;
+const REVEAL_EXIT_MS = 200;
+
+function Reveal({ open, children }: { open: boolean; children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(open);
+  const [closing, setClosing] = useState(false);
+  const lastChildren = useRef(children);
+
+  useEffect(() => {
+    if (open) lastChildren.current = children;
+  });
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      setClosing(false);
+      return;
+    }
+    setClosing(true);
+    const timer = window.setTimeout(() => {
+      setMounted(false);
+      setClosing(false);
+    }, REVEAL_EXIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [open]);
+
+  if (!mounted && !open) return null;
+  return (
+    <div className={`keen-reveal${closing ? " is-closing" : ""}`}>
+      <div className="keen-reveal-inner">{open ? children : lastChildren.current}</div>
+    </div>
+  );
 }
 
 function NoteInput({
@@ -396,4 +405,11 @@ function subtitle(day: KeenDay, userId: string) {
   if (status === "enough") return `${day.keen.length} keen · ready to book`;
   if (status === "empty") return "Nobody's keen yet";
   return `${day.keen.length} keen · ${playersNeeded(day)} more needed`;
+}
+
+function withKeen(day: KeenDay, userId: string, userName: string, keen: boolean): KeenDay {
+  const others = day.keen.filter((player) => player.userId !== userId);
+  if (!keen) return { ...day, keen: others };
+  const existing = day.keen.find((player) => player.userId === userId);
+  return { ...day, keen: [...others, existing ?? { userId, name: userName, note: null }] };
 }
