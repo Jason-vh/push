@@ -111,12 +111,11 @@
       .hero-delta { font-size: 54px; font-weight: 800; letter-spacing: -0.045em; line-height: 1; margin-top: 6px; font-variant-numeric: tabular-nums; }
       .hero-delta.down { color: #f0b48a; }
       .hero-delta small { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; opacity: 0.7; margin-left: 4px; }
-      .hero-from { font-size: 13px; font-weight: 700; opacity: 0.75; margin-top: 6px; font-variant-numeric: tabular-nums; }
-      .hero-spark { width: 132px; height: 56px; flex-shrink: 0; }
-      .hero-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
-      .hero-tile { background: rgba(244, 234, 208, 0.08); border-radius: 14px; padding: 9px 10px; }
-      .hero-tile .k { font-size: 9.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6; }
-      .hero-tile .v { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; margin-top: 3px; font-variant-numeric: tabular-nums; }
+      .hero-from { font-size: 13px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; color: rgba(244, 234, 208, 0.75); }
+      .hero-spark { width: 132px; min-width: 88px; height: 56px; flex-shrink: 1; }
+      .hero-record { margin-left: 10px; padding-left: 10px; border-left: 1px solid rgba(244, 234, 208, 0.25); }
+      .hero-record .w { color: #8fc09a; }
+      .hero-record .l { color: #f0b48a; }
       .live { display: inline-flex; align-items: center; gap: 6px; }
       .live::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: #8fc09a; animation: pulse 1.4s ease-in-out infinite; }
       @keyframes pulse { 50% { opacity: 0.3; } }
@@ -301,9 +300,6 @@
         return { results, ratingAfter: rating };
       }
 
-      function rankOf(ratings, name) {
-        return Object.values(ratings).filter((r) => r > ratings[name]).length + 1;
-      }
 
       function playerLine(name, results) {
         let won = 0, lost = 0, pf = 0, pa = 0, delta = 0;
@@ -359,23 +355,19 @@
           if (m.a.includes(ME)) r += m.deltaA; else if (m.b.includes(ME)) r -= m.deltaA; else continue;
           trail.push(r);
         }
-        const rankBefore = rankOf(RATINGS_BEFORE, ME), rankAfter = rankOf(ratingAfter, ME);
         const d = round(mine.delta);
-        const rankText = rankBefore === rankAfter ? `#${rankAfter}` : `#${rankBefore} → #${rankAfter}`;
         return `
           <section class="hero">
             <div class="eyebrow">${live ? `<span class="live">Your session so far</span>` : "Your session"}</div>
             <div class="hero-row">
               <div>
                 <div class="hero-delta ${d < 0 ? "down" : ""}">${d > 0 ? "+" : d < 0 ? "−" : ""}${Math.abs(d)}<small>pts</small></div>
-                <div class="hero-from">${round(RATINGS_BEFORE[ME])} → ${round(ratingAfter[ME])}</div>
+                <div class="hero-from">
+                  ${round(RATINGS_BEFORE[ME])} → ${round(ratingAfter[ME])}
+                  <span class="hero-record"><span class="w">${mine.won}W</span> · <span class="l">${mine.lost}L</span></span>
+                </div>
               </div>
               ${trail.length > 1 ? sparkline(trail) : ""}
-            </div>
-            <div class="hero-tiles">
-              <div class="hero-tile"><div class="k">Record</div><div class="v">${mine.won}–${mine.lost}</div></div>
-              <div class="hero-tile"><div class="k">Games</div><div class="v">${mine.pf}–${mine.pa}</div></div>
-              <div class="hero-tile"><div class="k">Rank</div><div class="v">${rankText}</div></div>
             </div>
           </section>`;
       }
