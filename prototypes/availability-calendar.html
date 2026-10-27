@@ -88,6 +88,10 @@
           radial-gradient(80% 50% at 15% 50%, #f1e7c9 0%, transparent 60%),
           linear-gradient(180deg, #f4e9cf 0%, #ece1bc 50%, #f4e9cf 100%);
       }
+      .statusbar {
+        position: absolute; top: 0; left: 0; right: 0; height: 48px; z-index: 35; pointer-events: none;
+        background: rgba(244, 233, 207, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      }
       .island {
         position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
         width: 110px; height: 32px; border-radius: 20px; background: #1b1f1c; z-index: 60;
@@ -158,7 +162,6 @@
 
       .week-card {
         background: var(--surface); border-radius: 24px; padding: 16px 16px 14px; box-shadow: var(--card-shadow);
-        margin-top: 22px;
       }
       .card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; padding: 0 2px; }
       .card-head h2 { margin: 0; font-size: 18px; letter-spacing: -0.02em; }
@@ -235,22 +238,60 @@
       .lb-wl { font-size: 12px; color: var(--ink-mute); font-weight: 700; margin-top: 2px; }
       .lb-rating { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
 
-      /* ── Calendar page ─────────────────────────────────────── */
-      .cal-top {
-        position: sticky; top: 0; z-index: 10; padding: 56px 24px 8px;
-        background: rgba(244, 233, 207, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-        border-bottom: 1px solid rgba(13, 63, 36, 0.06);
+      /* ── Top bar ───────────────────────────────────────────── */
+      .nav-right { display: flex; align-items: center; gap: 10px; }
+      .nav-cal {
+        position: relative; width: 36px; height: 36px; border-radius: 999px; border: 0;
+        background: rgba(13, 63, 36, 0.08); color: var(--forest); display: grid; place-items: center;
       }
-      .cal-title-row { display: flex; align-items: center; gap: 12px; margin: 0 -8px; }
-      .back {
-        width: 36px; height: 36px; border-radius: 999px; border: 0; background: rgba(13, 63, 36, 0.08);
-        color: var(--forest); display: grid; place-items: center;
+      .nav-cal.active { background: var(--forest); color: var(--cream-ink); }
+      .nav-cal .badge {
+        position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 4px;
+        border-radius: 999px; background: var(--clay); color: #fff; font-size: 10px; font-weight: 800;
+        display: grid; place-items: center; box-shadow: 0 0 0 2px #f4e9cf;
       }
-      .page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; margin: 0; line-height: 1.1; }
-      .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 14px; }
-      .dow-row span { text-align: center; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--ink-soft); }
 
-      #months { padding-top: 16px; }
+      /* ── Calendar page ─────────────────────────────────────── */
+      .page-title { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; margin: 0; padding: 4px 4px 0; line-height: 1.1; }
+      .page-head + .section-head { padding-top: 18px; }
+      .upcoming-list { background: var(--surface); border-radius: 22px; padding: 4px 16px; box-shadow: var(--card-shadow); }
+      .up-row {
+        display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center;
+        padding: 12px 0; cursor: pointer;
+      }
+      .up-row + .up-row { border-top: 1px solid var(--hairline); }
+      .up-date {
+        width: 44px; height: 44px; border-radius: 12px; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; line-height: 1;
+      }
+      .up-date .dow { font-size: 9px; font-weight: 800; letter-spacing: 0.08em; opacity: 0.7; }
+      .up-date .day { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+      .up-row.booked .up-date { background: var(--forest); color: var(--cream-ink); }
+      .up-row.playing .up-date { box-shadow: inset 0 0 0 2px var(--cream-ink), 0 0 0 1.5px var(--forest); }
+      .stack.small > * + * { margin-left: -7px; }
+      .up-row.ready .up-date { color: var(--forest); box-shadow: inset 0 0 0 1.5px var(--court); }
+      .up-main { min-width: 0; }
+      .up-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .up-sub { font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .up-sub strong { color: var(--forest); }
+      .up-empty { padding: 16px 2px; font-size: 13px; font-weight: 600; color: var(--ink-mute); }
+      .dow-sticky {
+        position: sticky; top: 48px; z-index: 10; margin: 0 -16px; padding: 8px 22px;
+        background: rgba(244, 233, 207, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      }
+      .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+      .dow-row span { text-align: center; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--ink-soft); }
+      .rating-hero {
+        position: relative; overflow: hidden; background: var(--forest); color: var(--cream-ink); border-radius: 28px;
+        padding: 20px 22px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 18px 32px -18px rgba(13, 63, 36, 0.4);
+      }
+      .rating-hero > *:not(svg) { position: relative; }
+      .rating-hero svg.seam { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .hero-rating { font-size: 48px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-top: 4px; }
+      .hero-rank { font-size: 12px; font-weight: 800; background: rgba(13, 63, 36, 0.55); padding: 6px 12px; border-radius: 999px; }
+
+      #months { padding-top: 10px; }
       .month { margin-bottom: 18px; }
       .month-label { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; padding: 0 4px 10px; }
       .month-label span { color: var(--ink-soft); font-weight: 600; }
@@ -427,11 +468,17 @@
   <body>
     <div class="stage">
       <aside class="brief">
-        <h1>Who's keen</h1>
+        <h1>Calendar</h1>
+        <p>
+          <strong>This round:</strong> the calendar becomes a core part of the app. It gets a button in the
+          top bar on every page, with a badge for games you're in. The calendar page opens with an
+          <em>Upcoming</em> list of booked games and days with four keen, above the month grid. On the
+          dashboard, "Who's keen" moves up to sit right under your next game.
+        </p>
         <p>
           A shared calendar that starts today and keeps scrolling. Tap a day and take an open spot to
           say you're keen. Each dot is one person who's keen. At four the day gets an outline: there are
-          enough players, and anyone in that group can book a court. Once booked, it shows up for everyone as the next game.
+          enough players. Anyone can book any day; once booked, it shows up as the next game for those playing.
         </p>
         <p>You're <strong>Jason</strong>. Everything on the phone is clickable, or jump to a step:</p>
 
@@ -480,6 +527,7 @@
       ];
 
       const icon = {
+        calendar: `<svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="3" width="12" height="11" rx="2.2"/><path d="M2 6.5h12M5.5 1.6v2.6M10.5 1.6v2.6"/></svg>`,
         back: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>`,
         close: `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2 2l8 8M10 2l-8 8"/></svg>`,
         check: `<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.3l2.4 2.4 4.6-5"/></svg>`,
@@ -585,6 +633,16 @@
           },
         });
         set(9, [["Lotte"]]);
+        set(13, [["Sasha"], ["Imani"], ["Lotte"], ["Tom"]], {
+          booking: {
+            venue: "Peakz Padel Zeeburg",
+            time: "20:00",
+            duration: 60,
+            court: "",
+            lineup: ["Sasha", "Imani", "Lotte", "Tom"],
+            bookedBy: "Sasha",
+          },
+        });
         set(10, [[ME], ["Tom"], ["Priya"], ["Imani"], ["Mateo", "can do late"]]);
         set(12, [["Sasha"], ["Lotte"]]);
         set(15, [["Priya"], ["Tom", "only weekends"]]);
@@ -663,9 +721,19 @@
           .find((k) => k >= today && inLineup(day(k)));
         return `
           ${next ? nextGameCard(next) : ""}
+          ${weekCard()}
+          ${ratingHero()}
           ${leaderboard()}
-          ${recentSessions()}
-          ${weekCard()}`;
+          ${recentSessions()}`;
+      }
+
+      function ratingHero() {
+        return `
+          <div class="rating-hero">
+            ${seam}
+            <div><div class="eyebrow" style="opacity:.65">Your rating</div><div class="hero-rating">1268</div></div>
+            <div class="hero-rank">Rank #2</div>
+          </div>`;
       }
 
       function nextGameCard(key) {
@@ -679,7 +747,6 @@
             <div class="next-where">${icon.pin}${b.venue}${b.court ? ` · ${b.court}` : ""}</div>
             <div class="next-foot">
               <div class="stack" style="--ring: var(--forest)">${b.lineup.map((n) => avatar(n, 28)).join("")}</div>
-              <span style="font-size:11.5px;font-weight:700;opacity:.6">Booked by ${displayName(b.bookedBy)}</span>
             </div>
           </div>`;
       }
@@ -690,7 +757,7 @@
           <div class="week-card">
             <div class="card-head">
               <h2>Who's keen</h2>
-              <button class="link" data-action="go" data-screen="calendar">Full calendar ›</button>
+              <button class="link" data-action="go" data-screen="calendar">Calendar ›</button>
             </div>
             ${keys.length ? slotStrip(keys) : noSlots()}
           </div>`;
@@ -786,8 +853,60 @@
       function renderCalendar() {
         const months = Array.from({ length: state.monthsLoaded }, (_, i) => monthBlock(i)).join("");
         return `
+          <div class="page-head"><h1 class="page-title">Calendar</h1></div>
+          <div class="section-head"><h2>Upcoming</h2></div>
+          ${upcomingList()}
+          <div class="section-head" style="padding-top:22px"><h2>Who's keen</h2></div>
+          <div class="dow-sticky">${dowRow()}</div>
           <div id="months">${months}</div>
           <div class="sentinel" id="sentinel"></div>`;
+      }
+
+      function upcomingKeys() {
+        const today = keyOf(TODAY);
+        return Object.keys(state.days)
+          .filter((k) => k >= today && ["booked", "ready"].includes(statusOf(day(k))))
+          .sort();
+      }
+
+      function upcomingList() {
+        const keys = upcomingKeys();
+        if (keys.length === 0) {
+          return `<div class="upcoming-list"><div class="up-empty">Nothing coming up yet. Booked games and days with four keen show up here.</div></div>`;
+        }
+        return `<div class="upcoming-list">${keys.map(upcomingRow).join("")}</div>`;
+      }
+
+      function upcomingRow(key) {
+        const d = day(key);
+        const date = dateOf(key);
+        const status = statusOf(d);
+        const tile = `<div class="up-date"><span class="dow">${fmt.dow(date)}</span><span class="day">${date.getDate()}</span></div>`;
+        if (status === "booked") {
+          const b = d.booking;
+          const sub = [`${b.time}–${endTime(b.time, b.duration)}`, b.court].filter(Boolean).join(" · ");
+          return `
+            <div class="up-row booked ${inLineup(d) ? "playing" : ""}" data-action="open-day" data-day="${key}">
+              ${tile}
+              <div class="up-main">
+                <div class="up-title">${b.venue}</div>
+                <div class="up-sub">${sub}</div>
+              </div>
+              <div class="stack small">${b.lineup.map((n) => avatar(n, 22)).join("")}</div>
+            </div>`;
+        }
+        const action = isIn(d)
+          ? `<button class="pill forest" data-action="book" data-day="${key}">Book</button>`
+          : `<div class="stack small">${d.players.slice(0, 4).map((p) => avatar(p.name, 22)).join("")}</div>`;
+        return `
+          <div class="up-row ready" data-action="open-day" data-day="${key}">
+            ${tile}
+            <div class="up-main">
+              <div class="up-title">${d.players.length} keen</div>
+              <div class="up-sub">Not booked yet</div>
+            </div>
+            ${action}
+          </div>`;
       }
 
       function monthBlock(offset) {
@@ -932,18 +1051,16 @@
             <button class="btn subtle booked-edit" data-action="edit-booking" data-day="${key}">Edit booking</button>
             <button class="text-btn danger" data-action="cancel-booking" data-day="${key}">Cancel booking</button>`;
         }
+        const bookAnyway = `<button class="btn subtle booked-edit" data-action="book" data-day="${key}">Book</button>`;
         if (status === "ready") {
-          if (!isIn(d)) return "";
+          if (!isIn(d)) return bookAnyway;
           return `
             <div class="callout ready">
               <strong>That's four. Game on!</strong>
-              Book a court with the club, then add the details here so everyone knows where to go.
-              <button class="btn" data-action="book" data-day="${key}">Mark as booked</button>
+              <button class="btn" data-action="book" data-day="${key}">Book</button>
             </div>`;
         }
-        const n = needed(d);
-        const people = n === 1 ? "one more player" : `${n} more players`;
-        return `<div class="callout">Needs <strong>${people}</strong> before someone can book a court.</div>`;
+        return bookAnyway;
       }
 
       function bookingTicket(b) {
@@ -983,7 +1100,7 @@
 
       function formValid() {
         const f = state.form;
-        return Boolean(f.venue.trim() && f.time && f.lineup.length === 4);
+        return Boolean(f.venue.trim() && f.time && f.lineup.length > 0);
       }
 
       function renderBookSheet(key) {
@@ -1014,8 +1131,7 @@
             <div class="sheet-header">
               <div>
                 <button class="back-inline" data-action="back-to-day">${icon.back} ${fmt.short(dateOf(key))}</button>
-                <h3 class="sheet-title">${d.booking ? "Edit booking" : "Mark as booked"}</h3>
-                <div class="sheet-sub">Book with the club first, then add the details.</div>
+                <h3 class="sheet-title">${d.booking ? "Edit booking" : "Book"}</h3>
               </div>
               <button class="sheet-close" data-action="close" aria-label="Close">${icon.close}</button>
             </div>
@@ -1053,7 +1169,7 @@
           </div>
           <div class="sheet-foot">
             <button class="btn" data-action="submit-booking" data-day="${key}" ${formValid() ? "" : "disabled"}>
-              ${d.booking ? "Save changes" : "Mark as booked"}
+              ${d.booking ? "Save changes" : "Book"}
             </button>
           </div>`;
       }
@@ -1077,9 +1193,10 @@
           : "";
 
         screenEl.innerHTML = `
+          <div class="statusbar"></div>
           <div class="island"></div>
           <div class="scroller">
-            ${state.screen === "home" ? `<nav class="app-nav"><button class="brand-blob" data-action="go" data-screen="home">P</button>${avatar(ME, 36)}</nav>` : calendarTop()}
+            ${appNav()}
             <div class="content ${pageIsNew ? "" : "still"}">${page}</div>
           </div>
           ${sheet}
@@ -1097,15 +1214,19 @@
         renderFlow();
       }
 
-      function calendarTop() {
+      function appNav() {
+        const today = keyOf(TODAY);
+        const myGames = Object.keys(state.days).filter((k) => k >= today && inLineup(day(k))).length;
+        const active = state.screen === "calendar";
+        const badge = myGames > 0 ? `<span class="badge">${myGames}</span>` : "";
         return `
-          <div class="cal-top">
-            <div class="cal-title-row">
-              <button class="back" data-action="go" data-screen="home" aria-label="Back">${icon.back}</button>
-              <h1 class="page-title">Who's keen</h1>
+          <nav class="app-nav">
+            <button class="brand-blob" data-action="go" data-screen="home">P</button>
+            <div class="nav-right">
+              <button class="nav-cal ${active ? "active" : ""}" data-action="go" data-screen="calendar" aria-label="Calendar">${icon.calendar}${badge}</button>
+              ${avatar(ME, 36)}
             </div>
-            ${dowRow()}
-          </div>`;
+          </nav>`;
       }
 
       function showToast(text) {
@@ -1226,8 +1347,8 @@
 
       /* ── Brief: jump-to steps ────────────────────────────── */
       const FLOW = [
-        { title: "Dashboard", desc: "Your next game and this week at a glance", run: () => goTo("home") },
-        { title: "Calendar", desc: "Starts today. Months keep loading as you scroll", run: () => goTo("calendar") },
+        { title: "Dashboard", desc: "Next game, then who's keen, then your stats", run: () => goTo("home") },
+        { title: "Calendar", desc: "Upcoming games first, then the month grid", run: () => goTo("calendar") },
         {
           title: "Add yourself",
           desc: "Open a day that has three and take the last spot",
@@ -1238,7 +1359,7 @@
         },
         {
           title: "Enough players → book it",
-          desc: "The day gets an outline and you can mark it booked",
+          desc: "The day gets an outline and shows up under Upcoming",
           run: () => {
             goTo("calendar");
             const key = keyOf(addDays(2));
@@ -1247,7 +1368,7 @@
           },
         },
         {
-          title: "Mark as booked",
+          title: "Book",
           desc: "Venue, time, court and who's playing",
           run: () => {
             goTo("calendar");
