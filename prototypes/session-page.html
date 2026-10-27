@@ -102,6 +102,13 @@
       .stat .k { font-size: 9.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
       .stat .v { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; margin-top: 4px; line-height: 1; font-variant-numeric: tabular-nums; }
       .stat .v.up { color: var(--forest); }
+      .stat.chart { grid-column: 1 / -1; text-align: left; padding: 12px 14px 8px; }
+      .chart-head { display: flex; justify-content: space-between; align-items: baseline; }
+      .chart-range { font-size: 12.5px; font-weight: 700; color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+      .chart-range strong { color: var(--ink); }
+      .rating-chart { display: block; width: 100%; height: auto; margin-top: 6px; overflow: visible; }
+      .rating-chart text { font-size: 10px; font-weight: 800; fill: var(--ink-soft); letter-spacing: 0.06em; }
+      .rating-chart .baseline { stroke: rgba(13, 63, 36, 0.14); stroke-width: 1; stroke-dasharray: 3 4; }
       .stat .v.down { color: var(--clay); }
       .stat .v.flat { color: var(--ink-mute); }
 
@@ -300,6 +307,37 @@
         return { name, won, lost, pf, pa, delta };
       }
 
+      function ratingChart(trail, after) {
+        const w = 320, h = 92, padX = 14, padTop = 14, padBottom = 22;
+        const values = trail.map((p) => p.rating);
+        const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
+        const x = (i) => padX + (i / (trail.length - 1)) * (w - padX * 2);
+        const y = (v) => padTop + (1 - (v - min) / span) * (h - padTop - padBottom);
+        const line = trail.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.rating).toFixed(1)}`).join(" ");
+        const baseline = y(trail[0].rating);
+        const points = trail
+          .map((p, i) => {
+            const last = i === trail.length - 1;
+            return `
+              <circle cx="${x(i)}" cy="${y(p.rating)}" r="${last ? 4.5 : 3}" fill="${last ? "#0d3f24" : "#5e9d6b"}" />
+              <text x="${x(i)}" y="${h - 4}" text-anchor="middle">${p.label}</text>`;
+          })
+          .join("");
+        return `
+          <div class="stat chart">
+            <div class="chart-head">
+              <div class="k">Your rating</div>
+              <div class="chart-range">${round(trail[0].rating)} → <strong>${round(after)}</strong></div>
+            </div>
+            <svg class="rating-chart" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+              <line x1="${padX}" x2="${w - padX}" y1="${baseline}" y2="${baseline}" class="baseline" />
+              <path d="${line} L${x(trail.length - 1)},${h - padBottom} L${x(0)},${h - padBottom} Z" fill="rgba(94,157,107,0.12)" />
+              <path d="${line}" fill="none" stroke="#5e9d6b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+              ${points}
+            </svg>
+          </div>`;
+      }
+
       /* ── Render ─────────────────────────────────────────────── */
       function header(upcoming) {
         const details = [
@@ -320,6 +358,14 @@
       function sessionStats(results, live) {
         const mine = playerLine(ME, results);
         const { ratingAfter } = play(results);
+        const trail = [{ label: "Start", rating: RATINGS_BEFORE[ME] }];
+        let running = RATINGS_BEFORE[ME];
+        for (const m of results) {
+          if (m.a.includes(ME)) running += m.deltaA;
+          else if (m.b.includes(ME)) running -= m.deltaA;
+          else continue;
+          trail.push({ label: `G${m.index + 1}`, rating: running });
+        }
         const d = round(mine.delta);
         let direction = "flat";
         if (d > 0) direction = "up";
@@ -334,6 +380,7 @@
             <div class="stat"><div class="k">Won</div><div class="v up">${mine.won}</div></div>
             <div class="stat"><div class="k">Lost</div><div class="v down">${mine.lost}</div></div>
             <div class="stat"><div class="k">Win %</div><div class="v">${winRate}</div></div>
+            ${trail.length > 1 ? ratingChart(trail, ratingAfter[ME]) : ""}
           </div>`;
       }
 
