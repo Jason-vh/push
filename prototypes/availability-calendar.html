@@ -971,11 +971,7 @@
         const bookAnyway = `<button class="btn subtle booked-edit" data-action="book" data-day="${key}">Book</button>`;
         if (status === "ready") {
           if (!isIn(d)) return bookAnyway;
-          return `
-            <div class="callout ready">
-              <strong>That's four. Game on!</strong>
-              <button class="btn" data-action="book" data-day="${key}">Book</button>
-            </div>`;
+          return `<button class="btn booked-edit" data-action="book" data-day="${key}">Book</button>`;
         }
         return bookAnyway;
       }

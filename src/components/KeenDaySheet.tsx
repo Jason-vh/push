@@ -273,25 +273,16 @@ function DayDetails({
           </div>
         ) : null}
 
-        {status === "enough" && keen ? (
-          <div className="keen-callout ready">
-            <strong>That&apos;s four. Game on!</strong>
-            <button type="button" className="btn full" onClick={onBook} disabled={busy}>
-              Book
-            </button>
-          </div>
-        ) : null}
-
-        {!session && !(status === "enough" && keen) ? (
+        {session ? null : (
           <button
             type="button"
-            className="btn subtle full keen-book-anyway"
+            className={`btn full keen-book${status === "enough" && keen ? "" : " subtle"}`}
             onClick={onBook}
             disabled={busy}
           >
             Book
           </button>
-        ) : null}
+        )}
       </div>
     </>
   );
