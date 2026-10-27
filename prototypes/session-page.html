@@ -115,6 +115,7 @@
       .st-row + .st-row { border-top: 1px solid var(--hairline); }
       .st-rank { font-size: 13px; font-weight: 800; color: var(--ink-soft); text-align: center; font-variant-numeric: tabular-nums; }
       .st-row.top .st-rank { color: #c79431; }
+      .st-rating { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
       .st-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
       .st-meta { font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-top: 2px; font-variant-numeric: tabular-nums; }
       .st-meta .w { color: var(--forest); }
@@ -164,20 +165,6 @@
       .score .dash { color: var(--ink-soft); margin: 0 3px; }
 
       /* ── Upcoming state ────────────────────────────────────── */
-      .ticket { position: relative; overflow: hidden; margin-top: 18px; padding: 18px 20px; border-radius: 26px; background: var(--forest); color: var(--cream-ink); }
-      .ticket::before {
-        content: ""; position: absolute; top: -60px; right: -70px; width: 190px; height: 190px; border-radius: 999px;
-        background: radial-gradient(circle, rgba(143, 192, 154, 0.22), transparent 70%); pointer-events: none;
-      }
-      .ticket > *:not(svg) { position: relative; }
-      .ticket .eyebrow { color: #8fc09a; opacity: 1; }
-      .ticket-when { margin-top: 10px; }
-      .ticket-ranks { display: grid; gap: 6px; }
-      .tr { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; font-size: 14px; font-weight: 700; }
-      .tr .av { box-shadow: 0 0 0 1.5px rgba(244, 234, 208, 0.5); }
-      .tr b { font-variant-numeric: tabular-nums; opacity: 0.85; }
-      .ticket-meta { font-size: 13px; font-weight: 700; opacity: 0.8; margin-top: 8px; }
-      .ticket-foot { margin-top: 14px; }
       .wait { padding: 18px; text-align: center; color: var(--ink-mute); font-size: 13px; font-weight: 600; line-height: 1.45; }
       .wait strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 2px; }
       .danger-link { display: block; margin: 18px auto 0; border: 0; background: none; color: #8e3b3c; font-weight: 700; font-size: 13px; padding: 8px 14px; }
@@ -418,19 +405,25 @@
       }
 
 
-      function standingsOdds() {
-        const ranked = ATTENDING.map((n) => ({ n, r: RATINGS_BEFORE[n] })).sort((a, b) => b.r - a.r);
-        return `<div class="ticket-ranks">${ranked.map((p) => `
-          <div class="tr">${avatar(p.n, 26)}<span>${shown(p.n)}</span><b>${p.r}</b></div>`).join("")}</div>`;
+      function ratings() {
+        const ranked = [...ATTENDING].sort((x, y) => RATINGS_BEFORE[y] - RATINGS_BEFORE[x]);
+        return `
+          <div class="section-head"><h2>Ratings</h2></div>
+          <div class="card standings">
+            ${ranked.map((name, i) => `
+              <div class="st-row ${name === ME ? "me" : ""}" data-toast="Opens ${shown(name)}'s profile">
+                <div class="st-rank">${i + 1}</div>
+                ${avatar(name, 30)}
+                <div class="st-name">${shown(name)}</div>
+                <span class="st-rating">${RATINGS_BEFORE[name]}</span>
+              </div>`).join("")}
+          </div>`;
       }
 
       function renderUpcoming() {
         return `
           ${header(true)}
-          <section class="ticket">
-            <div class="eyebrow">Ratings</div>
-            <div class="ticket-when">${standingsOdds()}</div>
-          </section>
+          ${ratings()}
           <div class="section-head"><h2>Matches</h2></div>
           <div class="card wait"><strong>Nothing to log yet</strong>On the day, Log a match appears here and your stats fill in as you play.</div>
           <button class="danger-link" data-toast="Deletes the session">Delete session</button>`;
