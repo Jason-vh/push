@@ -97,20 +97,17 @@
       .card { background: var(--surface); border-radius: 22px; box-shadow: var(--card-shadow); }
 
       /* ── Your session stats ─────────────────────────────────── */
-      .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-      .stat { background: var(--surface); border-radius: 18px; box-shadow: var(--card-shadow); padding: 12px 10px; min-width: 0; text-align: center; }
+      .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .stat { background: var(--surface); border-radius: 18px; box-shadow: var(--card-shadow); padding: 12px 13px; min-width: 0; }
+      .stat.wide { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 14px 16px; }
       .stat .k { font-size: 9.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
       .stat .v { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; margin-top: 4px; line-height: 1; font-variant-numeric: tabular-nums; }
+      .stat .v.big { font-size: 40px; letter-spacing: -0.04em; }
       .stat .v.up { color: var(--forest); }
-      .stat.chart { grid-column: 1 / -1; text-align: left; padding: 12px 14px 8px; }
-      .chart-head { display: flex; justify-content: space-between; align-items: baseline; }
-      .chart-range { font-size: 12.5px; font-weight: 700; color: var(--ink-mute); font-variant-numeric: tabular-nums; }
-      .chart-range strong { color: var(--ink); }
-      .rating-chart { display: block; width: 100%; height: auto; margin-top: 6px; overflow: visible; }
-      .rating-chart text { font-size: 10px; font-weight: 800; fill: var(--ink-soft); letter-spacing: 0.06em; }
-      .rating-chart .baseline { stroke: rgba(13, 63, 36, 0.14); stroke-width: 1; stroke-dasharray: 3 4; }
       .stat .v.down { color: var(--clay); }
       .stat .v.flat { color: var(--ink-mute); }
+      .stat .s { font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-top: 6px; font-variant-numeric: tabular-nums; }
+      .stat-spark { width: 140px; min-width: 90px; height: 56px; flex-shrink: 1; }
 
       /* ── Standings ─────────────────────────────────────────── */
       .standings { padding: 4px 16px; }
@@ -307,35 +304,18 @@
         return { name, won, lost, pf, pa, delta };
       }
 
-      function ratingChart(trail, after) {
-        const w = 320, h = 92, padX = 14, padTop = 14, padBottom = 22;
-        const values = trail.map((p) => p.rating);
+      function sparkline(values) {
+        const w = 132, h = 56, pad = 6;
         const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
-        const x = (i) => padX + (i / (trail.length - 1)) * (w - padX * 2);
-        const y = (v) => padTop + (1 - (v - min) / span) * (h - padTop - padBottom);
-        const line = trail.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.rating).toFixed(1)}`).join(" ");
-        const baseline = y(trail[0].rating);
-        const points = trail
-          .map((p, i) => {
-            const last = i === trail.length - 1;
-            return `
-              <circle cx="${x(i)}" cy="${y(p.rating)}" r="${last ? 4.5 : 3}" fill="${last ? "#0d3f24" : "#5e9d6b"}" />
-              <text x="${x(i)}" y="${h - 4}" text-anchor="middle">${p.label}</text>`;
-          })
-          .join("");
-        return `
-          <div class="stat chart">
-            <div class="chart-head">
-              <div class="k">Your rating</div>
-              <div class="chart-range">${round(trail[0].rating)} → <strong>${round(after)}</strong></div>
-            </div>
-            <svg class="rating-chart" viewBox="0 0 ${w} ${h}" aria-hidden="true">
-              <line x1="${padX}" x2="${w - padX}" y1="${baseline}" y2="${baseline}" class="baseline" />
-              <path d="${line} L${x(trail.length - 1)},${h - padBottom} L${x(0)},${h - padBottom} Z" fill="rgba(94,157,107,0.12)" />
-              <path d="${line}" fill="none" stroke="#5e9d6b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-              ${points}
-            </svg>
-          </div>`;
+        const pts = values.map((v, i) => [ (i / (values.length - 1)) * w, h - pad - ((v - min) / span) * (h - pad * 2) ]);
+        const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+        const [lx, ly] = pts.at(-1);
+        return `<svg class="stat-spark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+          <path d="${line} L${w},${h} L0,${h} Z" fill="rgba(94,157,107,0.16)"/>
+          <path d="${line}" fill="none" stroke="#5e9d6b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          ${pts.slice(0, -1).map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="#5e9d6b" opacity="0.6"/>`).join("")}
+          <circle cx="${lx}" cy="${ly}" r="4" fill="#0d3f24"/>
+        </svg>`;
       }
 
       /* ── Render ─────────────────────────────────────────────── */
@@ -358,13 +338,11 @@
       function sessionStats(results, live) {
         const mine = playerLine(ME, results);
         const { ratingAfter } = play(results);
-        const trail = [{ label: "Start", rating: RATINGS_BEFORE[ME] }];
-        let running = RATINGS_BEFORE[ME];
+        const trail = [RATINGS_BEFORE[ME]];
+        let r = RATINGS_BEFORE[ME];
         for (const m of results) {
-          if (m.a.includes(ME)) running += m.deltaA;
-          else if (m.b.includes(ME)) running -= m.deltaA;
-          else continue;
-          trail.push({ label: `G${m.index + 1}`, rating: running });
+          if (m.a.includes(ME)) r += m.deltaA; else if (m.b.includes(ME)) r -= m.deltaA; else continue;
+          trail.push(r);
         }
         const d = round(mine.delta);
         let direction = "flat";
@@ -376,11 +354,17 @@
         return `
           <div class="section-head"><h2>${live ? "Your session so far" : "Your session"}</h2></div>
           <div class="stat-grid">
-            <div class="stat"><div class="k">Rating</div><div class="v ${direction}">${sign}${Math.abs(d)}</div></div>
+            <div class="stat wide">
+              <div>
+                <div class="k">Rating change</div>
+                <div class="v big ${direction}">${sign}${Math.abs(d)}</div>
+                <div class="s">${round(RATINGS_BEFORE[ME])} → ${round(ratingAfter[ME])}</div>
+              </div>
+              ${trail.length > 1 ? sparkline(trail) : ""}
+            </div>
             <div class="stat"><div class="k">Won</div><div class="v up">${mine.won}</div></div>
             <div class="stat"><div class="k">Lost</div><div class="v down">${mine.lost}</div></div>
-            <div class="stat"><div class="k">Win %</div><div class="v">${winRate}</div></div>
-            ${trail.length > 1 ? ratingChart(trail, ratingAfter[ME]) : ""}
+            <div class="stat"><div class="k">Win rate</div><div class="v">${winRate}%</div></div>
           </div>`;
       }
 
