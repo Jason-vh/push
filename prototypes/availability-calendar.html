@@ -144,17 +144,6 @@
       .eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
 
       /* ── Dashboard ─────────────────────────────────────────── */
-      .next-game {
-        position: relative; overflow: hidden; background: var(--forest); color: var(--cream-ink);
-        border-radius: 28px; padding: 18px 20px; margin-bottom: 14px;
-        box-shadow: 0 18px 32px -18px rgba(13, 63, 36, 0.45); cursor: pointer;
-      }
-      .next-game svg.seam { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-      .next-game > *:not(svg) { position: relative; }
-      .next-game .eyebrow { opacity: 0.65; }
-      .next-when { font-size: 30px; font-weight: 800; letter-spacing: -0.035em; margin-top: 6px; line-height: 1; }
-      .next-where { font-size: 13px; font-weight: 700; opacity: 0.8; margin-top: 6px; display: flex; gap: 6px; align-items: center; }
-      .next-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
 
       .stack { display: flex; }
       .stack > * + * { margin-left: -8px; }
@@ -242,7 +231,7 @@
       }
       .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; margin: 0; line-height: 1.1; }
       .section-head.first { padding-top: 4px; }
-      .upcoming-section .next-game { margin-bottom: 10px; }
+
       .pill svg { width: 14px; height: 14px; }
       .upcoming-list { background: var(--surface); border-radius: 22px; padding: 4px 16px; box-shadow: var(--card-shadow); }
       .up-row {
@@ -256,10 +245,19 @@
       }
       .up-date .dow { font-size: 9px; font-weight: 800; letter-spacing: 0.08em; opacity: 0.7; }
       .up-date .day { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
-      .up-row.booked .up-date { background: var(--forest); color: var(--cream-ink); }
+      .up-date { background: var(--forest); color: var(--cream-ink); }
       .up-row.playing .up-date { box-shadow: inset 0 0 0 2px var(--cream-ink), 0 0 0 1.5px var(--forest); }
       .stack.small > * + * { margin-left: -7px; }
-      .up-row.ready .up-date { color: var(--forest); box-shadow: inset 0 0 0 1.5px var(--court); }
+      .up-row.featured {
+        margin: 6px -8px; padding: 14px 8px; border-radius: 18px; background: #eaf3e0;
+        grid-template-columns: 52px 1fr; align-items: start;
+      }
+      .up-players { margin-top: 10px; }
+      .up-row.featured + .up-row, .up-row + .up-row.featured { border-top: 0; }
+      .up-row.featured .up-date { width: 52px; height: 56px; border-radius: 14px; }
+      .up-row.featured .up-date .day { font-size: 20px; }
+      .up-row.featured .up-title { font-size: 17px; }
+      .up-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--court-dark, #4a8458); margin-bottom: 3px; }
       .up-main { min-width: 0; }
       .up-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .up-sub { font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -459,10 +457,10 @@
       <aside class="brief">
         <h1>Calendar</h1>
         <p>
-          <strong>This round:</strong> navigation stays in widgets. The dashboard opens with an
-          <em>Upcoming games</em> section: your next game as the big card, then the next few booked games
-          and days with four keen, and a <em>Calendar</em> button to see the full calendar. "Recent
-          sessions" is now <em>History</em>.
+          <strong>This round:</strong> navigation stays in widgets. The dashboard opens with
+          <em>Upcoming games</em>: booked games only, with your next one as a taller highlighted row
+          rather than a separate card, and a <em>Calendar</em> button for the full calendar.
+          "Recent sessions" is now <em>History</em>.
         </p>
         <p>
           A shared calendar that starts today and keeps scrolling. Tap a day and take an open spot to
@@ -637,6 +635,16 @@
         set(12, [["Sasha"], ["Lotte"]]);
         set(15, [["Priya"], ["Tom", "only weekends"]]);
         set(19, [["Mateo"], ["Sasha"], ["Lotte"]]);
+        set(20, [[ME], ["Priya"], ["Imani"], ["Tom"]], {
+          booking: {
+            venue: "Padel City Amsterdam",
+            time: "18:30",
+            duration: 120,
+            court: "Court 2",
+            lineup: [ME, "Priya", "Imani", "Tom"],
+            bookedBy: ME,
+          },
+        });
         set(23, [["Imani"], ["Tom"], ["Priya"], ["Mateo"]]);
         set(26, [["Lotte"]]);
         set(34, [["Sasha"], ["Imani"]]);
@@ -717,12 +725,10 @@
       }
 
       function upcomingGames(next) {
-        const keys = upcomingKeys().filter((k) => k !== next).slice(0, DASHBOARD_UPCOMING);
+        const keys = upcomingKeys().slice(0, DASHBOARD_UPCOMING);
         let body = noUpcoming();
-        if (next || keys.length) {
-          body = `
-            ${next ? nextGameCard(next) : ""}
-            ${keys.length ? `<div class="upcoming-list">${keys.map(upcomingRow).join("")}</div>` : ""}`;
+        if (keys.length) {
+          body = `<div class="upcoming-list">${keys.map((k) => upcomingRow(k, k === next)).join("")}</div>`;
         }
         return `
           <section class="upcoming-section">
@@ -743,26 +749,11 @@
           </div>`;
       }
 
-      function nextGameCard(key) {
-        const b = day(key).booking;
-        const d = dateOf(key);
-        return `
-          <div class="next-game" data-action="open-day" data-day="${key}">
-            ${seam}
-            <div class="eyebrow">Next game · ${relativeDay(key)}</div>
-            <div class="next-when">${fmt.short(d).replace(",", "")} · ${b.time}</div>
-            <div class="next-where">${icon.pin}${b.venue}${b.court ? ` · ${b.court}` : ""}</div>
-            <div class="next-foot">
-              <div class="stack" style="--ring: var(--forest)">${b.lineup.map((n) => avatar(n, 28)).join("")}</div>
-            </div>
-          </div>`;
-      }
-
       function noUpcoming() {
         return `
           <button class="no-slots week-card" data-action="go" data-screen="calendar">
             <img class="no-slots-art" src="${EMPTY_COURT_ART}" alt="" />
-            <strong>Nothing coming up</strong>
+            <strong>Nothing booked yet</strong>
             <span>Pick a day you can play and others can join</span>
           </button>`;
       }
@@ -830,39 +821,26 @@
       function upcomingKeys() {
         const today = keyOf(TODAY);
         return Object.keys(state.days)
-          .filter((k) => k >= today && ["booked", "ready"].includes(statusOf(day(k))))
+          .filter((k) => k >= today && statusOf(day(k)) === "booked")
           .sort();
       }
 
-      function upcomingRow(key) {
-        const d = day(key);
+      function upcomingRow(key, featured) {
+        const b = day(key).booking;
         const date = dateOf(key);
-        const status = statusOf(d);
-        const tile = `<div class="up-date"><span class="dow">${fmt.dow(date)}</span><span class="day">${date.getDate()}</span></div>`;
-        if (status === "booked") {
-          const b = d.booking;
-          const sub = [`${b.time}–${endTime(b.time, b.duration)}`, b.court].filter(Boolean).join(" · ");
-          return `
-            <div class="up-row booked ${inLineup(d) ? "playing" : ""}" data-action="open-day" data-day="${key}">
-              ${tile}
-              <div class="up-main">
-                <div class="up-title">${b.venue}</div>
-                <div class="up-sub">${sub}</div>
-              </div>
-              <div class="stack small">${b.lineup.map((n) => avatar(n, 22)).join("")}</div>
-            </div>`;
-        }
-        const action = isIn(d)
-          ? `<button class="pill forest" data-action="book" data-day="${key}">Book</button>`
-          : `<div class="stack small">${d.players.slice(0, 4).map((p) => avatar(p.name, 22)).join("")}</div>`;
+        const classes = ["up-row", inLineup(day(key)) ? "playing" : "", featured ? "featured" : ""].join(" ");
+        const sub = [`${b.time}–${endTime(b.time, b.duration)}`, b.court].filter(Boolean).join(" · ");
+        const players = (size) => `<div class="stack small">${b.lineup.map((n) => avatar(n, size)).join("")}</div>`;
         return `
-          <div class="up-row ready" data-action="open-day" data-day="${key}">
-            ${tile}
+          <div class="${classes}" data-action="open-day" data-day="${key}">
+            <div class="up-date"><span class="dow">${fmt.dow(date)}</span><span class="day">${date.getDate()}</span></div>
             <div class="up-main">
-              <div class="up-title">${d.players.length} keen</div>
-              <div class="up-sub">Not booked yet</div>
+              ${featured ? `<div class="up-eyebrow">Next game · ${relativeDay(key)}</div>` : ""}
+              <div class="up-title">${b.venue}</div>
+              <div class="up-sub">${sub}</div>
+              ${featured ? `<div class="up-players">${players(26)}</div>` : ""}
             </div>
-            ${action}
+            ${featured ? "" : players(22)}
           </div>`;
       }
 
@@ -1309,7 +1287,7 @@
         },
         {
           title: "Enough players → book it",
-          desc: "The day gets an outline and shows up under Upcoming games",
+          desc: "The day gets an outline in the calendar",
           run: () => {
             goTo("calendar");
             const key = keyOf(addDays(2));
@@ -1336,7 +1314,7 @@
           },
         },
         {
-          title: "Nothing coming up",
+          title: "Nothing booked yet",
           desc: "Upcoming games when nothing's planned",
           run: () => {
             goTo("home");
