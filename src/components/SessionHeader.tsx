@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DurationPicker } from "@/components/DurationPicker";
+import { TimeInput } from "@/components/TimeInput";
 import { DEFAULT_DURATION, endTime } from "@/lib/keenDays";
 
 type SessionPatch = {
@@ -106,20 +107,14 @@ export function SessionHeader({
             />
           </label>
           <div className="form-grid">
-            <label className="label">
-              Start
-              <input
-                className="input"
-                type="time"
-                value={startTime}
-                onChange={(event) => {
-                  setStartTime(event.target.value);
-                  if (event.target.value) {
-                    void save({ startTime: event.target.value, durationMinutes });
-                  }
-                }}
-              />
-            </label>
+            <TimeInput
+              label="Start"
+              value={startTime}
+              onChange={(value) => {
+                setStartTime(value);
+                if (value) void save({ startTime: value, durationMinutes });
+              }}
+            />
             <label className="label">
               Court
               <input

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { DurationPicker } from "@/components/DurationPicker";
+import { TimeInput } from "@/components/TimeInput";
 import { DEFAULT_DURATION, DEFAULT_START_TIME, formatDate, type KeenDay } from "@/lib/keenDays";
 
 export function KeenBookingForm({
@@ -100,15 +101,7 @@ export function KeenBookingForm({
         </div>
 
         <div className="form-grid">
-          <label className="label">
-            Start
-            <input
-              className="input"
-              type="time"
-              value={startTime}
-              onChange={(event) => setStartTime(event.target.value)}
-            />
-          </label>
+          <TimeInput label="Start" value={startTime} onChange={setStartTime} />
           <label className="label">
             <span>
               Court <span className="keen-optional">optional</span>

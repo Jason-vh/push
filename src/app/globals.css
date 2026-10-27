@@ -571,8 +571,40 @@ h3 {
 .input[type="date"],
 .input[type="time"] {
   min-width: 0;
+  /* iOS Safari collapses empty date and time inputs to their padding. */
+  min-height: 46px;
   -webkit-appearance: none;
   appearance: none;
+}
+.time-input {
+  position: relative;
+  display: block;
+}
+.time-input-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #a9a9a9;
+  letter-spacing: normal;
+  text-transform: none;
+  pointer-events: none;
+}
+.time-input .input.is-empty:not(:focus) {
+  color: transparent;
+}
+.time-input .input.is-empty:not(:focus)::-webkit-datetime-edit,
+.time-input .input.is-empty:not(:focus)::-webkit-datetime-edit-fields-wrapper,
+.time-input .input.is-empty:not(:focus)::-webkit-datetime-edit-hour-field,
+.time-input .input.is-empty:not(:focus)::-webkit-datetime-edit-minute-field,
+.time-input .input.is-empty:not(:focus)::-webkit-datetime-edit-ampm-field,
+.time-input .input.is-empty:not(:focus)::-webkit-datetime-edit-text {
+  color: transparent;
+  opacity: 0;
+}
+.time-input .input.is-empty:focus + .time-input-placeholder {
+  display: none;
 }
 .input::-webkit-date-and-time-value {
   text-align: left;
@@ -2486,6 +2518,7 @@ button.keen-spot.open:active {
   color: var(--forest);
   box-shadow: 0 2px 6px -2px rgba(13, 63, 36, 0.2);
 }
-.keen-form .input {
+.keen-form .input,
+.keen-form .time-input-placeholder {
   font-weight: 500;
 }
