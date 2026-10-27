@@ -13,14 +13,14 @@ import {
   formatDate,
   isKeen,
   lineupOf,
-  playersNeeded,
   type KeenDay,
   type KeenPlayer,
+  type KeenSession,
 } from "@/lib/keenDays";
 
 const CLOSE_ANIMATION_MS = 280;
 
-type Step = "day" | "book";
+type Step = { name: "day" } | { name: "book"; day: KeenDay };
 
 export function KeenDaySheet({
   day,
@@ -37,7 +37,7 @@ export function KeenDaySheet({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [shownDay, setShownDay] = useState<KeenDay | null>(day);
-  const [step, setStep] = useState<Step>("day");
+  const [step, setStep] = useState<Step>({ name: "day" });
   const [closing, setClosing] = useState(false);
   const open = day !== null;
 
@@ -49,7 +49,7 @@ export function KeenDaySheet({
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (open && !dialog.open) {
-      setStep("day");
+      setStep({ name: "day" });
       setClosing(false);
       dialog.showModal();
     } else if (!open && dialog.open) {
@@ -93,23 +93,23 @@ export function KeenDaySheet({
         <div className="sheet-grabber">
           <span />
         </div>
-        {shownDay && step === "day" ? (
+        {shownDay && step.name === "day" ? (
           <DayDetails
             key={shownDay.date}
             day={shownDay}
             userId={userId}
             userName={userName}
-            onBook={() => setStep("book")}
+            onBook={(bookingDay) => setStep({ name: "book", day: bookingDay })}
             onClose={onClose}
           />
         ) : null}
-        {shownDay && step === "book" ? (
+        {step.name === "book" ? (
           <KeenBookingForm
-            day={shownDay}
+            day={step.day}
             userId={userId}
             userName={userName}
             venueSuggestions={venueSuggestions}
-            onBack={() => setStep("day")}
+            onBack={() => setStep({ name: "day" })}
             onClose={onClose}
           />
         ) : null}
@@ -128,7 +128,7 @@ function DayDetails({
   day: KeenDay;
   userId: string;
   userName: string;
-  onBook: () => void;
+  onBook: (day: KeenDay) => void;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -198,7 +198,7 @@ function DayDetails({
           <h2 className="sheet-title">
             {formatDate(day.date, { weekday: "long", day: "numeric", month: "long" })}
           </h2>
-          <div className="sheet-sub">{subtitle(day, userId)}</div>
+          {session ? <div className="sheet-sub">{bookedBy(session, userId)}</div> : null}
         </div>
         <button type="button" className="sheet-close" aria-label="Close" onClick={onClose}>
           ×
@@ -293,8 +293,7 @@ function DayDetails({
           <button
             type="button"
             className={`btn full keen-book${status === "enough" && keen ? "" : " subtle"}`}
-            onClick={onBook}
-            disabled={inFlight > 0}
+            onClick={() => onBook(day)}
           >
             Book
           </button>
@@ -396,15 +395,9 @@ function NoteInput({
   );
 }
 
-function subtitle(day: KeenDay, userId: string) {
-  if (day.session) {
-    const booker = { userId: day.session.createdById, name: day.session.createdByName };
-    return `Booked by ${displayName(booker, userId)}`;
-  }
-  const status = dayStatus(day);
-  if (status === "enough") return `${day.keen.length} keen · ready to book`;
-  if (status === "empty") return "Nobody's keen yet";
-  return `${day.keen.length} keen · ${playersNeeded(day)} more needed`;
+function bookedBy(session: KeenSession, userId: string) {
+  const booker = { userId: session.createdById, name: session.createdByName };
+  return `Booked by ${displayName(booker, userId)}`;
 }
 
 function withKeen(day: KeenDay, userId: string, userName: string, keen: boolean): KeenDay {

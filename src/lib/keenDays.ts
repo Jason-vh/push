@@ -40,10 +40,6 @@ export function isPlaying(day: KeenDay, userId: string) {
   return Boolean(day.session?.players.some((player) => player.userId === userId));
 }
 
-export function playersNeeded(day: KeenDay) {
-  return Math.max(0, PLAYERS_PER_GAME - day.keen.length);
-}
-
 export function lineupOf(day: KeenDay): KeenPlayer[] {
   if (!day.session) return day.keen.slice(0, PLAYERS_PER_GAME);
   const notes = new Map(day.keen.map((player) => [player.userId, player.note]));
