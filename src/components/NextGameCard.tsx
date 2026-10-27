@@ -1,20 +1,11 @@
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
-import { BallSeam, PinIcon, displayName } from "@/components/KeenParts";
+import { BallSeam, PinIcon } from "@/components/KeenParts";
 import { formatDate, lineupOf, relativeDay, type KeenDay } from "@/lib/keenDays";
 
-export function NextGameCard({
-  day,
-  today,
-  userId,
-}: {
-  day: KeenDay;
-  today: string;
-  userId: string;
-}) {
+export function NextGameCard({ day, today }: { day: KeenDay; today: string }) {
   const session = day.session;
   if (!session) return null;
-  const booker = { userId: session.createdById, name: session.createdByName };
   const where = [session.venue, session.court].filter(Boolean).join(" · ");
 
   return (
@@ -39,7 +30,6 @@ export function NextGameCard({
             </span>
           ))}
         </div>
-        <span className="next-game-booker">Booked by {displayName(booker, userId)}</span>
       </div>
     </Link>
   );

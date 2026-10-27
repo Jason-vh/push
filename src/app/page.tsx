@@ -91,7 +91,7 @@ export default async function Home() {
 
   return (
     <main className="shell">
-      {nextGame ? <NextGameCard day={nextGame} today={today} userId={user.id} /> : null}
+      {nextGame ? <NextGameCard day={nextGame} today={today} /> : null}
 
       <RatingHero rating={currentStats.rating} rank={currentRank} />
 
