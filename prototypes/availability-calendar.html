@@ -230,7 +230,7 @@
         color: var(--forest); display: grid; place-items: center;
       }
       .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; margin: 0; line-height: 1.1; }
-      .section-head.first { padding-top: 4px; }
+
 
       .pill svg { width: 14px; height: 14px; }
       .upcoming-list { background: var(--surface); border-radius: 22px; padding: 4px 16px; box-shadow: var(--card-shadow); }
@@ -447,8 +447,8 @@
       <aside class="brief">
         <h1>Calendar</h1>
         <p>
-          <strong>This round:</strong> navigation stays in widgets. The dashboard opens with
-          <em>Upcoming games</em>: the booked games you're playing in, the first labelled "Next game",
+          <strong>This round:</strong> navigation stays in widgets. Below the leaderboard,
+          <em>Upcoming games</em> lists the booked games you're playing in, the first labelled "Next game",
           and a <em>Calendar</em> button for the full calendar. "Recent sessions" is now <em>History</em>.
         </p>
         <p>
@@ -703,9 +703,9 @@
       /* ── Render: dashboard ───────────────────────────────── */
       function renderHome() {
         return `
-          ${upcomingGames()}
           ${ratingHero()}
           ${leaderboard()}
+          ${upcomingGames()}
           ${history()}`;
       }
 
@@ -717,7 +717,7 @@
         }
         return `
           <section class="upcoming-section">
-            <div class="section-head first">
+            <div class="section-head">
               <h2>Upcoming games</h2>
               <button class="pill forest" data-action="go" data-screen="calendar">${icon.calendar} Calendar</button>
             </div>
