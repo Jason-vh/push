@@ -80,9 +80,13 @@
       .stack .av { box-shadow: 0 0 0 2.5px var(--ring, #f4e9cf); }
 
       /* ── Header ────────────────────────────────────────────── */
-      .head { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; padding: 4px 4px 0; }
+      .head { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; padding: 4px 4px 0; }
       .title { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; margin: 0; line-height: 1.05; }
-      .sub { font-size: 12.5px; font-weight: 700; color: var(--ink-mute); margin-top: 6px; }
+      .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 2px; font-size: 13px; font-weight: 600; color: var(--ink-2, #2a3a30); }
+      .meta span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+      .meta svg { color: var(--court-dark); flex-shrink: 0; }
+      .meta-soft { color: var(--ink-mute); margin-left: -2px; }
+      .when-label { font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--court-dark); margin-bottom: 4px; }
       .pill { border: 0; padding: 7px 13px; border-radius: 999px; font-weight: 700; font-size: 12.5px; background: var(--mint-pill); color: var(--forest); }
       .roster { display: flex; align-items: center; gap: 10px; padding: 14px 4px 0; }
       .roster span.count { font-size: 12px; font-weight: 700; color: var(--ink-mute); }
@@ -251,6 +255,10 @@
     <script>
       const ME = "Jason";
       const K = 24;
+      const ICONS = {
+        clock: `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.8V8l2.2 1.4"/></svg>`,
+        pin: `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 14.5s-4.5-4.3-4.5-8a4.5 4.5 0 019 0c0 3.7-4.5 8-4.5 8z"/><circle cx="8" cy="6.5" r="1.6"/></svg>`,
+      };
       const PALETTE = [
         ["#0d3f24", "#f4ead0"], ["#6e7f3b", "#f4ead0"], ["#5e9d6b", "#0d3f24"], ["#2e5b62", "#f4ead0"],
         ["#1f3e57", "#f4ead0"], ["#b3654a", "#f4ead0"], ["#c79431", "#0d3f24"], ["#a04a2f", "#f4ead0"],
@@ -358,14 +366,18 @@
 
       /* ── Render ─────────────────────────────────────────────── */
       function header(upcoming) {
-        const sub = `${upcoming ? "In 11 days · " : ""}19:30–21:00 · Padel City Amsterdam · Court 4`;
+        const details = [
+          [ICONS.clock, "19:30–21:00"],
+          [ICONS.pin, `Padel City Amsterdam<span class="meta-soft">· Court 4</span>`],
+        ];
         return `
           <div class="head">
             <div>
+              ${upcoming ? `<div class="when-label">In 11 days</div>` : ""}
               <h1 class="title">${upcoming ? "Sat 7 Nov" : "Sat 24 Oct"}</h1>
-              <div class="sub">${sub}</div>
             </div>
             <button class="pill" data-toast="Opens the edit panel: date, time, venue, court, length">Edit</button>
+            <div class="meta">${details.map(([icon, text]) => `<span>${icon}${text}</span>`).join("")}</div>
           </div>`;
       }
 
