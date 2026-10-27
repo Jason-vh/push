@@ -507,11 +507,6 @@ h3 {
   white-space: nowrap;
   text-decoration: none;
 }
-.btn-pill .plus {
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 1;
-}
 
 /* Inline plus icon used inside log-match buttons */
 .log-plus {

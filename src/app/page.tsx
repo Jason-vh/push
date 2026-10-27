@@ -150,14 +150,10 @@ export default async function Home() {
       <section style={{ marginTop: 22 }}>
         <div className="section-head">
           <h2>History</h2>
-          <Link className="btn-pill" href="/sessions/new">
-            <span className="plus">+</span>
-            New
-          </Link>
         </div>
 
         {recentSessions.length === 0 ? (
-          <div className="empty">No sessions logged yet. Start one to see it here.</div>
+          <div className="empty">No sessions played yet. Book one from the calendar.</div>
         ) : (
           <div className="session-list">
             {recentSessions.map((session) => {
