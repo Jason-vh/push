@@ -246,18 +246,8 @@
       .up-date .dow { font-size: 9px; font-weight: 800; letter-spacing: 0.08em; opacity: 0.7; }
       .up-date .day { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
       .up-date { background: var(--forest); color: var(--cream-ink); }
-      .up-row.playing .up-date { box-shadow: inset 0 0 0 2px var(--cream-ink), 0 0 0 1.5px var(--forest); }
       .stack.small > * + * { margin-left: -7px; }
-      .up-row.featured {
-        margin: 6px -8px; padding: 14px 8px; border-radius: 18px; background: #eaf3e0;
-        grid-template-columns: 52px 1fr; align-items: start;
-      }
-      .up-players { margin-top: 10px; }
-      .up-row.featured + .up-row, .up-row + .up-row.featured { border-top: 0; }
-      .up-row.featured .up-date { width: 52px; height: 56px; border-radius: 14px; }
-      .up-row.featured .up-date .day { font-size: 20px; }
-      .up-row.featured .up-title { font-size: 17px; }
-      .up-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--court-dark, #4a8458); margin-bottom: 3px; }
+      .up-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #4a8458; margin-bottom: 2px; }
       .up-main { min-width: 0; }
       .up-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .up-sub { font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -458,9 +448,8 @@
         <h1>Calendar</h1>
         <p>
           <strong>This round:</strong> navigation stays in widgets. The dashboard opens with
-          <em>Upcoming games</em>: booked games only, with your next one as a taller highlighted row
-          rather than a separate card, and a <em>Calendar</em> button for the full calendar.
-          "Recent sessions" is now <em>History</em>.
+          <em>Upcoming games</em>: the booked games you're playing in, the first labelled "Next game",
+          and a <em>Calendar</em> button for the full calendar. "Recent sessions" is now <em>History</em>.
         </p>
         <p>
           A shared calendar that starts today and keeps scrolling. Tap a day and take an open spot to
@@ -713,22 +702,18 @@
 
       /* ── Render: dashboard ───────────────────────────────── */
       function renderHome() {
-        const today = keyOf(TODAY);
-        const next = Object.keys(state.days)
-          .sort()
-          .find((k) => k >= today && inLineup(day(k)));
         return `
-          ${upcomingGames(next)}
+          ${upcomingGames()}
           ${ratingHero()}
           ${leaderboard()}
           ${history()}`;
       }
 
-      function upcomingGames(next) {
+      function upcomingGames() {
         const keys = upcomingKeys().slice(0, DASHBOARD_UPCOMING);
         let body = noUpcoming();
         if (keys.length) {
-          body = `<div class="upcoming-list">${keys.map((k) => upcomingRow(k, k === next)).join("")}</div>`;
+          body = `<div class="upcoming-list">${keys.map((k, i) => upcomingRow(k, i === 0)).join("")}</div>`;
         }
         return `
           <section class="upcoming-section">
@@ -821,26 +806,23 @@
       function upcomingKeys() {
         const today = keyOf(TODAY);
         return Object.keys(state.days)
-          .filter((k) => k >= today && statusOf(day(k)) === "booked")
+          .filter((k) => k >= today && inLineup(day(k)))
           .sort();
       }
 
       function upcomingRow(key, featured) {
         const b = day(key).booking;
         const date = dateOf(key);
-        const classes = ["up-row", inLineup(day(key)) ? "playing" : "", featured ? "featured" : ""].join(" ");
         const sub = [`${b.time}–${endTime(b.time, b.duration)}`, b.court].filter(Boolean).join(" · ");
-        const players = (size) => `<div class="stack small">${b.lineup.map((n) => avatar(n, size)).join("")}</div>`;
         return `
-          <div class="${classes}" data-action="open-day" data-day="${key}">
+          <div class="up-row" data-action="open-day" data-day="${key}">
             <div class="up-date"><span class="dow">${fmt.dow(date)}</span><span class="day">${date.getDate()}</span></div>
             <div class="up-main">
-              ${featured ? `<div class="up-eyebrow">Next game · ${relativeDay(key)}</div>` : ""}
+              ${featured ? `<div class="up-eyebrow">Next game</div>` : ""}
               <div class="up-title">${b.venue}</div>
               <div class="up-sub">${sub}</div>
-              ${featured ? `<div class="up-players">${players(26)}</div>` : ""}
             </div>
-            ${featured ? "" : players(22)}
+            <div class="stack small">${b.lineup.map((n) => avatar(n, 22)).join("")}</div>
           </div>`;
       }
 
