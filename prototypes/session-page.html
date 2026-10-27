@@ -89,8 +89,6 @@
       .when-label { font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--court-dark); margin-bottom: 4px; }
       .pill { border: 0; padding: 7px 13px; border-radius: 999px; font-weight: 700; font-size: 12.5px; background: var(--mint-pill); color: var(--forest); }
       .roster { display: flex; align-items: center; gap: 10px; padding: 14px 4px 0; }
-      .roster span.count { font-size: 12px; font-weight: 700; color: var(--ink-mute); }
-      .roster span.count strong { color: var(--forest); }
 
       .section-head { display: flex; justify-content: space-between; align-items: baseline; padding: 24px 4px 10px; }
       .section-head h2 { margin: 0; font-size: 18px; letter-spacing: -0.02em; }
@@ -197,11 +195,9 @@
       .ticket .eyebrow { color: #8fc09a; opacity: 1; }
       .ticket-when { margin-top: 10px; }
       .ticket-ranks { display: grid; gap: 6px; }
-      .tr { display: grid; grid-template-columns: 26px 1fr auto auto; gap: 10px; align-items: center; font-size: 14px; font-weight: 700; }
+      .tr { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; font-size: 14px; font-weight: 700; }
       .tr .av { box-shadow: 0 0 0 1.5px rgba(244, 234, 208, 0.5); }
       .tr b { font-variant-numeric: tabular-nums; opacity: 0.85; }
-      .tr em { font-style: normal; font-size: 9px; font-weight: 800; letter-spacing: 0.1em; padding: 2px 6px; border-radius: 999px; background: #f6e3b4; color: #8a6414; text-transform: uppercase; }
-      .tr:not(:has(em)) { grid-template-columns: 26px 1fr auto; }
       .ticket-meta { font-size: 13px; font-weight: 700; opacity: 0.8; margin-top: 8px; }
       .ticket-foot { margin-top: 14px; }
       .wait { padding: 18px; text-align: center; color: var(--ink-mute); font-size: 13px; font-weight: 600; line-height: 1.45; }
@@ -483,28 +479,26 @@
           <div class="matches">${[...results].reverse().map(matchCard).join("")}</div>`;
       }
 
-      function roster(label) {
+      function roster() {
         return `
           <div class="roster">
             <div class="stack">${ATTENDING.map((n) => avatar(n, 28)).join("")}</div>
-            <span class="count"><strong>${ATTENDING.length} ${label}</strong></span>
           </div>`;
       }
 
       function standingsOdds() {
         const ranked = ATTENDING.map((n) => ({ n, r: RATINGS_BEFORE[n] })).sort((a, b) => b.r - a.r);
-        return `<div class="ticket-ranks">${ranked.map((p, i) => `
-          <div class="tr">${avatar(p.n, 26)}<span>${shown(p.n)}</span><b>${p.r}</b>${i === 0 ? '<em>fav</em>' : ""}</div>`).join("")}</div>`;
+        return `<div class="ticket-ranks">${ranked.map((p) => `
+          <div class="tr">${avatar(p.n, 26)}<span>${shown(p.n)}</span><b>${p.r}</b></div>`).join("")}</div>`;
       }
 
       function renderUpcoming() {
         return `
           ${header(true)}
-          ${roster("playing")}
+          ${roster()}
           <section class="ticket">
-            <div class="eyebrow">Ratings going in</div>
+            <div class="eyebrow">Ratings</div>
             <div class="ticket-when">${standingsOdds()}</div>
-            <div class="ticket-meta">Going in, ranked by rating. Points on the day decide the session's standings.</div>
           </section>
           <div class="section-head"><h2>Matches</h2></div>
           <div class="card wait"><strong>Nothing to log yet</strong>On the day, Log a match appears here and your stats fill in as you play.</div>
@@ -521,7 +515,7 @@
           const live = state.id === "live";
           body = `
             ${header(false)}
-            ${roster("here")}
+            ${roster()}
             ${hero(results, live)}
             ${standings(results)}
             ${live ? "" : highlightCards(results)}
