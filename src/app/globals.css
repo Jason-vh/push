@@ -156,21 +156,6 @@ a {
 /* Sections that mount after the initial page load (e.g. the edit-players
    card when the user toggles edit) should not inherit the page-rise
    stagger — they need to feel responsive to the tap, not delayed. */
-.shell > .edit-panel {
-  animation: edit-panel-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: 0ms;
-}
-@keyframes edit-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scaleY(0.96);
-    transform-origin: top center;
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scaleY(1);
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .shell > *,
@@ -1193,13 +1178,13 @@ h3 {
 }
 
 /* ─────────────────────────────────────────────
-   Session page — header + timeline + roster
+   Session page
    ───────────────────────────────────────────── */
 .session-header {
   padding: 4px 4px 0;
   display: grid;
   grid-template-columns: 1fr auto;
-  align-items: start;
+  align-items: end;
   gap: 8px;
 }
 .session-header-main {
@@ -1210,114 +1195,249 @@ h3 {
   color: var(--forest);
   box-shadow: none;
 }
-.session-edit-panel {
-  grid-column: 1 / -1;
-  margin-top: 12px;
-  display: grid;
-  gap: 12px;
+.session-when {
+  margin-bottom: 4px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--court-dark);
 }
 .session-title {
-  font-size: 22px;
+  margin: 0;
+  font-size: 26px;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
   line-height: 1.05;
   color: var(--ink);
-  margin: 0;
 }
-.session-subtitle {
-  display: flex;
-  align-items: center;
+.session-meta {
+  grid-column: 1 / -1;
+  display: grid;
   gap: 6px;
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--ink-mute);
-  font-weight: 700;
-  white-space: nowrap;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
 }
-.roster-strip {
+.session-meta > span {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 4px 0;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  line-height: 1.3;
 }
-.roster-stack {
-  display: flex;
+.session-meta svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--court-dark);
 }
-button.roster-stack {
-  border: 0;
-  background: transparent;
-  padding: 4px;
-  margin: -4px;
-  cursor: pointer;
-  border-radius: 999px;
-  transition: background 120ms ease;
-}
-button.roster-stack:hover {
-  background: rgba(13, 63, 36, 0.06);
-}
-button.roster-stack:focus-visible {
-  outline: 2px solid var(--forest);
-  outline-offset: 2px;
-}
-.roster-stack > * + * {
-  margin-left: -10px;
-}
-.roster-stack .roster-avatar-frame {
-  box-shadow: 0 0 0 2.5px #f4e9cf;
-  border-radius: 999px;
-  display: inline-flex;
-}
-.roster-count {
-  font-size: 12px;
+.session-meta-soft {
   color: var(--ink-mute);
-  font-weight: 700;
-  white-space: nowrap;
-}
-.roster-count strong {
-  color: var(--forest);
-  font-weight: 800;
 }
 
-.timeline {
-  padding: 18px 0 0;
+.session-section {
+  margin-top: 22px;
+}
+.section-aside {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.session-art {
+  padding: 20px 0 0;
+}
+.session-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 12px rgba(13, 63, 36, 0.16));
+}
+
+.session-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.session-stat {
+  min-width: 0;
+  padding: 12px 13px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+.session-stat.wide {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.session-stat-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.session-stat-value {
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.session-stat-value.big {
+  font-size: 40px;
+  letter-spacing: -0.04em;
+}
+.session-stat-value.up {
+  color: var(--forest);
+}
+.session-stat-value.down {
+  color: var(--clay);
+}
+.session-stat-value.flat {
+  color: var(--ink-mute);
+}
+.session-stat-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-mute);
+  font-variant-numeric: tabular-nums;
+}
+.session-sparkline {
+  width: 132px;
+  min-width: 88px;
+  height: 56px;
+  flex-shrink: 1;
+}
+.session-sparkline .area {
+  fill: rgba(94, 157, 107, 0.16);
+}
+.session-sparkline .line {
+  fill: none;
+  stroke: var(--court);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.session-sparkline .dot {
+  fill: var(--court);
+  opacity: 0.6;
+}
+.session-sparkline .end {
+  fill: var(--forest);
+}
+
+.session-list-card {
+  padding: 4px 16px;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+.session-player-row {
   position: relative;
-  transition: opacity 200ms ease, transform 200ms ease;
+  display: grid;
+  grid-template-columns: 18px 30px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 0;
+  color: inherit;
+  text-decoration: none;
 }
-.timeline.is-leaving {
-  opacity: 0;
-  transform: translateY(-4px);
-  pointer-events: none;
+.session-player-row + .session-player-row {
+  border-top: 1px solid var(--hairline);
 }
-.timeline-spine {
-  position: absolute;
-  left: 46px;
-  top: 24px;
-  bottom: 8px;
-  width: 2px;
-  background: rgba(13, 63, 36, 0.18);
-  z-index: 0;
+.session-player-row.me {
+  margin: 0 -10px;
+  padding-right: 10px;
+  padding-left: 10px;
+  border-radius: 14px;
+  background: #eef5e6;
 }
-.timeline > .empty {
-  position: relative;
-  z-index: 1;
+.session-player-row.me + .session-player-row,
+.session-player-row + .session-player-row.me {
+  border-top-color: transparent;
+}
+.session-row-rank {
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.session-player-row.top .session-row-rank {
+  color: #c79431;
+}
+.session-row-main {
+  display: grid;
+  min-width: 0;
+}
+.session-row-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.session-row-meta {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-mute);
+  font-variant-numeric: tabular-nums;
+}
+.session-row-meta .w {
+  color: var(--forest);
+}
+.session-row-meta .l {
+  color: var(--clay);
+}
+.session-row-rating {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-matches {
+  display: grid;
+  gap: 8px;
+}
+.session-edit {
+  display: grid;
+  gap: 16px;
+  padding: 10px 22px 8px;
+}
+.session-edit .input {
+  font-weight: 500;
+}
+.session-edit .player-check-list {
+  font-size: 15px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.session-edit .sheet-delete {
+  margin-top: -6px;
 }
 
 .match-card {
-  position: relative;
-  z-index: 1;
-  background: var(--surface);
+  display: block;
+  width: 100%;
+  padding: 10px 14px 12px;
   border: 1px solid rgba(13, 63, 36, 0.08);
   border-radius: 18px;
-  padding: 12px 14px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
+  background: var(--surface);
   box-shadow: 0 1px 0 rgba(13, 63, 36, 0.04), 0 4px 12px -8px rgba(13, 63, 36, 0.08);
   font: inherit;
   color: inherit;
   text-align: inherit;
-  width: 100%;
   cursor: pointer;
   transition: border-color 120ms ease, transform 120ms ease;
 }
@@ -1331,21 +1451,38 @@ button.roster-stack:focus-visible {
   outline: 2px solid var(--forest);
   outline-offset: 2px;
 }
-.match-card.highlight {
-  background: #eaf3e0;
-  border-color: var(--court);
-  border-width: 1.5px;
-  box-shadow: 0 12px 24px -12px rgba(13, 63, 36, 0.3);
+.match-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
-.timeline-row {
-  position: relative;
-  padding-bottom: 12px;
+.match-number {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
-.timeline-row.first {
-  padding-bottom: 14px;
+.match-viewer {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
 }
-.timeline-row.last {
-  padding-bottom: 0;
+.match-viewer.up {
+  font-weight: 800;
+  color: var(--court-dark);
+}
+.match-viewer.down {
+  font-weight: 800;
+  color: var(--clay);
+}
+.match-card-body {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
 }
 .match-vs {
   display: grid;
@@ -1353,7 +1490,7 @@ button.roster-stack:focus-visible {
   gap: 4px;
 }
 .match-vs .match-score {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--ink);
   letter-spacing: -0.01em;
@@ -1364,18 +1501,6 @@ button.roster-stack:focus-visible {
   color: var(--ink-soft);
   font-weight: 800;
   letter-spacing: 0.14em;
-}
-.match-card.highlight .match-vs .vs {
-  color: var(--forest);
-}
-.match-vs .just-now {
-  font-size: 9px;
-  color: var(--forest);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  background: var(--mint-pill);
-  padding: 2px 7px;
-  border-radius: 999px;
 }
 
 .team-col {
