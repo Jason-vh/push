@@ -2276,6 +2276,33 @@ button.keen-spot.open:active {
 .keen-note .keen-section-label {
   display: block;
 }
+.keen-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: keen-spin 700ms linear infinite;
+}
+@keyframes keen-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.keen-leave .keen-spinner {
+  width: 10px;
+  height: 10px;
+  border-width: 1.5px;
+}
+.keen-spot.is-pending,
+.keen-chip.is-pending {
+  opacity: 0.6;
+  transition: opacity 150ms ease;
+}
+button.keen-spot[aria-busy="true"],
+.keen-bench-join[aria-busy="true"] {
+  cursor: progress;
+}
 .keen-bench-join {
   display: flex;
   align-items: center;

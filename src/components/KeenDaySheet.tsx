@@ -131,7 +131,10 @@ function DayDetails({
   const [saving, setSaving] = useState(false);
   const [refreshing, startRefresh] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<"join" | "leave" | null>(null);
   const busy = saving || refreshing;
+  const joining = busy && pendingAction === "join";
+  const leaving = busy && pendingAction === "leave";
 
   const status = dayStatus(day);
   const keen = isKeen(day, userId);
@@ -162,8 +165,20 @@ function DayDetails({
     }
   }
 
-  const join = () => send("POST");
-  const leave = () => send("DELETE");
+  function join() {
+    setPendingAction("join");
+    void send("POST");
+  }
+
+  function leave() {
+    setPendingAction("leave");
+    void send("DELETE");
+  }
+
+  function saveNote(note: string) {
+    setPendingAction(null);
+    void send("PATCH", { note: note || null });
+  }
 
   return (
     <>
@@ -197,6 +212,7 @@ function DayDetails({
                   userId={userId}
                   onLeave={canChange && player.userId === userId ? leave : undefined}
                   disabled={busy}
+                  pending={leaving && player.userId === userId}
                 />
               );
             }
@@ -209,8 +225,11 @@ function DayDetails({
                   className={`keen-spot open${isFirstOpen ? " take" : ""}`}
                   onClick={join}
                   disabled={busy}
+                  aria-busy={joining}
                 >
-                  <span className="keen-spot-ghost">{isFirstOpen ? <PlusIcon /> : null}</span>
+                  <span className="keen-spot-ghost">
+                    {isFirstOpen ? <PendingIcon pending={joining} /> : null}
+                  </span>
                   <span className="keen-spot-name">{isFirstOpen ? "I'm keen" : "Open spot"}</span>
                 </button>
               );
@@ -229,11 +248,14 @@ function DayDetails({
             <div className="keen-section-label">{session ? "Also keen" : "On the bench"}</div>
             <div className="keen-bench">
               {bench.map((player) => (
-                <span key={player.userId} className="keen-chip">
+                <span
+                  key={player.userId}
+                  className={`keen-chip${leaving && player.userId === userId ? " is-pending" : ""}`}
+                >
                   <Avatar name={player.name} size={22} />
                   {displayName(player, userId)}
                   {canChange && player.userId === userId ? (
-                    <LeaveButton onClick={leave} disabled={busy} />
+                    <LeaveButton onClick={leave} disabled={busy} pending={leaving} />
                   ) : null}
                 </span>
               ))}
@@ -242,17 +264,19 @@ function DayDetails({
         ) : null}
 
         {me && canChange ? (
-          <NoteInput
-            key={day.date}
-            initialNote={me.note ?? ""}
-            onSave={(note) => send("PATCH", { note: note || null })}
-          />
+          <NoteInput key={day.date} initialNote={me.note ?? ""} onSave={saveNote} />
         ) : null}
 
         {canChange && !keen && lineup.length >= PLAYERS_PER_GAME ? (
-          <button type="button" className="keen-bench-join" onClick={join} disabled={busy}>
+          <button
+            type="button"
+            className="keen-bench-join"
+            onClick={join}
+            disabled={busy}
+            aria-busy={joining}
+          >
             <span className="keen-spot-ghost">
-              <PlusIcon />
+              <PendingIcon pending={joining} />
             </span>
             <span>
               <strong>Join the bench</strong>
@@ -287,36 +311,55 @@ function PlayerSpot({
   userId,
   onLeave,
   disabled,
+  pending,
 }: {
   player: KeenPlayer;
   userId: string;
   onLeave?: () => void;
   disabled: boolean;
+  pending: boolean;
 }) {
+  const classes = ["keen-spot"];
+  if (player.userId === userId) classes.push("me");
+  if (pending) classes.push("is-pending");
   return (
-    <div className={`keen-spot${player.userId === userId ? " me" : ""}`}>
+    <div className={classes.join(" ")}>
       <Avatar name={player.name} size={32} />
       <div className="keen-spot-text">
         <div className="keen-spot-name">{displayName(player, userId)}</div>
         {player.note ? <div className="keen-spot-note">{player.note}</div> : null}
       </div>
-      {onLeave ? <LeaveButton onClick={onLeave} disabled={disabled} /> : null}
+      {onLeave ? <LeaveButton onClick={onLeave} disabled={disabled} pending={pending} /> : null}
     </div>
   );
 }
 
-function LeaveButton({ onClick, disabled }: { onClick: () => void; disabled: boolean }) {
+function LeaveButton({
+  onClick,
+  disabled,
+  pending,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  pending: boolean;
+}) {
   return (
     <button
       type="button"
       className="keen-leave"
       aria-label="Give up your spot"
+      aria-busy={pending}
       onClick={onClick}
       disabled={disabled}
     >
-      ×
+      {pending ? <span className="keen-spinner" /> : "×"}
     </button>
   );
+}
+
+function PendingIcon({ pending }: { pending: boolean }) {
+  if (pending) return <span className="keen-spinner" />;
+  return <PlusIcon />;
 }
 
 function NoteInput({
