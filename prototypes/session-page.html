@@ -96,28 +96,20 @@
       .section-head .aside { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
       .card { background: var(--surface); border-radius: 22px; box-shadow: var(--card-shadow); }
 
-      /* ── Your session hero ─────────────────────────────────── */
-      .hero {
-        position: relative; overflow: hidden; margin-top: 18px; padding: 18px 20px 16px; border-radius: 28px;
-        background: var(--forest); color: var(--cream-ink); box-shadow: 0 18px 32px -18px rgba(13, 63, 36, 0.45);
-      }
-      .hero::before {
-        content: ""; position: absolute; top: -60px; right: -70px; width: 190px; height: 190px; border-radius: 999px;
-        background: radial-gradient(circle, rgba(143, 192, 154, 0.22), transparent 70%); pointer-events: none;
-      }
-      .hero > *:not(svg) { position: relative; }
-      .eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.65; }
-      .hero-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
-      .hero-delta { font-size: 54px; font-weight: 800; letter-spacing: -0.045em; line-height: 1; margin-top: 6px; font-variant-numeric: tabular-nums; }
-      .hero-delta.down { color: #f0b48a; }
-      .hero-delta small { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; opacity: 0.7; margin-left: 4px; }
-      .hero-from { font-size: 13px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; color: rgba(244, 234, 208, 0.75); }
-      .hero-spark { width: 132px; min-width: 88px; height: 56px; flex-shrink: 1; }
-      .hero-record { margin-left: 10px; padding-left: 10px; border-left: 1px solid rgba(244, 234, 208, 0.25); }
-      .hero-record .w { color: #8fc09a; }
-      .hero-record .l { color: #f0b48a; }
+      /* ── Your session stats ─────────────────────────────────── */
+      .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .stat { background: var(--surface); border-radius: 18px; box-shadow: var(--card-shadow); padding: 12px 13px; min-width: 0; }
+      .stat.wide { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 14px 16px; }
+      .stat .k { font-size: 9.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+      .stat .v { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; margin-top: 4px; line-height: 1; font-variant-numeric: tabular-nums; }
+      .stat .v.big { font-size: 40px; letter-spacing: -0.04em; }
+      .stat .v.up { color: var(--forest); }
+      .stat .v.down { color: var(--clay); }
+      .stat .v.flat { color: var(--ink-mute); }
+      .stat .s { font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-top: 6px; font-variant-numeric: tabular-nums; }
+      .stat-spark { width: 140px; min-width: 90px; height: 56px; flex-shrink: 1; }
       .live { display: inline-flex; align-items: center; gap: 6px; }
-      .live::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: #8fc09a; animation: pulse 1.4s ease-in-out infinite; }
+      .live::before { content: ""; width: 8px; height: 8px; border-radius: 999px; background: var(--court); animation: pulse 1.4s ease-in-out infinite; }
       @keyframes pulse { 50% { opacity: 0.3; } }
 
       /* ── Standings ─────────────────────────────────────────── */
@@ -321,11 +313,11 @@
         const pts = values.map((v, i) => [ (i / (values.length - 1)) * w, h - pad - ((v - min) / span) * (h - pad * 2) ]);
         const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
         const [lx, ly] = pts.at(-1);
-        return `<svg class="hero-spark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
-          <path d="${line} L${w},${h} L0,${h} Z" fill="rgba(143,192,154,0.18)"/>
-          <path d="${line}" fill="none" stroke="#8fc09a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          ${pts.slice(0, -1).map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="#8fc09a" opacity="0.6"/>`).join("")}
-          <circle cx="${lx}" cy="${ly}" r="4" fill="#f4ead0"/>
+        return `<svg class="stat-spark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+          <path d="${line} L${w},${h} L0,${h} Z" fill="rgba(94,157,107,0.16)"/>
+          <path d="${line}" fill="none" stroke="#5e9d6b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          ${pts.slice(0, -1).map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="#5e9d6b" opacity="0.6"/>`).join("")}
+          <circle cx="${lx}" cy="${ly}" r="4" fill="#0d3f24"/>
         </svg>`;
       }
 
@@ -346,7 +338,7 @@
           </div>`;
       }
 
-      function hero(results, live) {
+      function sessionStats(results, live) {
         const mine = playerLine(ME, results);
         const { ratingAfter } = play(results);
         const trail = [RATINGS_BEFORE[ME]];
@@ -356,20 +348,27 @@
           trail.push(r);
         }
         const d = round(mine.delta);
+        let direction = "flat";
+        if (d > 0) direction = "up";
+        if (d < 0) direction = "down";
+        const sign = d > 0 ? "+" : d < 0 ? "−" : "";
+        const played = mine.won + mine.lost;
+        const winRate = played ? Math.round((mine.won / played) * 100) : 0;
         return `
-          <section class="hero">
-            <div class="eyebrow">${live ? `<span class="live">Your session so far</span>` : "Your session"}</div>
-            <div class="hero-row">
+          <div class="section-head"><h2>${live ? `<span class="live">Your session so far</span>` : "Your session"}</h2></div>
+          <div class="stat-grid">
+            <div class="stat wide">
               <div>
-                <div class="hero-delta ${d < 0 ? "down" : ""}">${d > 0 ? "+" : d < 0 ? "−" : ""}${Math.abs(d)}<small>pts</small></div>
-                <div class="hero-from">
-                  ${round(RATINGS_BEFORE[ME])} → ${round(ratingAfter[ME])}
-                  <span class="hero-record"><span class="w">${mine.won}W</span> · <span class="l">${mine.lost}L</span></span>
-                </div>
+                <div class="k">Rating change</div>
+                <div class="v big ${direction}">${sign}${Math.abs(d)}</div>
+                <div class="s">${round(RATINGS_BEFORE[ME])} → ${round(ratingAfter[ME])}</div>
               </div>
               ${trail.length > 1 ? sparkline(trail) : ""}
             </div>
-          </section>`;
+            <div class="stat"><div class="k">Won</div><div class="v up">${mine.won}</div></div>
+            <div class="stat"><div class="k">Lost</div><div class="v down">${mine.lost}</div></div>
+            <div class="stat"><div class="k">Win rate</div><div class="v">${winRate}%</div></div>
+          </div>`;
       }
 
       function standings(results) {
@@ -451,7 +450,7 @@
           const live = state.id === "live";
           body = `
             ${header(false)}
-            ${hero(results, live)}
+            ${sessionStats(results, live)}
             ${standings(results)}
             ${matchesSection(results, live)}`;
         }
