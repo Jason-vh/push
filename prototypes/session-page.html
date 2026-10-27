@@ -165,8 +165,6 @@
       .score .dash { color: var(--ink-soft); margin: 0 3px; }
 
       /* ── Upcoming state ────────────────────────────────────── */
-      .wait { padding: 18px; text-align: center; color: var(--ink-mute); font-size: 13px; font-weight: 600; line-height: 1.45; }
-      .wait strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 2px; }
       .danger-link { display: block; margin: 18px auto 0; border: 0; background: none; color: #8e3b3c; font-weight: 700; font-size: 13px; padding: 8px 14px; }
 
       .toast {
@@ -239,7 +237,7 @@
 
       const STATES = [
         { id: "done", title: "Finished session", desc: "Five games played, the full report", matches: 5 },
-        { id: "live", title: "In progress", desc: "Two games in, with Log a match on top", matches: 2 },
+        { id: "live", title: "In progress", desc: "Two games in", matches: 2 },
         { id: "upcoming", title: "Upcoming", desc: "Booked but not played yet", matches: 0 },
       ];
       let state = STATES[0];
@@ -397,10 +395,10 @@
           </button>`;
       }
 
-      function matchesSection(results, live) {
+      function matchesSection(results) {
         return `
-          <div class="section-head"><h2>Matches</h2><span class="aside">${results.length} played</span></div>
-          ${live ? `<button class="log-btn" data-toast="Opens the log-match sheet"><span class="plus">+</span>Log a match</button>` : ""}
+          <div class="section-head"><h2>Matches</h2>${results.length ? `<span class="aside">${results.length} played</span>` : ""}</div>
+          <button class="log-btn" data-toast="Opens the log-match sheet"><span class="plus">+</span>Log a match</button>
           <div class="matches">${[...results].reverse().map(matchCard).join("")}</div>`;
       }
 
@@ -424,8 +422,7 @@
         return `
           ${header(true)}
           ${ratings()}
-          <div class="section-head"><h2>Matches</h2></div>
-          <div class="card wait"><strong>Nothing to log yet</strong>On the day, Log a match appears here and your stats fill in as you play.</div>
+          ${matchesSection([])}
           <button class="danger-link" data-toast="Deletes the session">Delete session</button>`;
       }
 
@@ -436,12 +433,11 @@
           body = renderUpcoming();
         } else {
           const { results } = play(ALL_MATCHES.slice(0, state.matches));
-          const live = state.id === "live";
           body = `
             ${header(false)}
             ${sessionStats(results)}
             ${standings(results)}
-            ${matchesSection(results, live)}`;
+            ${matchesSection(results)}`;
         }
         screen.innerHTML = `
           <div class="island"></div>

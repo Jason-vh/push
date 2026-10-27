@@ -17,14 +17,12 @@ export function SessionBody({
   initialAttendees,
   matches,
   lockedUserIds,
-  isUpcoming,
 }: {
   sessionId: string;
   knownUsers: KnownUser[];
   initialAttendees: string[];
   matches: MatchCardData[];
   lockedUserIds: string[];
-  isUpcoming: boolean;
 }) {
   const [livePlayers, setLivePlayers] = useState(initialAttendees);
   const userById = new Map(knownUsers.map((u) => [u.id, u]));
@@ -33,7 +31,7 @@ export function SessionBody({
     .filter((u): u is KnownUser => Boolean(u));
 
   const hasMatches = matches.length > 0;
-  const canLogMatches = !isUpcoming && liveAttendees.length >= REQUIRED_PLAYERS;
+  const canLogMatches = liveAttendees.length >= REQUIRED_PLAYERS;
   const shouldShowTimeline = canLogMatches || hasMatches;
 
   const [renderTimeline, setRenderTimeline] = useState(shouldShowTimeline);
