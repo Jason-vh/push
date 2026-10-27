@@ -13,10 +13,6 @@ const detailsSchema = z.object({
   court: courtSchema,
 });
 
-const createSchema = detailsSchema.extend({
-  playerIds: z.array(z.string().min(1)).min(1, "Pick who's playing."),
-});
-
 type Params = { params: Promise<{ date: string }> };
 
 async function upcomingDate(params: Params["params"]) {
@@ -48,27 +44,22 @@ export async function POST(request: Request, { params }: Params) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const date = await upcomingDate(params);
-    const input = createSchema.parse(await request.json());
-    if (new Set(input.playerIds).size !== input.playerIds.length) {
-      throw new Error("Pick each player once.");
-    }
+    const input = detailsSchema.parse(await request.json());
     if (await findSessionOn(date)) throw new Error("That day is already booked.");
 
     const keen = await prisma.availability.findMany({
       where: { date: dateFromKey(date) },
+      orderBy: { createdAt: "asc" },
       select: { userId: true },
     });
-    const allowedIds = new Set([user.id, ...keen.map((availability) => availability.userId)]);
-    if (input.playerIds.some((id) => !allowedIds.has(id))) {
-      throw new Error("Everyone playing has to be keen on this day.");
-    }
+    const playerIds = new Set([user.id, ...keen.map((availability) => availability.userId)]);
 
     await prisma.gameSession.create({
       data: {
         ...sessionDetails(input),
         playedAt: dateFromKey(date),
         createdById: user.id,
-        players: { create: input.playerIds.map((userId) => ({ userId })) },
+        players: { create: [...playerIds].map((userId) => ({ userId })) },
       },
     });
 

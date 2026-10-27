@@ -2459,57 +2459,6 @@ button.keen-spot.open:active {
   color: var(--forest);
   box-shadow: 0 2px 6px -2px rgba(13, 63, 36, 0.2);
 }
-.keen-pick-list {
-  display: grid;
-  gap: 6px;
-}
-.keen-pick {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--surface-line);
-  border-radius: 14px;
-  background: var(--surface);
-  color: var(--ink);
-  font-family: inherit;
-  text-align: left;
-  letter-spacing: normal;
-  text-transform: none;
-}
-.keen-pick.selected {
-  border-color: rgba(13, 63, 36, 0.18);
-  background: var(--mint-pill);
-}
-.keen-pick:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.keen-pick-name {
-  font-size: 14px;
-  font-weight: 600;
-}
-.keen-pick-name small {
-  display: block;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--ink-mute);
-}
-.keen-pip {
-  width: 22px;
-  height: 22px;
-  border: 1.5px solid rgba(13, 63, 36, 0.22);
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  color: #f4ead0;
-}
-.keen-pick.selected .keen-pip {
-  border-color: var(--forest);
-  background: var(--forest);
-}
 .keen-form .input {
   font-weight: 500;
 }

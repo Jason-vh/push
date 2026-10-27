@@ -2,29 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Avatar } from "@/components/Avatar";
-import { displayName } from "@/components/KeenParts";
 import { DurationPicker } from "@/components/DurationPicker";
-import {
-  DEFAULT_DURATION,
-  DEFAULT_START_TIME,
-  PLAYERS_PER_GAME,
-  formatDate,
-  type KeenDay,
-  type KeenPlayer,
-} from "@/lib/keenDays";
+import { DEFAULT_DURATION, DEFAULT_START_TIME, formatDate, type KeenDay } from "@/lib/keenDays";
 
 export function KeenBookingForm({
   day,
-  userId,
-  userName,
   venueSuggestions,
   onBack,
   onClose,
 }: {
   day: KeenDay;
-  userId: string;
-  userName: string;
   venueSuggestions: string[];
   onBack: () => void;
   onClose: () => void;
@@ -34,24 +21,14 @@ export function KeenBookingForm({
   const [startTime, setStartTime] = useState(DEFAULT_START_TIME);
   const [durationMinutes, setDurationMinutes] = useState(DEFAULT_DURATION);
   const [court, setCourt] = useState("");
-  const [playerIds, setPlayerIds] = useState(() => defaultLineup(day, userId));
   const [saving, setSaving] = useState(false);
   const [refreshing, startRefresh] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const busy = saving || refreshing;
 
   const typedVenue = venueSuggestions.includes(venue) ? "" : venue;
-  const candidates = bookingCandidates(day, userId, userName);
-  const canSave = venue.trim() !== "" && startTime !== "" && playerIds.length > 0;
+  const canSave = venue.trim() !== "" && startTime !== "";
   const saveLabel = busy ? "Saving…" : "Book";
-
-  function togglePlayer(id: string) {
-    if (playerIds.includes(id)) {
-      setPlayerIds(playerIds.filter((playerId) => playerId !== id));
-    } else {
-      setPlayerIds([...playerIds, id]);
-    }
-  }
 
   async function save() {
     if (!canSave || busy) return;
@@ -66,7 +43,6 @@ export function KeenBookingForm({
           startTime,
           durationMinutes,
           court: court.trim() || null,
-          playerIds,
         }),
       });
       const data = await response.json();
@@ -152,69 +128,10 @@ export function KeenBookingForm({
           <DurationPicker value={durationMinutes} onChange={setDurationMinutes} />
         </div>
 
-        <div className="label">
-          Who&apos;s playing
-          <div className="keen-pick-list">
-            {candidates.map((player) => {
-              const selected = playerIds.includes(player.userId);
-              return (
-                <button
-                  key={player.userId}
-                  type="button"
-                  className={`keen-pick${selected ? " selected" : ""}`}
-                  onClick={() => togglePlayer(player.userId)}
-                  aria-pressed={selected}
-                >
-                  <Avatar name={player.name} size={28} />
-                  <span className="keen-pick-name">
-                    {displayName(player, userId)}
-                    {player.note ? <small>{player.note}</small> : null}
-                  </span>
-                  <span className="keen-pip" aria-hidden>
-                    {selected ? <CheckIcon /> : null}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         <button type="button" className="btn full" onClick={save} disabled={!canSave || busy}>
           {saveLabel}
         </button>
       </div>
     </>
-  );
-}
-
-function bookingCandidates(day: KeenDay, userId: string, userName: string): KeenPlayer[] {
-  const me = day.keen.find((player) => player.userId === userId) ?? {
-    userId,
-    name: userName,
-    note: null,
-  };
-  return [me, ...day.keen.filter((player) => player.userId !== userId)];
-}
-
-function defaultLineup(day: KeenDay, userId: string) {
-  const others = day.keen.map((player) => player.userId).filter((id) => id !== userId);
-  return [userId, ...others].slice(0, PLAYERS_PER_GAME);
-}
-
-function CheckIcon() {
-  return (
-    <svg
-      width="11"
-      height="11"
-      viewBox="0 0 12 12"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M2.5 6.3l2.4 2.4 4.6-5" />
-    </svg>
   );
 }

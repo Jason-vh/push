@@ -106,8 +106,6 @@ export function KeenDaySheet({
         {step.name === "book" ? (
           <KeenBookingForm
             day={step.day}
-            userId={userId}
-            userName={userName}
             venueSuggestions={venueSuggestions}
             onBack={() => setStep({ name: "day" })}
             onClose={onClose}
