@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Push Padel — Session page prototype</title>
+    <style>
+      :root {
+        --bg-peach: #f5e0c4;
+        --surface: #fcf8ee;
+        --surface-2: #f7f1e0;
+        --surface-line: #ece2c4;
+        --hairline: #f0e7d0;
+        --forest: #0d3f24;
+        --court: #5e9d6b;
+        --court-dark: #4a8458;
+        --mint-pill: #dceede;
+        --clay: #a0532a;
+        --cream-ink: #f4ead0;
+        --ink: #0e1f15;
+        --ink-mute: #6b7368;
+        --ink-soft: #94998d;
+        --card-shadow: 0 1px 0 rgba(13, 63, 36, 0.04), 0 8px 24px -10px rgba(13, 63, 36, 0.12);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body {
+        min-height: 100vh;
+        background: #e6dcc0;
+        color: var(--ink);
+        font-family: "Geist", Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+        letter-spacing: -0.005em;
+        -webkit-font-smoothing: antialiased;
+      }
+      button { font: inherit; color: inherit; cursor: pointer; }
+
+      /* ── Page: brief + phone ───────────────────────────────── */
+      .stage { display: flex; gap: 48px; justify-content: center; align-items: flex-start; padding: 40px 24px 60px; flex-wrap: wrap; }
+      .brief { width: 340px; position: sticky; top: 40px; }
+      .brief h1 { font-size: 26px; letter-spacing: -0.03em; margin: 0 0 8px; }
+      .brief p { font-size: 13.5px; line-height: 1.5; color: var(--ink-mute); margin: 0 0 14px; }
+      .brief h2 { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); margin: 22px 0 8px; }
+      .flow { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+      .flow button {
+        width: 100%; display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; text-align: left;
+        border: 1px solid var(--surface-line); background: var(--surface); border-radius: 14px; padding: 10px 12px;
+      }
+      .flow button.active { border-color: var(--forest); box-shadow: inset 0 0 0 1px var(--forest); }
+      .flow .n { width: 24px; height: 24px; border-radius: 999px; background: var(--mint-pill); color: var(--forest); display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+      .flow strong { display: block; font-size: 13.5px; }
+      .flow .d { display: block; font-size: 12px; color: var(--ink-mute); margin-top: 2px; line-height: 1.35; }
+      .notes { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--ink-mute); line-height: 1.5; }
+      .notes li + li { margin-top: 4px; }
+
+      .phone { width: 390px; height: 844px; border-radius: 52px; padding: 10px; background: #1b1f1c; box-shadow: 0 40px 80px -30px rgba(13, 32, 21, 0.55); flex-shrink: 0; }
+      .screen {
+        position: relative; width: 100%; height: 100%; border-radius: 42px; overflow: hidden;
+        background:
+          radial-gradient(85% 55% at 75% 45%, #f5d99c 0%, transparent 65%),
+          radial-gradient(80% 50% at 15% 50%, #f1e7c9 0%, transparent 60%),
+          linear-gradient(180deg, #f4e9cf 0%, #ece1bc 50%, #f4e9cf 100%);
+      }
+      .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 110px; height: 32px; border-radius: 20px; background: #1b1f1c; z-index: 60; }
+      .scroller { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+      .scroller::-webkit-scrollbar { display: none; }
+      .content { padding: 0 16px 60px; }
+      .content > * { animation: rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+      .content > *:nth-child(2) { animation-delay: 60ms; }
+      .content > *:nth-child(3) { animation-delay: 120ms; }
+      .content > *:nth-child(4) { animation-delay: 180ms; }
+      .content > *:nth-child(5) { animation-delay: 240ms; }
+      .content > *:nth-child(n + 6) { animation-delay: 300ms; }
+      @keyframes rise { from { opacity: 0; transform: translateY(16px); filter: blur(6px); } }
+
+      .app-nav { display: flex; justify-content: space-between; align-items: center; padding: 58px 6px 10px; }
+      .brand-blob { width: 40px; height: 40px; border-radius: 12px; background: var(--forest); color: var(--cream-ink); display: grid; place-items: center; font-weight: 700; font-size: 16px; }
+      .av { border-radius: 999px; display: inline-grid; place-items: center; font-weight: 700; letter-spacing: -0.02em; flex-shrink: 0; }
+      .stack { display: flex; }
+      .stack > * + * { margin-left: -8px; }
+      .stack .av { box-shadow: 0 0 0 2.5px var(--ring, #f4e9cf); }
+
+      /* ── Header ────────────────────────────────────────────── */
+      .head { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; padding: 4px 4px 0; }
+      .title { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; margin: 0; line-height: 1.05; }
+      .sub { font-size: 12.5px; font-weight: 700; color: var(--ink-mute); margin-top: 6px; }
+      .pill { border: 0; padding: 7px 13px; border-radius: 999px; font-weight: 700; font-size: 12.5px; background: var(--mint-pill); color: var(--forest); }
+      .roster { display: flex; align-items: center; gap: 10px; padding: 14px 4px 0; }
+      .roster span.count { font-size: 12px; font-weight: 700; color: var(--ink-mute); }
+      .roster span.count strong { color: var(--forest); }
+
+      .section-head { display: flex; justify-content: space-between; align-items: baseline; padding: 24px 4px 10px; }
+      .section-head h2 { margin: 0; font-size: 18px; letter-spacing: -0.02em; }
+      .section-head .aside { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+      .card { background: var(--surface); border-radius: 22px; box-shadow: var(--card-shadow); }
+
+      /* ── Your session hero ─────────────────────────────────── */
+      .hero {
+        position: relative; overflow: hidden; margin-top: 18px; padding: 18px 20px 16px; border-radius: 28px;
+        background: var(--forest); color: var(--cream-ink); box-shadow: 0 18px 32px -18px rgba(13, 63, 36, 0.45);
+      }
+      .hero::before {
+        content: ""; position: absolute; top: -60px; right: -70px; width: 190px; height: 190px; border-radius: 999px;
+        background: radial-gradient(circle, rgba(143, 192, 154, 0.22), transparent 70%); pointer-events: none;
+      }
+      .hero > *:not(svg) { position: relative; }
+      .eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.65; }
+      .hero-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+      .hero-delta { font-size: 54px; font-weight: 800; letter-spacing: -0.045em; line-height: 1; margin-top: 6px; font-variant-numeric: tabular-nums; }
+      .hero-delta.down { color: #f0b48a; }
+      .hero-delta small { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; opacity: 0.7; margin-left: 4px; }
+      .hero-from { font-size: 13px; font-weight: 700; opacity: 0.75; margin-top: 6px; font-variant-numeric: tabular-nums; }
+      .hero-spark { width: 132px; height: 56px; flex-shrink: 0; }
+      .hero-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+      .hero-tile { background: rgba(244, 234, 208, 0.08); border-radius: 14px; padding: 9px 10px; }
+      .hero-tile .k { font-size: 9.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6; }
+      .hero-tile .v { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; margin-top: 3px; font-variant-numeric: tabular-nums; }
+      .live { display: inline-flex; align-items: center; gap: 6px; }
+      .live::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: #8fc09a; animation: pulse 1.4s ease-in-out infinite; }
+      @keyframes pulse { 50% { opacity: 0.3; } }
+
+      /* ── Standings ─────────────────────────────────────────── */
+      .standings { padding: 4px 16px; }
+      .st-row { display: grid; grid-template-columns: 18px 30px 1fr auto; gap: 12px; align-items: center; padding: 11px 0; }
+      .st-row + .st-row { border-top: 1px solid var(--hairline); }
+      .st-rank { font-size: 13px; font-weight: 800; color: var(--ink-soft); text-align: center; font-variant-numeric: tabular-nums; }
+      .st-row.top .st-rank { color: #c79431; }
+      .st-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
+      .st-meta { font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-top: 2px; font-variant-numeric: tabular-nums; }
+      .st-meta .w { color: var(--forest); }
+      .st-meta .l { color: var(--clay); }
+      .st-row.me { margin: 0 -10px; padding-left: 10px; padding-right: 10px; border-radius: 14px; background: #eef5e6; }
+      .st-row.me + .st-row, .st-row + .st-row.me { border-top-color: transparent; }
+      .crown { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; padding: 2px 6px; border-radius: 999px; background: #f6e3b4; color: #8a6414; }
+      .delta {
+        display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px;
+        font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap;
+      }
+      .delta.up { background: var(--mint-pill); color: var(--forest); }
+      .delta.down { background: var(--bg-peach); color: var(--clay); }
+      .delta.flat { background: rgba(13, 63, 36, 0.06); color: var(--ink-mute); }
+      .delta svg { display: block; }
+      .delta.down svg { transform: rotate(180deg); }
+
+      /* ── Highlights ────────────────────────────────────────── */
+      .highlights { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .hl { background: var(--surface); border-radius: 18px; box-shadow: var(--card-shadow); padding: 12px 13px; min-width: 0; }
+      .hl.wide { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+      .hl .k { font-size: 9.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+      .hl .v { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; }
+      .hl .s { font-size: 11.5px; font-weight: 700; color: var(--ink-mute); margin-top: 2px; line-height: 1.3; }
+      .hl .icon { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: #f6e3b4; color: #8a6414; }
+      .odds { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--clay); font-variant-numeric: tabular-nums; }
+
+      /* ── Matches ───────────────────────────────────────────── */
+      .log-btn {
+        width: 100%; border: 0; border-radius: 18px; padding: 14px 16px; background: var(--forest); color: var(--cream-ink);
+        font-weight: 700; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;
+        box-shadow: 0 8px 18px -10px rgba(13, 63, 36, 0.35); margin-bottom: 10px;
+      }
+      .log-btn .plus { width: 22px; height: 22px; border-radius: 999px; background: var(--cream-ink); color: var(--forest); display: grid; place-items: center; font-size: 15px; line-height: 1; }
+      .matches { display: grid; gap: 8px; }
+      .match {
+        width: 100%; text-align: left; border: 1px solid rgba(13, 63, 36, 0.08); background: var(--surface); border-radius: 18px;
+        padding: 10px 14px 12px; box-shadow: 0 4px 12px -8px rgba(13, 63, 36, 0.12);
+        transition: border-color 120ms ease, transform 80ms ease;
+      }
+      .match:hover { border-color: rgba(13, 63, 36, 0.22); }
+      .match:active { transform: scale(0.99); }
+      .match-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+      .match-no { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; color: var(--ink-soft); text-transform: uppercase; }
+      .match-you { font-size: 11.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .match-you.up { color: var(--court-dark); }
+      .match-you.down { color: var(--clay); }
+      .match-you.out { color: var(--ink-soft); font-weight: 700; }
+      .match-body { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+      .team { display: grid; gap: 4px; }
+      .team.right { justify-items: end; }
+      .tp { display: flex; align-items: center; gap: 6px; font-size: 12.5px; white-space: nowrap; }
+      .team.right .tp { flex-direction: row-reverse; }
+      .team.won .tp { font-weight: 800; }
+      .team.lost { opacity: 0.55; }
+      .team.lost .tp { font-weight: 600; }
+      .score { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .score .dash { color: var(--ink-soft); margin: 0 3px; }
+
+      /* ── Upcoming state ────────────────────────────────────── */
+      .ticket { position: relative; overflow: hidden; margin-top: 18px; padding: 18px 20px; border-radius: 26px; background: var(--forest); color: var(--cream-ink); }
+      .ticket::before {
+        content: ""; position: absolute; top: -60px; right: -70px; width: 190px; height: 190px; border-radius: 999px;
+        background: radial-gradient(circle, rgba(143, 192, 154, 0.22), transparent 70%); pointer-events: none;
+      }
+      .ticket > *:not(svg) { position: relative; }
+      .ticket .eyebrow { color: #8fc09a; opacity: 1; }
+      .ticket-when { margin-top: 10px; }
+      .ticket-ranks { display: grid; gap: 6px; }
+      .tr { display: grid; grid-template-columns: 26px 1fr auto auto; gap: 10px; align-items: center; font-size: 14px; font-weight: 700; }
+      .tr .av { box-shadow: 0 0 0 1.5px rgba(244, 234, 208, 0.5); }
+      .tr b { font-variant-numeric: tabular-nums; opacity: 0.85; }
+      .tr em { font-style: normal; font-size: 9px; font-weight: 800; letter-spacing: 0.1em; padding: 2px 6px; border-radius: 999px; background: #f6e3b4; color: #8a6414; text-transform: uppercase; }
+      .tr:not(:has(em)) { grid-template-columns: 26px 1fr auto; }
+      .ticket-meta { font-size: 13px; font-weight: 700; opacity: 0.8; margin-top: 8px; }
+      .ticket-foot { margin-top: 14px; }
+      .wait { padding: 18px; text-align: center; color: var(--ink-mute); font-size: 13px; font-weight: 600; line-height: 1.45; }
+      .wait strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 2px; }
+      .danger-link { display: block; margin: 18px auto 0; border: 0; background: none; color: #8e3b3c; font-weight: 700; font-size: 13px; padding: 8px 14px; }
+
+      .toast {
+        position: absolute; left: 16px; right: 16px; bottom: 26px; z-index: 70; background: var(--ink); color: var(--cream-ink);
+        border-radius: 18px; padding: 13px 16px; font-size: 13.5px; font-weight: 700; box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.5);
+        animation: toast-in 320ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      @keyframes toast-in { from { transform: translateY(20px); opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) {
+        .content > *, .toast { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <aside class="brief">
+        <h1>Session page</h1>
+        <p>
+          A session reads like a match report. Your own result comes first: how many rating points you
+          gained, how your rank moved, and your record. Below that come the session's standings, a few
+          highlights, and every match with what it did to your rating.
+        </p>
+        <p>You're <strong>Jason</strong>. The numbers use the app's real Elo maths (K = 24, team rating = the pair's average).</p>
+
+        <h2>States</h2>
+        <ul class="flow" id="flow"></ul>
+
+        <h2>Decisions baked in</h2>
+        <ul class="notes">
+          <li>"Points" means rating points. The game score total (e.g. 31–24) sits in a tile next to it.</li>
+          <li>Standings are ordered by rating gained this session, not by wins, so a brave loss to a stronger pair still counts.</li>
+          <li>Every match shows what it did to <em>your</em> rating, or "Sat out".</li>
+          <li>Highlights only appear once there's enough to say: best pair needs two games together, an upset needs a winner under 45% odds.</li>
+          <li>Editing the session (date, time, players) stays behind the Edit button; deleting moves to the bottom.</li>
+        </ul>
+
+        <h2>Open questions</h2>
+        <ul class="notes">
+          <li>Should others' rating changes be visible to everyone, or only your own?</li>
+          <li>Should a finished session lock after a day or so, so ratings don't shift later?</li>
+        </ul>
+      </aside>
+
+      <div class="phone"><div class="screen" id="screen"></div></div>
+    </div>
+
+    <script>
+      const ME = "Jason";
+      const K = 24;
+      const PALETTE = [
+        ["#0d3f24", "#f4ead0"], ["#6e7f3b", "#f4ead0"], ["#5e9d6b", "#0d3f24"], ["#2e5b62", "#f4ead0"],
+        ["#1f3e57", "#f4ead0"], ["#b3654a", "#f4ead0"], ["#c79431", "#0d3f24"], ["#a04a2f", "#f4ead0"],
+        ["#8e3b3c", "#f4ead0"], ["#5a3c5c", "#f4ead0"], ["#45663d", "#f4ead0"], ["#d9a06b", "#0d3f24"],
+      ];
+      const arrow = `<svg width="9" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><path d="M5 1.5L9 6.5H1L5 1.5Z"/></svg>`;
+      const trophy = `<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5h6v3.5a3 3 0 01-6 0V2.5zM5 4H3a2 2 0 002 2.5M11 4h2a2 2 0 01-2 2.5M8 9v2.5M5.5 13.5h5"/></svg>`;
+
+      /* The whole group, with ratings going into this session. */
+      const RATINGS_BEFORE = { Jason: 1254, Mateo: 1302, Priya: 1236, Sasha: 1210, Imani: 1268, Tom: 1188, Lotte: 1225 };
+      const ATTENDING = ["Jason", "Mateo", "Priya", "Sasha", "Imani"];
+      const ALL_MATCHES = [
+        { a: ["Jason", "Sasha"], b: ["Mateo", "Priya"], score: [6, 4] },
+        { a: ["Jason", "Mateo"], b: ["Imani", "Sasha"], score: [4, 6] },
+        { a: ["Imani", "Priya"], b: ["Mateo", "Sasha"], score: [7, 6] },
+        { a: ["Jason", "Sasha"], b: ["Imani", "Mateo"], score: [6, 3] },
+        { a: ["Jason", "Priya"], b: ["Mateo", "Imani"], score: [6, 5] },
+      ];
+
+      const STATES = [
+        { id: "done", title: "Finished session", desc: "Five games played, the full report", matches: 5 },
+        { id: "live", title: "In progress", desc: "Two games in, with Log a match on top", matches: 2 },
+        { id: "upcoming", title: "Upcoming", desc: "Booked but not played yet", matches: 0 },
+      ];
+      let state = STATES[0];
+      let toastTimer = null;
+
+      function hash(name) {
+        let h = 2166136261;
+        for (const c of name.toLowerCase()) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+        return h >>> 0;
+      }
+      function avatar(name, size = 22) {
+        const [bg, fg] = PALETTE[hash(name) % PALETTE.length];
+        return `<span class="av" style="width:${size}px;height:${size}px;background:${bg};color:${fg};font-size:${Math.max(10, Math.round(size * 0.42))}px">${name[0]}</span>`;
+      }
+      const shown = (name) => (name === ME ? "You" : name);
+      const pair = ([x, y]) => (x === ME || y === ME ? `You & ${shown(x === ME ? y : x)}` : `${x} & ${y}`);
+      const fmtDelta = (d) => `${d > 0 ? "+" : d < 0 ? "−" : ""}${Math.abs(d).toFixed(1)}`;
+      const round = (d) => Math.round(d);
+
+      /* ── Elo, as in src/lib/elo.ts + ratings.ts ─────────────── */
+      function play(matches) {
+        const rating = { ...RATINGS_BEFORE };
+        const results = matches.map((m, index) => {
+          const ra = (rating[m.a[0]] + rating[m.a[1]]) / 2;
+          const rb = (rating[m.b[0]] + rating[m.b[1]]) / 2;
+          const expectedA = 1 / (1 + 10 ** ((rb - ra) / 400));
+          const aWon = m.score[0] > m.score[1];
+          const deltaA = K * ((aWon ? 1 : 0) - expectedA);
+          for (const p of m.a) rating[p] += deltaA;
+          for (const p of m.b) rating[p] -= deltaA;
+          return { ...m, index, aWon, deltaA, winnerOdds: aWon ? expectedA : 1 - expectedA };
+        });
+        return { results, ratingAfter: rating };
+      }
+
+      function rankOf(ratings, name) {
+        return Object.values(ratings).filter((r) => r > ratings[name]).length + 1;
+      }
+
+      function playerLine(name, results) {
+        let won = 0, lost = 0, pf = 0, pa = 0, delta = 0;
+        for (const r of results) {
+          const side = r.a.includes(name) ? "a" : r.b.includes(name) ? "b" : null;
+          if (!side) continue;
+          const mine = side === "a" ? r.score[0] : r.score[1];
+          const theirs = side === "a" ? r.score[1] : r.score[0];
+          pf += mine; pa += theirs;
+          if (mine > theirs) won++; else lost++;
+          delta += side === "a" ? r.deltaA : -r.deltaA;
+        }
+        return { name, won, lost, pf, pa, delta };
+      }
+
+      function highlights(results) {
+        const pairs = new Map();
+        for (const r of results) {
+          for (const [team, won] of [[r.a, r.aWon], [r.b, !r.aWon]]) {
+            const key = [...team].sort().join("|");
+            const p = pairs.get(key) ?? { team: [...team].sort(), won: 0, played: 0 };
+            p.played++; if (won) p.won++;
+            pairs.set(key, p);
+          }
+        }
+        const bestPair = [...pairs.values()].filter((p) => p.played >= 2).sort((x, y) => y.won / y.played - x.won / x.played || y.played - x.played)[0];
+        const upset = [...results].sort((x, y) => x.winnerOdds - y.winnerOdds)[0];
+        const closest = [...results].sort((x, y) => Math.abs(x.score[0] - x.score[1]) - Math.abs(y.score[0] - y.score[1]))[0];
+        return { bestPair, upset: upset && upset.winnerOdds < 0.45 ? upset : null, closest };
+      }
+
+      function sparkline(values) {
+        const w = 132, h = 56, pad = 6;
+        const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
+        const pts = values.map((v, i) => [ (i / (values.length - 1)) * w, h - pad - ((v - min) / span) * (h - pad * 2) ]);
+        const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+        const [lx, ly] = pts.at(-1);
+        return `<svg class="hero-spark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+          <path d="${line} L${w},${h} L0,${h} Z" fill="rgba(143,192,154,0.18)"/>
+          <path d="${line}" fill="none" stroke="#8fc09a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          ${pts.slice(0, -1).map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="#8fc09a" opacity="0.6"/>`).join("")}
+          <circle cx="${lx}" cy="${ly}" r="4" fill="#f4ead0"/>
+        </svg>`;
+      }
+
+      /* ── Render ─────────────────────────────────────────────── */
+      function header(upcoming) {
+        const sub = `${upcoming ? "In 11 days · " : ""}19:30–21:00 · Padel City Amsterdam · Court 4`;
+        return `
+          <div class="head">
+            <div>
+              <h1 class="title">${upcoming ? "Sat 7 Nov" : "Sat 24 Oct"}</h1>
+              <div class="sub">${sub}</div>
+            </div>
+            <button class="pill" data-toast="Opens the edit panel: date, time, venue, court, length">Edit</button>
+          </div>`;
+      }
+
+      function hero(results, live) {
+        const mine = playerLine(ME, results);
+        const { ratingAfter } = play(results);
+        const trail = [RATINGS_BEFORE[ME]];
+        let r = RATINGS_BEFORE[ME];
+        for (const m of results) {
+          if (m.a.includes(ME)) r += m.deltaA; else if (m.b.includes(ME)) r -= m.deltaA; else continue;
+          trail.push(r);
+        }
+        const rankBefore = rankOf(RATINGS_BEFORE, ME), rankAfter = rankOf(ratingAfter, ME);
+        const d = round(mine.delta);
+        const rankText = rankBefore === rankAfter ? `#${rankAfter}` : `#${rankBefore} → #${rankAfter}`;
+        return `
+          <section class="hero">
+            <div class="eyebrow">${live ? `<span class="live">Your session so far</span>` : "Your session"}</div>
+            <div class="hero-row">
+              <div>
+                <div class="hero-delta ${d < 0 ? "down" : ""}">${d > 0 ? "+" : d < 0 ? "−" : ""}${Math.abs(d)}<small>pts</small></div>
+                <div class="hero-from">${round(RATINGS_BEFORE[ME])} → ${round(ratingAfter[ME])}</div>
+              </div>
+              ${trail.length > 1 ? sparkline(trail) : ""}
+            </div>
+            <div class="hero-tiles">
+              <div class="hero-tile"><div class="k">Record</div><div class="v">${mine.won}–${mine.lost}</div></div>
+              <div class="hero-tile"><div class="k">Games</div><div class="v">${mine.pf}–${mine.pa}</div></div>
+              <div class="hero-tile"><div class="k">Rank</div><div class="v">${rankText}</div></div>
+            </div>
+          </section>`;
+      }
+
+      function standings(results) {
+        const rows = ATTENDING.map((n) => playerLine(n, results)).sort((x, y) => y.delta - x.delta);
+        return `
+          <div class="section-head"><h2>Standings</h2><span class="aside">Rating points</span></div>
+          <div class="card standings">
+            ${rows.map((p, i) => {
+              const d = round(p.delta);
+              const dir = d > 0 ? "up" : d < 0 ? "down" : "flat";
+              const played = p.won + p.lost;
+              const meta = played ? `<span class="w">${p.won}W</span> · <span class="l">${p.lost}L</span> · ${p.pf}–${p.pa}` : "Hasn't played yet";
+              return `
+                <div class="st-row ${i === 0 && played ? "top" : ""} ${p.name === ME ? "me" : ""}" data-toast="Opens ${shown(p.name)}'s profile">
+                  <div class="st-rank">${i + 1}</div>
+                  ${avatar(p.name, 30)}
+                  <div><div class="st-name">${shown(p.name)}${i === 0 && played ? `<span class="crown">TOP</span>` : ""}</div><div class="st-meta">${meta}</div></div>
+                  <span class="delta ${dir}">${dir === "flat" ? "0" : `${arrow}${Math.abs(d)}`}</span>
+                </div>`;
+            }).join("")}
+          </div>`;
+      }
+
+      function highlightCards(results) {
+        const { bestPair, upset, closest } = highlights(results);
+        const cards = [];
+        if (upset) {
+          const winners = upset.aWon ? upset.a : upset.b, losers = upset.aWon ? upset.b : upset.a;
+          cards.push(`
+            <div class="hl wide">
+              <div class="icon">${trophy}</div>
+              <div style="min-width:0"><div class="k">Upset of the night</div><div class="v">${pair(winners)}</div><div class="s">beat ${pair(losers).replace("You &", "you &")} · ${upset.score.join("–")}</div></div>
+              <div style="text-align:right"><div class="odds">${Math.round(upset.winnerOdds * 100)}%</div><div class="s">chance</div></div>
+            </div>`);
+        }
+        if (bestPair) {
+          cards.push(`<div class="hl"><div class="k">Best pair</div><div class="v">${pair(bestPair.team)}</div><div class="s">${bestPair.won}–${bestPair.played - bestPair.won} together</div></div>`);
+        }
+        if (closest) {
+          cards.push(`<div class="hl"><div class="k">Closest game</div><div class="v">${closest.score.join("–")}</div><div class="s">Game ${closest.index + 1}</div></div>`);
+        }
+        if (!cards.length) return "";
+        return `<div class="section-head"><h2>Highlights</h2></div><div class="highlights">${cards.join("")}</div>`;
+      }
+
+      function matchCard(r) {
+        const side = r.a.includes(ME) ? "a" : r.b.includes(ME) ? "b" : null;
+        let you = `<span class="match-you out">Sat out</span>`;
+        if (side) {
+          const d = side === "a" ? r.deltaA : -r.deltaA;
+          you = `<span class="match-you ${d >= 0 ? "up" : "down"}">You ${fmtDelta(d)}</span>`;
+        }
+        const team = (players, won, right) => `
+          <div class="team ${right ? "right" : ""} ${won ? "won" : "lost"}">
+            ${players.map((p) => `<div class="tp">${avatar(p, 20)}<span>${shown(p)}</span></div>`).join("")}
+          </div>`;
+        return `
+          <button class="match" data-toast="Opens the match to edit teams or score">
+            <div class="match-top"><span class="match-no">Game ${r.index + 1}</span>${you}</div>
+            <div class="match-body">
+              ${team(r.a, r.aWon, false)}
+              <div class="score">${r.score[0]}<span class="dash">–</span>${r.score[1]}</div>
+              ${team(r.b, !r.aWon, true)}
+            </div>
+          </button>`;
+      }
+
+      function matchesSection(results, live) {
+        return `
+          <div class="section-head"><h2>Matches</h2><span class="aside">${results.length} played</span></div>
+          ${live ? `<button class="log-btn" data-toast="Opens the log-match sheet"><span class="plus">+</span>Log a match</button>` : ""}
+          <div class="matches">${[...results].reverse().map(matchCard).join("")}</div>`;
+      }
+
+      function roster(label) {
+        return `
+          <div class="roster">
+            <div class="stack">${ATTENDING.map((n) => avatar(n, 28)).join("")}</div>
+            <span class="count"><strong>${ATTENDING.length} ${label}</strong></span>
+          </div>`;
+      }
+
+      function standingsOdds() {
+        const ranked = ATTENDING.map((n) => ({ n, r: RATINGS_BEFORE[n] })).sort((a, b) => b.r - a.r);
+        return `<div class="ticket-ranks">${ranked.map((p, i) => `
+          <div class="tr">${avatar(p.n, 26)}<span>${shown(p.n)}</span><b>${p.r}</b>${i === 0 ? '<em>fav</em>' : ""}</div>`).join("")}</div>`;
+      }
+
+      function renderUpcoming() {
+        return `
+          ${header(true)}
+          ${roster("playing")}
+          <section class="ticket">
+            <div class="eyebrow">Ratings going in</div>
+            <div class="ticket-when">${standingsOdds()}</div>
+            <div class="ticket-meta">Going in, ranked by rating. Points on the day decide the session's standings.</div>
+          </section>
+          <div class="section-head"><h2>Matches</h2></div>
+          <div class="card wait"><strong>Nothing to log yet</strong>On the day, Log a match appears here and your stats fill in as you play.</div>
+          <button class="danger-link" data-toast="Deletes the session">Delete session</button>`;
+      }
+
+      function render() {
+        const screen = document.getElementById("screen");
+        let body;
+        if (state.id === "upcoming") {
+          body = renderUpcoming();
+        } else {
+          const { results } = play(ALL_MATCHES.slice(0, state.matches));
+          const live = state.id === "live";
+          body = `
+            ${header(false)}
+            ${roster("here")}
+            ${hero(results, live)}
+            ${standings(results)}
+            ${live ? "" : highlightCards(results)}
+            ${matchesSection(results, live)}`;
+        }
+        screen.innerHTML = `
+          <div class="island"></div>
+          <div class="scroller">
+            <nav class="app-nav"><div class="brand-blob">P</div>${avatar(ME, 36)}</nav>
+            <div class="content">${body}</div>
+          </div>`;
+        renderFlow();
+      }
+
+      function toast(text) {
+        clearTimeout(toastTimer);
+        document.querySelector(".toast")?.remove();
+        document.getElementById("screen").insertAdjacentHTML("beforeend", `<div class="toast">${text}</div>`);
+        toastTimer = setTimeout(() => document.querySelector(".toast")?.remove(), 2400);
+      }
+
+      function renderFlow() {
+        document.getElementById("flow").innerHTML = STATES.map(
+          (s, i) => `<li><button class="${s === state ? "active" : ""}" data-state="${s.id}"><span class="n">${i + 1}</span><span><strong>${s.title}</strong><span class="d">${s.desc}</span></span></button></li>`,
+        ).join("");
+      }
+
+      document.addEventListener("click", (event) => {
+        const stateButton = event.target.closest("[data-state]");
+        if (stateButton) {
+          state = STATES.find((s) => s.id === stateButton.dataset.state);
+          render();
+          document.querySelector(".scroller").scrollTop = 0;
+          return;
+        }
+        const toastEl = event.target.closest("[data-toast]");
+        if (toastEl) toast(toastEl.dataset.toast);
+      });
+
+      render();
+    </script>
+  </body>
+</html>
