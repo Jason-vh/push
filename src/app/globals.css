@@ -2276,6 +2276,27 @@ button.keen-spot.open:active {
 .keen-note .keen-section-label {
   display: block;
 }
+.keen-steps {
+  overflow-x: clip;
+}
+.keen-step.is-forward {
+  animation: keen-step-forward 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.keen-step.is-back {
+  animation: keen-step-back 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes keen-step-forward {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes keen-step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
 .keen-reveal {
   display: grid;
   grid-template-rows: 1fr;
@@ -2316,6 +2337,8 @@ button.keen-spot.open:active {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .keen-step.is-forward,
+  .keen-step.is-back,
   .keen-reveal,
   .keen-reveal.is-closing,
   .keen-spot.is-arriving,
@@ -2413,8 +2436,9 @@ button.keen-spot.open:active {
   color: var(--ink-soft);
 }
 .keen-choices {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
   gap: 6px;
 }
 .keen-choice {
@@ -2426,8 +2450,11 @@ button.keen-spot.open:active {
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 700;
+  line-height: 1.25;
   letter-spacing: normal;
   text-transform: none;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 .keen-choice.selected {
   border-color: var(--forest);

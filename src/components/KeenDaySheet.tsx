@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
@@ -19,8 +19,10 @@ import {
 } from "@/lib/keenDays";
 
 const CLOSE_ANIMATION_MS = 280;
+const STEP_RESIZE_MS = 300;
 
 type Step = { name: "day" } | { name: "book"; day: KeenDay };
+type StepDirection = "forward" | "back" | null;
 
 export function KeenDaySheet({
   day,
@@ -38,8 +40,37 @@ export function KeenDaySheet({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [shownDay, setShownDay] = useState<KeenDay | null>(day);
   const [step, setStep] = useState<Step>({ name: "day" });
+  const [direction, setDirection] = useState<StepDirection>(null);
   const [closing, setClosing] = useState(false);
+  const stepsRef = useRef<HTMLDivElement>(null);
+  const heightBeforeStep = useRef<number | null>(null);
   const open = day !== null;
+
+  function goToStep(next: Step, nextDirection: StepDirection) {
+    heightBeforeStep.current = stepsRef.current?.offsetHeight ?? null;
+    setDirection(nextDirection);
+    setStep(next);
+  }
+
+  // Grow or shrink the sheet from the old step's height to the new one's.
+  useLayoutEffect(() => {
+    const element = stepsRef.current;
+    const from = heightBeforeStep.current;
+    heightBeforeStep.current = null;
+    if (!element || from === null) return;
+    const to = element.offsetHeight;
+    if (from === to || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    element.animate(
+      [
+        { height: `${from}px`, overflow: "hidden" },
+        { height: `${to}px`, overflow: "hidden" },
+      ],
+      {
+        duration: STEP_RESIZE_MS,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+      },
+    );
+  }, [step]);
 
   useEffect(() => {
     if (day) setShownDay(day);
@@ -50,6 +81,7 @@ export function KeenDaySheet({
     if (!dialog) return;
     if (open && !dialog.open) {
       setStep({ name: "day" });
+      setDirection(null);
       setClosing(false);
       dialog.showModal();
     } else if (!open && dialog.open) {
@@ -93,24 +125,28 @@ export function KeenDaySheet({
         <div className="sheet-grabber">
           <span />
         </div>
-        {shownDay && step.name === "day" ? (
-          <DayDetails
-            key={shownDay.date}
-            day={shownDay}
-            userId={userId}
-            userName={userName}
-            onBook={(bookingDay) => setStep({ name: "book", day: bookingDay })}
-            onClose={onClose}
-          />
-        ) : null}
-        {step.name === "book" ? (
-          <KeenBookingForm
-            day={step.day}
-            venueSuggestions={venueSuggestions}
-            onBack={() => setStep({ name: "day" })}
-            onClose={onClose}
-          />
-        ) : null}
+        <div ref={stepsRef} className="keen-steps">
+          <div key={step.name} className={`keen-step${direction ? ` is-${direction}` : ""}`}>
+            {shownDay && step.name === "day" ? (
+              <DayDetails
+                key={shownDay.date}
+                day={shownDay}
+                userId={userId}
+                userName={userName}
+                onBook={(bookingDay) => goToStep({ name: "book", day: bookingDay }, "forward")}
+                onClose={onClose}
+              />
+            ) : null}
+            {step.name === "book" ? (
+              <KeenBookingForm
+                day={step.day}
+                venueSuggestions={venueSuggestions}
+                onBack={() => goToStep({ name: "day" }, "back")}
+                onClose={onClose}
+              />
+            ) : null}
+          </div>
+        </div>
       </div>
     </dialog>
   );
