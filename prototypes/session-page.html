@@ -121,7 +121,6 @@
       .st-meta .l { color: var(--clay); }
       .st-row.me { margin: 0 -10px; padding-left: 10px; padding-right: 10px; border-radius: 14px; background: #eef5e6; }
       .st-row.me + .st-row, .st-row + .st-row.me { border-top-color: transparent; }
-      .crown { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; padding: 2px 6px; border-radius: 999px; background: #f6e3b4; color: #8a6414; }
       .delta {
         display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px;
         font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap;
@@ -335,7 +334,7 @@
           </div>`;
       }
 
-      function sessionStats(results, live) {
+      function sessionStats(results) {
         const mine = playerLine(ME, results);
         const { ratingAfter } = play(results);
         const trail = [RATINGS_BEFORE[ME]];
@@ -352,7 +351,7 @@
         const played = mine.won + mine.lost;
         const winRate = played ? Math.round((mine.won / played) * 100) : 0;
         return `
-          <div class="section-head"><h2>${live ? "Your session so far" : "Your session"}</h2></div>
+          <div class="section-head"><h2>Your session</h2></div>
           <div class="stat-grid">
             <div class="stat wide">
               <div>
@@ -382,7 +381,7 @@
                 <div class="st-row ${i === 0 && played ? "top" : ""} ${p.name === ME ? "me" : ""}" data-toast="Opens ${shown(p.name)}'s profile">
                   <div class="st-rank">${i + 1}</div>
                   ${avatar(p.name, 30)}
-                  <div><div class="st-name">${shown(p.name)}${i === 0 && played ? `<span class="crown">TOP</span>` : ""}</div><div class="st-meta">${meta}</div></div>
+                  <div><div class="st-name">${shown(p.name)}</div><div class="st-meta">${meta}</div></div>
                   <span class="delta ${dir}">${dir === "flat" ? "0" : `${arrow}${Math.abs(d)}`}</span>
                 </div>`;
             }).join("")}
@@ -447,7 +446,7 @@
           const live = state.id === "live";
           body = `
             ${header(false)}
-            ${sessionStats(results, live)}
+            ${sessionStats(results)}
             ${standings(results)}
             ${matchesSection(results, live)}`;
         }
