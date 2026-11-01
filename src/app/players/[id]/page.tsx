@@ -103,10 +103,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         <div style={{ minWidth: 0 }}>
           <h1 className="profile-name">{player.name}</h1>
           <div className="profile-sub">
-            {isMe ? "That's you · " : ""}
-            {played} {played === 1 ? "match" : "matches"} · {sessionCount}{" "}
-            {sessionCount === 1 ? "session" : "sessions"}
-            {lastPlayedAt ? ` · last played ${formatDate(lastPlayedAt)}` : ""}
+            {playedSummary({ isMe, name: player.name, played, sessionCount, lastPlayedAt })}
           </div>
         </div>
       </header>
@@ -219,6 +216,33 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       </section>
     </main>
   );
+}
+
+function countOf(count: number, singular: string, plural: string) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function playedSummary({
+  isMe,
+  name,
+  played,
+  sessionCount,
+  lastPlayedAt,
+}: {
+  isMe: boolean;
+  name: string;
+  played: number;
+  sessionCount: number;
+  lastPlayedAt: Date | null;
+}) {
+  const firstName = name.trim().split(/\s+/)[0];
+  if (played === 0 && sessionCount === 0) {
+    return isMe ? "You haven't played yet" : `${firstName} hasn't played yet`;
+  }
+  const subject = isMe ? "You've" : `${firstName} has`;
+  const summary = `${subject} played ${countOf(played, "match", "matches")} over ${countOf(sessionCount, "session", "sessions")}`;
+  if (!lastPlayedAt) return summary;
+  return `${summary}, last playing ${formatDate(lastPlayedAt)}`;
 }
 
 function formatDate(date: Date) {
