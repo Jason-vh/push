@@ -37,11 +37,7 @@ export function EmailSettings({ email }: { email: string | null }) {
       <div className="panel-head">
         <h2>Email</h2>
       </div>
-      <p className="help email-settings-help">
-        {saved
-          ? "Calendar invites for every session you're playing go here. Clear it to stop them."
-          : "Add your email to get calendar invites for every session you're playing."}
-      </p>
+      <p className="help email-settings-help">Add your email to get calendar invites.</p>
       <form className="email-settings-form" onSubmit={save}>
         <input
           className="input"
