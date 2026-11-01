@@ -76,7 +76,6 @@ export function calendarInvite({
     summary: sessionTitle(session),
     location: location || null,
     description: sessionUrl(session),
-    url: sessionUrl(session),
     status: method === "CANCEL" ? ICalEventStatus.CANCELLED : ICalEventStatus.CONFIRMED,
     organizer: { name: inviteSender.name, email: inviteSender.email },
     attendees: [
