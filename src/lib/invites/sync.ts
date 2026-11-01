@@ -18,7 +18,7 @@ const RETRY_MS = 5 * 60_000;
 // Past sessions only get updates and cancellations for invites already out, e.g. a date corrected after the game.
 const PAST_DAYS_KEPT_IN_SYNC = 7;
 // A ceiling on what a bug or an abuser could send from the Fastmail account.
-const DAILY_SEND_LIMIT = 100;
+const DAILY_SEND_LIMIT = 25;
 const DAY_MS = 24 * 60 * 60_000;
 
 type InviteState = {

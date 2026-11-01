@@ -63,7 +63,7 @@ Players can add an email on their own profile. Everyone with one gets a calendar
 
 - Booking, editing, deleting or changing the players of a session, and changing your email, schedule `src/lib/invites/sync.ts` for that session. It compares the session with what each address last received (`SessionInvite`) and sends the difference. It waits until the session has been left alone for two minutes, because the edit sheet saves every field as it changes. On startup it catches up on every session, in case a restart interrupted a wait.
 - Invites are built with `ical-generator` and `nodemailer` (compose only), and sent from `push@vhtm.eu` through Fastmail's JMAP API, via the `fastmail-send` exe.dev integration. See [`deploy/README.md`](deploy/README.md#calendar-invites).
-- A failed send is retried five minutes later, unless Fastmail may have sent it (no clear answer), so nobody gets the same email twice. At most 100 emails go out per day.
+- A failed send is retried five minutes later, unless Fastmail may have sent it (no clear answer), so nobody gets the same email twice. At most 25 emails go out per day.
 - Sessions from the past week only get updates and cancellations for invites already out, e.g. when a date is corrected after the game.
 - Without `FASTMAIL_BASE_URL`, invites are logged instead of sent locally, and off in production.
 
