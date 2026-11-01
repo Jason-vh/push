@@ -911,18 +911,18 @@ h3 {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.invite-email-help {
+.email-settings-help {
   margin: 0 0 12px;
 }
-.invite-email-form {
+.email-settings-form {
   display: flex;
   gap: 8px;
 }
-.invite-email-form .input {
+.email-settings-form .input {
   flex: 1;
   min-width: 0;
 }
-.invite-email-error {
+.email-settings-error {
   margin-top: 10px;
 }
 .sparkline {

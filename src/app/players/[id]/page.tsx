@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { CalloutRow, shortName } from "@/components/CalloutRow";
-import { InviteEmailForm } from "@/components/InviteEmailForm";
 import { RatingSparkline } from "@/components/RatingSparkline";
 import { SessionRow } from "@/components/SessionRow";
 import { loadActivePlayerIds } from "@/lib/activity";
@@ -218,8 +217,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           </div>
         )}
       </section>
-
-      {isMe ? <InviteEmailForm email={viewer.email} /> : null}
     </main>
   );
 }

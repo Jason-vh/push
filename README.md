@@ -59,7 +59,7 @@ See [`deploy/README.md`](deploy/README.md) for architecture, VM paths, Caddy con
 
 ## Calendar invites
 
-Players can add an email on their own profile. Everyone with one gets a calendar invite for each upcoming session they're in, an update when its date, time, length, venue or court changes, and a cancellation when they're taken off it or it's deleted.
+Players can add an email under Settings. Everyone with one gets a calendar invite for each upcoming session they're in, an update when its date, time, length, venue or court changes, and a cancellation when they're taken off it or it's deleted.
 
 - Booking, editing, deleting or changing the players of a session, and changing your email, schedule `src/lib/invites/sync.ts` for that session. It compares the session with what each address last received (`SessionInvite`) and sends the difference. It waits until the session has been left alone for two minutes, because the edit sheet saves every field as it changes. On startup it catches up on every session, in case a restart interrupted a wait.
 - Invites are built with `ical-generator` and `nodemailer` (compose only), and sent from `push@vhtm.eu` through Fastmail's JMAP API, via the `fastmail-send` exe.dev integration. See [`deploy/README.md`](deploy/README.md#calendar-invites).

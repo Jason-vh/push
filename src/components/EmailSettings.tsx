@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
-export function InviteEmailForm({ email }: { email: string | null }) {
+export function EmailSettings({ email }: { email: string | null }) {
   const [value, setValue] = useState(email ?? "");
   const [saved, setSaved] = useState(email ?? "");
   const [isSaving, setIsSaving] = useState(false);
@@ -35,15 +35,14 @@ export function InviteEmailForm({ email }: { email: string | null }) {
   return (
     <section className="card-panel">
       <div className="panel-head">
-        <h2>Calendar invites</h2>
-        {saved ? <span className="panel-note">On</span> : null}
+        <h2>Email</h2>
       </div>
-      <p className="help invite-email-help">
+      <p className="help email-settings-help">
         {saved
-          ? "Every session you're playing lands in your calendar. Clear the address to stop."
-          : "Add your email to get every session you're playing in your calendar."}
+          ? "Calendar invites for every session you're playing go here. Clear it to stop them."
+          : "Add your email to get calendar invites for every session you're playing."}
       </p>
-      <form className="invite-email-form" onSubmit={save}>
+      <form className="email-settings-form" onSubmit={save}>
         <input
           className="input"
           type="email"
@@ -51,7 +50,7 @@ export function InviteEmailForm({ email }: { email: string | null }) {
           autoCapitalize="off"
           spellCheck={false}
           placeholder="you@example.com"
-          aria-label="Email for calendar invites"
+          aria-label="Email"
           value={value}
           onChange={(event) => setValue(event.target.value)}
         />
@@ -59,7 +58,7 @@ export function InviteEmailForm({ email }: { email: string | null }) {
           {isSaving ? "Saving…" : "Save"}
         </button>
       </form>
-      {error ? <div className="error invite-email-error">{error}</div> : null}
+      {error ? <div className="error email-settings-error">{error}</div> : null}
     </section>
   );
 }

@@ -34,6 +34,9 @@ export function AvatarMenu({ userId, name }: { userId: string; name: string }) {
           <Link href={`/players/${userId}`} onClick={() => setOpen(false)}>
             My profile
           </Link>
+          <Link href="/settings" onClick={() => setOpen(false)}>
+            Settings
+          </Link>
           <button
             type="button"
             onClick={async () => {
