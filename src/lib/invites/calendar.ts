@@ -35,6 +35,10 @@ export function sessionTitle(session: InviteSession) {
   return session.venue ? `Padel at ${session.venue}` : "Padel";
 }
 
+function eventTitle(session: InviteSession) {
+  return session.court ? `Padel · ${session.court}` : "Padel";
+}
+
 export function sessionUrl(session: InviteSession) {
   return `${appUrl}/sessions/${session.id}`;
 }
@@ -66,15 +70,14 @@ export function calendarInvite({
     prodId: { company: "vhtm.eu", product: rpName, language: "EN" },
     method: method === "CANCEL" ? ICalCalendarMethod.CANCEL : ICalCalendarMethod.REQUEST,
   });
-  const location = [session.venue, session.court].filter(Boolean).join(", ");
   calendar.createEvent({
     id: `${session.id}@${rpID}`,
     sequence,
     stamp: new Date(),
     start: sessionStart(session),
     end: sessionEnd(session),
-    summary: sessionTitle(session),
-    location: location || null,
+    summary: eventTitle(session),
+    location: session.venue,
     description: sessionUrl(session),
     status: method === "CANCEL" ? ICalEventStatus.CANCELLED : ICalEventStatus.CONFIRMED,
     organizer: { name: inviteSender.name, email: inviteSender.email },
