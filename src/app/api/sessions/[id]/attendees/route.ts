@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { scheduleInvites } from "@/lib/invites/sync";
 import { getCurrentUser } from "@/lib/session";
 
 const attendeesSchema = z.object({
@@ -70,10 +71,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           update: {},
         });
       }
-
-      // Calendar invites wait for a session to be quiet, roster changes included.
-      await tx.gameSession.update({ where: { id: sessionId }, data: { updatedAt: new Date() } });
     });
+    scheduleInvites([sessionId]);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

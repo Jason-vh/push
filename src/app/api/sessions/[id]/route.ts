@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { scheduleInvites } from "@/lib/invites/sync";
 import { getCurrentUser } from "@/lib/session";
 import { courtSchema, durationSchema, startTimeSchema } from "@/lib/sessionDetails";
 
@@ -39,6 +40,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (result.count === 0) {
       return NextResponse.json({ error: "Session not found." }, { status: 404 });
     }
+    scheduleInvites([sessionId]);
 
     return NextResponse.json({ ok: true });
   } catch (error) {
@@ -69,6 +71,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       if (!session) return NextResponse.json({ error: "Session not found." }, { status: 404 });
       return NextResponse.json({ error: "Only empty sessions can be deleted." }, { status: 400 });
     }
+    scheduleInvites([sessionId]);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

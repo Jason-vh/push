@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { schedulePlayerInvites } from "@/lib/invites/sync";
 import { getCurrentUser } from "@/lib/session";
 
 const profileSchema = z.object({
@@ -19,7 +20,10 @@ export async function PATCH(request: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const input = profileSchema.parse(await request.json());
-    await prisma.user.update({ where: { id: user.id }, data: { email: input.email } });
+    if (input.email !== user.email) {
+      await prisma.user.update({ where: { id: user.id }, data: { email: input.email } });
+      await schedulePlayerInvites(user.id);
+    }
 
     return NextResponse.json({ ok: true, email: input.email });
   } catch (error) {

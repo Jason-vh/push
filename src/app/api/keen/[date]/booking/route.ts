@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { scheduleInvites } from "@/lib/invites/sync";
 import { findSessionOn, todayKey } from "@/lib/keen";
 import { dateFromKey, isValidDateKey } from "@/lib/keenDays";
 import { courtSchema, durationSchema, startTimeSchema } from "@/lib/sessionDetails";
@@ -54,14 +55,16 @@ export async function POST(request: Request, { params }: Params) {
     });
     const playerIds = new Set([user.id, ...keen.map((availability) => availability.userId)]);
 
-    await prisma.gameSession.create({
+    const session = await prisma.gameSession.create({
       data: {
         ...sessionDetails(input),
         playedAt: dateFromKey(date),
         createdById: user.id,
         players: { create: [...playerIds].map((userId) => ({ userId })) },
       },
+      select: { id: true },
     });
+    scheduleInvites([session.id]);
 
     return NextResponse.json({ ok: true });
   } catch (error) {
