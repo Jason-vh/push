@@ -25,11 +25,11 @@ client
 
 ## Files in this directory
 
-| File | Purpose |
-|---|---|
-| `caddy.snippet` | Routing for `push.vhtm.eu` → `127.0.0.1:3001`. Imported by `/etc/caddy/Caddyfile` via `apps/*/deploy/caddy.snippet`. |
-| `env.production.example` | Shape of `.env.production` (written by CI from secrets, not committed). |
-| `README.md` | This file. |
+| File                     | Purpose                                                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `caddy.snippet`          | Routing for `push.vhtm.eu` → `127.0.0.1:3001`. Imported by `/etc/caddy/Caddyfile` via `apps/*/deploy/caddy.snippet`. |
+| `env.production.example` | Shape of `.env.production` (written by CI from secrets, not committed).                                              |
+| `README.md`              | This file.                                                                                                           |
 
 ## One-time exe.dev / DNS setup
 
@@ -43,9 +43,31 @@ ssh exe.dev domain add vhtm-eu push.vhtm.eu
 
 ## GitHub Actions secrets
 
-| Secret | Source |
-|---|---|
+| Secret              | Source                                                                                                                                                                |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `POSTGRES_PASSWORD` | Password for the `push` role in the shared Postgres. Set once when the DB was created (see <https://github.com/Jason-vh/vhtm.eu/blob/main/infra/postgres/README.md>). |
+
+## Calendar invites
+
+Invites go out from `push@vhtm.eu`, an alias on Jason's Fastmail account, through Fastmail's JMAP API. The app calls `https://fastmail-send.int.exe.xyz` (`FASTMAIL_BASE_URL`, written by the deploy workflow), and exe.dev adds the token, so it never reaches the VM.
+
+One-time setup:
+
+1. Fastmail → Settings → Migration/Privacy & Security → **API tokens**: a new token with **Email** (read-write) and **Email submission** access. Nothing else.
+2. Fastmail → Settings → **My email addresses**: an alias `push@vhtm.eu`, display name `Push Padel`. Aliases are sending identities too.
+3. Add the token to exe.dev as a Fastmail integration named `fastmail-send`, attached to `vm:vhtm-eu`:
+   <https://exe.dev/integrations/add?service=fastmail&attach=vm:vhtm-eu>
+4. Fastmail → Settings → **Filters & rules**: file mail to `push@vhtm.eu` (the RSVP replies) into a folder of its own.
+5. DNS at Porkbun: `_dmarc.vhtm.eu TXT "v=DMARC1; p=none"`, which helps Gmail trust the invites.
+
+The token can send as any address on the account, and any process on `vhtm-eu` can use the integration; it can't read the token itself.
+
+Check from the VM:
+
+```bash
+curl -s https://fastmail-send.int.exe.xyz/jmap/session | jq '.primaryAccounts'
+docker compose logs app | grep -i 'calendar invite'
+```
 
 ## Deploy
 

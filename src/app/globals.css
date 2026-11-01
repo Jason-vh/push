@@ -911,6 +911,20 @@ h3 {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.invite-email-help {
+  margin: 0 0 12px;
+}
+.invite-email-form {
+  display: flex;
+  gap: 8px;
+}
+.invite-email-form .input {
+  flex: 1;
+  min-width: 0;
+}
+.invite-email-error {
+  margin-top: 10px;
+}
 .sparkline {
   display: block;
   width: 100%;

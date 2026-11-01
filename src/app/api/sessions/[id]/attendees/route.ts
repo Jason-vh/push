@@ -70,6 +70,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           update: {},
         });
       }
+
+      // Calendar invites wait for a session to be quiet, roster changes included.
+      await tx.gameSession.update({ where: { id: sessionId }, data: { updatedAt: new Date() } });
     });
 
     return NextResponse.json({ ok: true });

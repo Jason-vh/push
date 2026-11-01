@@ -52,18 +52,17 @@ See [`deploy/README.md`](deploy/README.md) for architecture, VM paths, Caddy con
 
 ## Current MVP scope
 
-- Users sign up/sign in with passkeys.
-- Players are identified by email.
-- A player can exist before signup; registering with the same email links the account.
+- Users sign up/sign in with passkeys, under a name.
 - Sessions are logged after they happen.
 - Each session can have multiple ordered matches.
 - Ratings update sequentially after every match using doubles ELO.
 
-## Deferred: email and calendar invites
+## Calendar invites
 
-Because games are organized outside the app, outbound email/calendar is intentionally not in the MVP.
+Players can add an email on their own profile. Everyone with one gets a calendar invite for each upcoming session they're in, an update when its date, time, length, venue or court changes, and a cancellation when they're taken off it or it's deleted.
 
-Good later options:
+- `src/lib/invites/reconcile.ts` runs every minute (started from `src/instrumentation.ts`). It compares each upcoming session with what each address last received (`SessionInvite`) and sends the difference. It waits until a session has been left alone for two minutes, because the edit sheet saves every field as it changes.
+- Invites are built with `ical-generator` and `nodemailer` (compose only), and sent from `push@vhtm.eu` through Fastmail's JMAP API, via the `fastmail-send` exe.dev integration. See [`deploy/README.md`](deploy/README.md#calendar-invites).
+- Without `FASTMAIL_BASE_URL`, as locally, invites are logged instead of sent.
 
-- **Calendar**: generate downloadable `.ics` files first; full invite sending later.
-- **Email**: use Resend/Postmark for transactional email if we add notifications or invitations.
+Future idea: a personal `webcal://` feed per player, for anyone who'd rather not give an email.

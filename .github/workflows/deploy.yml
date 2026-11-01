@@ -28,6 +28,7 @@ jobs:
           NEXT_PUBLIC_APP_URL=https://push.vhtm.eu
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           PUSH_APP_HOST_PORT=3001
+          FASTMAIL_BASE_URL=https://fastmail-send.int.exe.xyz
           COMPOSE_PROJECT_NAME=push
           EOF
 
