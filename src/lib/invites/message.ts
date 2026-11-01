@@ -11,7 +11,7 @@ import {
   type Recipient,
 } from "@/lib/invites/calendar";
 
-export type InviteKind = "new" | "update" | "cancel";
+export type InviteKind = "new" | "update" | "cancel" | "removed";
 
 export type Invite = {
   session: InviteSession;
@@ -41,6 +41,7 @@ function subjectFor(invite: Invite) {
   const subject = `${sessionTitle(invite.session)}, ${formatWhen(invite.session)}`;
   if (invite.kind === "update") return `Updated: ${subject}`;
   if (invite.kind === "cancel") return `Cancelled: ${subject}`;
+  if (invite.kind === "removed") return `You're off: ${subject}`;
   return subject;
 }
 
@@ -49,13 +50,15 @@ function textFor(invite: Invite) {
   const lines = [sessionTitle(session), formatWhen(session)];
   if (session.court) lines.push(session.court);
   if (invite.kind === "cancel") lines.unshift("This session is off.", "");
+  if (invite.kind === "removed") lines.unshift("You're no longer playing in this session.", "");
   lines.push("", sessionUrl(session));
   return lines.join("\n");
 }
 
 /** The whole email, as Fastmail imports it: a text body with the calendar event as its alternative. */
 export async function composeInvite(invite: Invite): Promise<Buffer> {
-  const method: InviteMethod = invite.kind === "cancel" ? "CANCEL" : "REQUEST";
+  const isCancel = invite.kind === "cancel" || invite.kind === "removed";
+  const method: InviteMethod = isCancel ? "CANCEL" : "REQUEST";
   const { message } = await composer.sendMail({
     from: { name: inviteSender.name, address: inviteSender.email },
     to: invite.recipient.name

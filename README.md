@@ -63,6 +63,8 @@ Players can add an email on their own profile. Everyone with one gets a calendar
 
 - `src/lib/invites/reconcile.ts` runs every minute (started from `src/instrumentation.ts`). It compares each upcoming session with what each address last received (`SessionInvite`) and sends the difference. It waits until a session has been left alone for two minutes, because the edit sheet saves every field as it changes.
 - Invites are built with `ical-generator` and `nodemailer` (compose only), and sent from `push@vhtm.eu` through Fastmail's JMAP API, via the `fastmail-send` exe.dev integration. See [`deploy/README.md`](deploy/README.md#calendar-invites).
-- Without `FASTMAIL_BASE_URL`, as locally, invites are logged instead of sent.
+- A failed send is retried next round, unless Fastmail may have sent it (no clear answer), so nobody gets the same email twice. At most 100 emails go out per day.
+- Sessions from the past week only get updates and cancellations for invites already out, e.g. when a date is corrected after the game.
+- Without `FASTMAIL_BASE_URL`, invites are logged instead of sent locally, and off in production.
 
 Future idea: a personal `webcal://` feed per player, for anyone who'd rather not give an email.
