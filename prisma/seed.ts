@@ -6,12 +6,7 @@ const prisma = new PrismaClient();
 // real logged-in user (detected via WebAuthnCredential, or overridden with
 // SEED_ME_NAME) so the dashboard's "Best teammate" / "Toughest opponent"
 // callouts have data to display.
-const FRIEND_NAMES = [
-  "Mateo Rivera",
-  "Imani Okafor",
-  "Priya Vance",
-  "Sasha Lin",
-];
+const FRIEND_NAMES = ["Mateo Rivera", "Imani Okafor", "Priya Vance", "Sasha Lin"];
 const FALLBACK_ME_NAME = "You";
 
 const SESSIONS: Array<{

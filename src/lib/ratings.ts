@@ -219,19 +219,21 @@ function emptyRecord(otherUserId: string): PairRecord {
 }
 
 function finalize(records: Map<string, PairRecord>): PairRecord[] {
-  return Array.from(records.values())
-    .map((record) => ({
-      ...record,
-      winRate:
-        record.wins + record.losses === 0
-          ? 0
-          : Math.round((record.wins * 100) / (record.wins + record.losses)),
-    }))
-    // Highest winRate first; ties broken by total games played (more = stronger signal).
-    .sort((a, b) => {
-      if (b.winRate !== a.winRate) return b.winRate - a.winRate;
-      return b.wins + b.losses - (a.wins + a.losses);
-    });
+  return (
+    Array.from(records.values())
+      .map((record) => ({
+        ...record,
+        winRate:
+          record.wins + record.losses === 0
+            ? 0
+            : Math.round((record.wins * 100) / (record.wins + record.losses)),
+      }))
+      // Highest winRate first; ties broken by total games played (more = stronger signal).
+      .sort((a, b) => {
+        if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+        return b.wins + b.losses - (a.wins + a.losses);
+      })
+  );
 }
 
 /** `eligible`, when given, limits the counterparts a record is kept for. */

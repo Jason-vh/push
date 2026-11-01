@@ -20,16 +20,24 @@
         --line: rgba(31, 93, 58, 0.13);
         --shadow: 0 24px 70px rgba(17, 24, 39, 0.13);
       }
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
       body {
         margin: 0;
         min-height: 100vh;
         background:
           radial-gradient(circle at 10% 12%, rgba(123, 190, 118, 0.25), transparent 28%),
-          radial-gradient(circle at 92% 0%, rgba(255, 207, 77, 0.25), transparent 23%),
-          var(--bg);
+          radial-gradient(circle at 92% 0%, rgba(255, 207, 77, 0.25), transparent 23%), var(--bg);
         color: var(--ink);
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
         padding: 32px 24px 64px;
       }
       h1 {
@@ -51,7 +59,10 @@
         grid-template-columns: 1fr;
         gap: 36px;
       }
-      .variant { display: grid; gap: 12px; }
+      .variant {
+        display: grid;
+        gap: 12px;
+      }
       .variant-label {
         font-size: 12px;
         font-weight: 700;
@@ -90,7 +101,11 @@
         font-weight: 700;
         justify-self: start;
       }
-      h2 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
+      h2 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: -0.02em;
+      }
       .btn {
         border: 0;
         border-radius: 16px;
@@ -99,8 +114,13 @@
         font-size: 15px;
         cursor: pointer;
       }
-      .btn.dark { background: var(--ink); color: white; }
-      .btn.full { width: 100%; }
+      .btn.dark {
+        background: var(--ink);
+        color: white;
+      }
+      .btn.full {
+        width: 100%;
+      }
       .btn.ghost {
         background: transparent;
         border: 1.5px solid var(--line);
@@ -108,7 +128,11 @@
         font-size: 13px;
         padding: 10px 14px;
       }
-      .btn.ghost:hover { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+      .btn.ghost:hover {
+        background: var(--green-soft);
+        border-color: var(--green);
+        color: var(--green);
+      }
 
       .teams-row {
         display: grid;
@@ -122,7 +146,10 @@
         background: var(--panel-strong);
         display: grid;
         gap: 12px;
-        transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+        transition:
+          border-color 140ms ease,
+          background 140ms ease,
+          box-shadow 140ms ease;
       }
       .team-card.winner {
         border-color: var(--green);
@@ -137,7 +164,9 @@
         text-transform: uppercase;
         color: var(--muted);
       }
-      .team-card.winner h3 { color: var(--green); }
+      .team-card.winner h3 {
+        color: var(--green);
+      }
       .winner-toggle {
         display: inline-flex;
         align-items: center;
@@ -150,18 +179,33 @@
         color: var(--muted);
         cursor: pointer;
       }
-      .team-card.winner .winner-toggle { color: var(--green); }
+      .team-card.winner .winner-toggle {
+        color: var(--green);
+      }
       .winner-dot {
-        width: 18px; height: 18px;
+        width: 18px;
+        height: 18px;
         border-radius: 50%;
         border: 2px solid var(--muted);
-        display: grid; place-items: center;
+        display: grid;
+        place-items: center;
       }
-      .team-card.winner .winner-dot { border-color: var(--green); background: var(--green); }
+      .team-card.winner .winner-dot {
+        border-color: var(--green);
+        background: var(--green);
+      }
       .team-card.winner .winner-dot::after {
-        content: ""; width: 6px; height: 6px; border-radius: 50%; background: white;
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: white;
       }
-      .chip-strip { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chip-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
       .chip {
         padding: 8px 12px;
         border-radius: 999px;
@@ -170,14 +214,32 @@
         font-weight: 700;
         font-size: 13px;
         cursor: pointer;
-        transition: transform 80ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease;
+        transition:
+          transform 80ms ease,
+          background 140ms ease,
+          border-color 140ms ease,
+          color 140ms ease,
+          opacity 140ms ease;
         white-space: nowrap;
         user-select: none;
       }
-      .chip:hover:not(.disabled) { transform: translateY(-1px); }
-      .chip.disabled { opacity: 0.35; cursor: not-allowed; }
-      .chip.picked { background: var(--green); border-color: var(--green); color: white; }
-      .helper { font-size: 12px; color: var(--muted); margin-top: -4px; }
+      .chip:hover:not(.disabled) {
+        transform: translateY(-1px);
+      }
+      .chip.disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      .chip.picked {
+        background: var(--green);
+        border-color: var(--green);
+        color: white;
+      }
+      .helper {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: -4px;
+      }
 
       /* ------------- Variant A: Court diagram ------------- */
       .court-wrap {
@@ -186,7 +248,9 @@
         padding: 18px;
         position: relative;
         aspect-ratio: 2 / 1;
-        box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.4), 0 12px 30px rgba(31, 93, 58, 0.18);
+        box-shadow:
+          inset 0 0 0 4px rgba(255, 255, 255, 0.4),
+          0 12px 30px rgba(31, 93, 58, 0.18);
       }
       .court {
         position: relative;
@@ -199,7 +263,9 @@
         /* net */
         content: "";
         position: absolute;
-        top: 0; bottom: 0; left: 50%;
+        top: 0;
+        bottom: 0;
+        left: 50%;
         width: 3px;
         background: var(--court-line);
         transform: translateX(-50%);
@@ -208,7 +274,10 @@
         /* service line */
         content: "";
         position: absolute;
-        top: 30%; bottom: 30%; left: 15%; right: 15%;
+        top: 30%;
+        bottom: 30%;
+        left: 15%;
+        right: 15%;
         border-left: 2px dashed rgba(255, 255, 255, 0.6);
         border-right: 2px dashed rgba(255, 255, 255, 0.6);
       }
@@ -224,8 +293,12 @@
         cursor: pointer;
         transition: background 140ms ease;
       }
-      .court-side.left { left: 0; }
-      .court-side.right { right: 0; }
+      .court-side.left {
+        left: 0;
+      }
+      .court-side.right {
+        right: 0;
+      }
       .court-side.winner {
         background: rgba(31, 93, 58, 0.32);
       }
@@ -253,7 +326,8 @@
       }
       .court-slot .x {
         position: absolute;
-        top: 4px; right: 6px;
+        top: 4px;
+        right: 6px;
         font-size: 10px;
         color: var(--muted);
         opacity: 0.65;
@@ -269,8 +343,12 @@
         letter-spacing: 0.1em;
         color: var(--green);
       }
-      .court-side.left .court-side-label { left: 14px; }
-      .court-side.right .court-side-label { right: 14px; }
+      .court-side.left .court-side-label {
+        left: 14px;
+      }
+      .court-side.right .court-side-label {
+        right: 14px;
+      }
       .winner-prompt {
         text-align: center;
         font-size: 12px;
@@ -293,15 +371,32 @@
         transition: all 140ms ease;
         white-space: nowrap;
       }
-      .stat-chip:hover:not(.disabled) { transform: translateY(-1px); }
-      .stat-chip.picked { background: var(--green); border-color: var(--green); color: white; }
-      .stat-chip.picked .avatar { background: white; color: var(--green); }
-      .stat-chip.disabled { opacity: 0.35; cursor: not-allowed; }
+      .stat-chip:hover:not(.disabled) {
+        transform: translateY(-1px);
+      }
+      .stat-chip.picked {
+        background: var(--green);
+        border-color: var(--green);
+        color: white;
+      }
+      .stat-chip.picked .avatar {
+        background: white;
+        color: var(--green);
+      }
+      .stat-chip.disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
       .avatar {
-        width: 26px; height: 26px; border-radius: 50%;
-        display: grid; place-items: center;
-        font-size: 12px; font-weight: 900;
-        background: var(--green); color: white;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 900;
+        background: var(--green);
+        color: white;
       }
       .stat-chip .rating {
         font-size: 11px;
@@ -311,7 +406,10 @@
         padding: 2px 6px;
         border-radius: 6px;
       }
-      .stat-chip.picked .rating { background: rgba(255, 255, 255, 0.2); color: white; }
+      .stat-chip.picked .rating {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+      }
       .team-stats {
         display: flex;
         justify-content: space-between;
@@ -336,8 +434,12 @@
         color: var(--muted);
         padding: 6px 0;
       }
-      .balance-indicator.imbalanced { color: #b07e1a; }
-      .balance-indicator.balanced { color: var(--green); }
+      .balance-indicator.imbalanced {
+        color: #b07e1a;
+      }
+      .balance-indicator.balanced {
+        color: var(--green);
+      }
 
       /* ------------- Variant C: Per-attendee segmented control ------------- */
       .attendee-list {
@@ -354,8 +456,14 @@
         border-radius: 14px;
         background: var(--panel-strong);
       }
-      .attendee-row.assigned-a { border-color: var(--green); background: var(--green-soft); }
-      .attendee-row.assigned-b { border-color: #b07e1a; background: #fff4d4; }
+      .attendee-row.assigned-a {
+        border-color: var(--green);
+        background: var(--green-soft);
+      }
+      .attendee-row.assigned-b {
+        border-color: #b07e1a;
+        background: #fff4d4;
+      }
       .attendee-name {
         display: flex;
         align-items: center;
@@ -380,9 +488,19 @@
         color: var(--muted);
         transition: all 140ms ease;
       }
-      .seg-btn.active.a { background: var(--green); color: white; }
-      .seg-btn.active.b { background: #b07e1a; color: white; }
-      .seg-btn.active.x { background: white; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+      .seg-btn.active.a {
+        background: var(--green);
+        color: white;
+      }
+      .seg-btn.active.b {
+        background: #b07e1a;
+        color: white;
+      }
+      .seg-btn.active.x {
+        background: white;
+        color: var(--ink);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      }
       .team-recap {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -411,32 +529,58 @@
         color: var(--muted);
         margin-bottom: 4px;
       }
-      .recap.winner .recap-header { color: var(--green); }
-      .recap-names { font-weight: 800; font-size: 14px; }
-      .recap-empty { color: var(--muted); font-size: 13px; font-weight: 600; }
+      .recap.winner .recap-header {
+        color: var(--green);
+      }
+      .recap-names {
+        font-weight: 800;
+        font-size: 14px;
+      }
+      .recap-empty {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
     <h1>Variant 1 expansions — three directions</h1>
-    <p class="subtitle">All keep "tap to assign" but push it in different directions: thematic (court diagram), informative (stats chips), or compact (segmented rows).</p>
+    <p class="subtitle">
+      All keep "tap to assign" but push it in different directions: thematic (court diagram),
+      informative (stats chips), or compact (segmented rows).
+    </p>
 
     <div class="grid">
       <!-- VARIANT A: COURT DIAGRAM -->
       <div class="variant">
         <span class="variant-label">Variant A</span>
         <h2 class="variant-name">Court diagram</h2>
-        <p class="variant-desc">Top-down padel court. Tap an attendee chip below → fills the next open court position. Tap a player on the court to remove them. Tap a court side to mark the winning team. Most thematic.</p>
+        <p class="variant-desc">
+          Top-down padel court. Tap an attendee chip below → fills the next open court position. Tap
+          a player on the court to remove them. Tap a court side to mark the winning team. Most
+          thematic.
+        </p>
         <div class="card">
           <span class="pill">Next match</span>
           <h2>Log match</h2>
           <div class="court-wrap">
             <div class="court">
-              <div class="court-side left" data-team="A" id="courtSideA" onclick="setCourtWinner('A', event)">
+              <div
+                class="court-side left"
+                data-team="A"
+                id="courtSideA"
+                onclick="setCourtWinner('A', event)"
+              >
                 <span class="court-side-label">Team A</span>
                 <div class="court-slot" id="court-a-1">Sasha Lin<span class="x">×</span></div>
                 <div class="court-slot" id="court-a-2">Mateo Rivera<span class="x">×</span></div>
               </div>
-              <div class="court-side right winner" data-team="B" id="courtSideB" onclick="setCourtWinner('B', event)">
+              <div
+                class="court-side right winner"
+                data-team="B"
+                id="courtSideB"
+                onclick="setCourtWinner('B', event)"
+              >
                 <span class="court-side-label">Team B</span>
                 <div class="court-slot" id="court-b-1">Imani Okafor<span class="x">×</span></div>
                 <div class="court-slot" id="court-b-2">Yuki Tanaka<span class="x">×</span></div>
@@ -463,7 +607,11 @@
       <div class="variant">
         <span class="variant-label">Variant B</span>
         <h2 class="variant-name">Stats chips + team avg rating</h2>
-        <p class="variant-desc">Each chip shows initial, name, and current ELO. Team header shows the team's average rating; a balance indicator flags lopsided teams. Helps you set up fair matches at a glance.</p>
+        <p class="variant-desc">
+          Each chip shows initial, name, and current ELO. Team header shows the team's average
+          rating; a balance indicator flags lopsided teams. Helps you set up fair matches at a
+          glance.
+        </p>
         <div class="card">
           <span class="pill">Next match</span>
           <h2>Log match</h2>
@@ -494,7 +642,10 @@
       <div class="variant">
         <span class="variant-label">Variant C</span>
         <h2 class="variant-name">Segmented rows</h2>
-        <p class="variant-desc">One row per attendee with a [A &middot; — &middot; B] selector. Most compact layout — scales cleanly to 12+ attendees. Team recap at the bottom shows the resulting matchup.</p>
+        <p class="variant-desc">
+          One row per attendee with a [A &middot; — &middot; B] selector. Most compact layout —
+          scales cleanly to 12+ attendees. Team recap at the bottom shows the resulting matchup.
+        </p>
         <div class="card">
           <span class="pill">Next match</span>
           <h2>Log match</h2>
@@ -523,17 +674,27 @@
         { name: "Jason", rating: 1000 },
         { name: "Smoke Test", rating: 1000 },
       ];
-      const initial = (name) => name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+      const initial = (name) =>
+        name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
 
       // ---------- Variant A: court ----------
       function setCourtWinner(team, event) {
-        if (event.target.classList.contains("court-slot") || event.target.classList.contains("x")) return;
+        if (event.target.classList.contains("court-slot") || event.target.classList.contains("x"))
+          return;
         document.getElementById("courtSideA").classList.toggle("winner", team === "A");
         document.getElementById("courtSideB").classList.toggle("winner", team === "B");
       }
 
       // ---------- Variant B: stats chips ----------
-      const vBState = { A: new Set(["Sasha Lin", "Mateo Rivera"]), B: new Set(["Imani Okafor", "Yuki Tanaka"]) };
+      const vBState = {
+        A: new Set(["Sasha Lin", "Mateo Rivera"]),
+        B: new Set(["Imani Okafor", "Yuki Tanaka"]),
+      };
       function renderVB() {
         ["A", "B"].forEach((team) => {
           const other = team === "A" ? "B" : "A";
@@ -562,9 +723,10 @@
         if (avgA && avgB) {
           const diff = Math.abs(avgA - avgB);
           ind.className = "balance-indicator " + (diff < 60 ? "balanced" : "imbalanced");
-          ind.textContent = diff < 60
-            ? `⚖ Teams are well matched (±${diff})`
-            : `⚠ Lopsided: team avg differs by ${diff}`;
+          ind.textContent =
+            diff < 60
+              ? `⚖ Teams are well matched (±${diff})`
+              : `⚠ Lopsided: team avg differs by ${diff}`;
         } else {
           ind.className = "balance-indicator";
           ind.textContent = "Pick 2 per team to see the balance";
@@ -572,13 +734,18 @@
       }
       function avg(set) {
         if (set.size === 0) return null;
-        const sum = [...set].reduce((s, name) => s + ATTENDEES.find((a) => a.name === name).rating, 0);
+        const sum = [...set].reduce(
+          (s, name) => s + ATTENDEES.find((a) => a.name === name).rating,
+          0,
+        );
         return Math.round(sum / set.size);
       }
       renderVB();
       document.querySelectorAll("#v2-teams .winner-toggle").forEach((btn) => {
         btn.onclick = () => {
-          document.querySelectorAll("#v2-teams .team-card").forEach((c) => c.classList.remove("winner"));
+          document
+            .querySelectorAll("#v2-teams .team-card")
+            .forEach((c) => c.classList.remove("winner"));
           btn.closest(".team-card").classList.add("winner");
         };
       });
@@ -598,7 +765,8 @@
         ATTENDEES.forEach(({ name }) => {
           const team = vCState.get(name);
           const row = document.createElement("div");
-          row.className = "attendee-row" + (team === "A" ? " assigned-a" : team === "B" ? " assigned-b" : "");
+          row.className =
+            "attendee-row" + (team === "A" ? " assigned-a" : team === "B" ? " assigned-b" : "");
           row.innerHTML = `
             <div class="attendee-name"><span class="avatar">${initial(name)}</span>${name}</div>
             <div class="segmented">
@@ -614,10 +782,18 @@
           });
           list.appendChild(row);
         });
-        const aMembers = [...vCState.entries()].filter(([, t]) => t === "A").map(([n]) => n.split(" ")[0]);
-        const bMembers = [...vCState.entries()].filter(([, t]) => t === "B").map(([n]) => n.split(" ")[0]);
-        document.getElementById("recap-a-names").textContent = aMembers.length ? aMembers.join(" + ") : "—";
-        document.getElementById("recap-b-names").textContent = bMembers.length ? bMembers.join(" + ") : "—";
+        const aMembers = [...vCState.entries()]
+          .filter(([, t]) => t === "A")
+          .map(([n]) => n.split(" ")[0]);
+        const bMembers = [...vCState.entries()]
+          .filter(([, t]) => t === "B")
+          .map(([n]) => n.split(" ")[0]);
+        document.getElementById("recap-a-names").textContent = aMembers.length
+          ? aMembers.join(" + ")
+          : "—";
+        document.getElementById("recap-b-names").textContent = bMembers.length
+          ? bMembers.join(" + ")
+          : "—";
       }
       renderVC();
       function setSegWinner(team) {

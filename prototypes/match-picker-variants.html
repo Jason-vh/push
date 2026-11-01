@@ -17,16 +17,24 @@
         --line: rgba(31, 93, 58, 0.13);
         --shadow: 0 24px 70px rgba(17, 24, 39, 0.13);
       }
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
       body {
         margin: 0;
         min-height: 100vh;
         background:
           radial-gradient(circle at 10% 12%, rgba(123, 190, 118, 0.25), transparent 28%),
-          radial-gradient(circle at 92% 0%, rgba(255, 207, 77, 0.25), transparent 23%),
-          var(--bg);
+          radial-gradient(circle at 92% 0%, rgba(255, 207, 77, 0.25), transparent 23%), var(--bg);
         color: var(--ink);
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
         padding: 32px 24px 64px;
       }
       h1 {
@@ -48,7 +56,10 @@
         grid-template-columns: 1fr;
         gap: 36px;
       }
-      .variant { display: grid; gap: 12px; }
+      .variant {
+        display: grid;
+        gap: 12px;
+      }
       .variant-label {
         font-size: 12px;
         font-weight: 700;
@@ -84,7 +95,11 @@
         font-size: 12px;
         font-weight: 700;
       }
-      h2 { margin: 12px 0 4px; font-size: 22px; letter-spacing: -0.02em; }
+      h2 {
+        margin: 12px 0 4px;
+        font-size: 22px;
+        letter-spacing: -0.02em;
+      }
       .btn {
         border: 0;
         border-radius: 16px;
@@ -93,9 +108,17 @@
         font-size: 15px;
         cursor: pointer;
       }
-      .btn.dark { background: var(--ink); color: white; }
-      .btn.full { width: 100%; }
-      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .btn.dark {
+        background: var(--ink);
+        color: white;
+      }
+      .btn.full {
+        width: 100%;
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
 
       .teams-row {
         display: grid;
@@ -109,7 +132,10 @@
         background: var(--panel-strong);
         display: grid;
         gap: 12px;
-        transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+        transition:
+          border-color 140ms ease,
+          background 140ms ease,
+          box-shadow 140ms ease;
       }
       .team-card h3 {
         margin: 0;
@@ -124,7 +150,9 @@
         background: var(--green-soft);
         box-shadow: 0 0 0 3px rgba(31, 93, 58, 0.12);
       }
-      .team-card.winner h3 { color: var(--green); }
+      .team-card.winner h3 {
+        color: var(--green);
+      }
       .winner-toggle {
         display: inline-flex;
         align-items: center;
@@ -137,12 +165,16 @@
         color: var(--muted);
         cursor: pointer;
       }
-      .team-card.winner .winner-toggle { color: var(--green); }
+      .team-card.winner .winner-toggle {
+        color: var(--green);
+      }
       .winner-dot {
-        width: 18px; height: 18px;
+        width: 18px;
+        height: 18px;
         border-radius: 50%;
         border: 2px solid var(--muted);
-        display: grid; place-items: center;
+        display: grid;
+        place-items: center;
       }
       .team-card.winner .winner-dot {
         border-color: var(--green);
@@ -150,7 +182,10 @@
       }
       .team-card.winner .winner-dot::after {
         content: "";
-        width: 6px; height: 6px; border-radius: 50%; background: white;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: white;
       }
 
       /* ----- Chip strip shared styles ----- */
@@ -167,12 +202,22 @@
         font-weight: 700;
         font-size: 13px;
         cursor: pointer;
-        transition: transform 80ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease;
+        transition:
+          transform 80ms ease,
+          background 140ms ease,
+          border-color 140ms ease,
+          color 140ms ease,
+          opacity 140ms ease;
         white-space: nowrap;
         user-select: none;
       }
-      .chip:hover:not(.disabled) { transform: translateY(-1px); }
-      .chip.disabled { opacity: 0.35; cursor: not-allowed; }
+      .chip:hover:not(.disabled) {
+        transform: translateY(-1px);
+      }
+      .chip.disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
 
       /* ----- Variant 1: per-team strip ----- */
       .chip.picked {
@@ -239,15 +284,21 @@
   </head>
   <body>
     <h1>Player picker — chips instead of dropdowns</h1>
-    <p class="subtitle">Both variants keep the side-by-side team layout you picked. The dropdowns get replaced by tap-to-select chips.</p>
+    <p class="subtitle">
+      Both variants keep the side-by-side team layout you picked. The dropdowns get replaced by
+      tap-to-select chips.
+    </p>
 
     <div class="grid">
       <!-- VARIANT 1: per-team chip strip -->
       <div class="variant">
         <span class="variant-label">Variant 1</span>
         <h2 class="variant-name">Per-team chip strip</h2>
-        <p class="variant-desc">Each team card shows every attendee as a chip. Tap to add (max 2 per team). Tap a picked chip to remove. Chips picked by the other team are greyed out.</p>
-        <div class="card" style="display: grid; gap: 14px;">
+        <p class="variant-desc">
+          Each team card shows every attendee as a chip. Tap to add (max 2 per team). Tap a picked
+          chip to remove. Chips picked by the other team are greyed out.
+        </p>
+        <div class="card" style="display: grid; gap: 14px">
           <span class="pill">Next match</span>
           <h2>Log match</h2>
           <div class="teams-row" id="v1">
@@ -272,8 +323,11 @@
       <div class="variant">
         <span class="variant-label">Variant 2</span>
         <h2 class="variant-name">Shared pool, tap to cycle</h2>
-        <p class="variant-desc">One chip per attendee at the top. Tap to cycle: unassigned → Team A → Team B → unassigned. Picked players show up in the team cards below as you assign them.</p>
-        <div class="card" style="display: grid; gap: 14px;">
+        <p class="variant-desc">
+          One chip per attendee at the top. Tap to cycle: unassigned → Team A → Team B → unassigned.
+          Picked players show up in the team cards below as you assign them.
+        </p>
+        <div class="card" style="display: grid; gap: 14px">
           <span class="pill">Next match</span>
           <h2>Log match</h2>
           <div class="pool-row">
@@ -298,10 +352,20 @@
     </div>
 
     <script>
-      const ATTENDEES = ["Sasha Lin", "Mateo Rivera", "Imani Okafor", "Yuki Tanaka", "Jason", "Smoke Test"];
+      const ATTENDEES = [
+        "Sasha Lin",
+        "Mateo Rivera",
+        "Imani Okafor",
+        "Yuki Tanaka",
+        "Jason",
+        "Smoke Test",
+      ];
 
       // ---------- Variant 1 state ----------
-      const v1State = { A: new Set(["Sasha Lin", "Mateo Rivera"]), B: new Set(["Imani Okafor", "Yuki Tanaka"]) };
+      const v1State = {
+        A: new Set(["Sasha Lin", "Mateo Rivera"]),
+        B: new Set(["Imani Okafor", "Yuki Tanaka"]),
+      };
 
       function renderV1() {
         document.querySelectorAll("#v1 .team-card").forEach((card) => {
@@ -356,7 +420,9 @@
       }
       function v2Count(team) {
         let count = 0;
-        v2State.forEach((value) => { if (value === team) count++; });
+        v2State.forEach((value) => {
+          if (value === team) count++;
+        });
         return count;
       }
 
@@ -388,7 +454,9 @@
           const roster = card.querySelector(".roster");
           roster.innerHTML = "";
           const members = [];
-          v2State.forEach((value, name) => { if (value === team) members.push(name); });
+          v2State.forEach((value, name) => {
+            if (value === team) members.push(name);
+          });
           if (members.length === 0) {
             const placeholder = document.createElement("div");
             placeholder.style.color = "var(--muted)";
@@ -411,7 +479,9 @@
       renderV2();
       document.querySelectorAll("#v2-teams .winner-toggle").forEach((btn) => {
         btn.onclick = () => {
-          document.querySelectorAll("#v2-teams .team-card").forEach((c) => c.classList.remove("winner"));
+          document
+            .querySelectorAll("#v2-teams .team-card")
+            .forEach((c) => c.classList.remove("winner"));
           btn.closest(".team-card").classList.add("winner");
         };
       });

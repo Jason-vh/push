@@ -47,9 +47,7 @@ export function Avatar({
 }) {
   const initial = (name || "?").trim().charAt(0).toUpperCase();
   const { bg, fg } =
-    tone === "auto"
-      ? autoPalette[hashName(name) % autoPalette.length]
-      : namedPalette[tone];
+    tone === "auto" ? autoPalette[hashName(name) % autoPalette.length] : namedPalette[tone];
   return (
     <div
       aria-hidden

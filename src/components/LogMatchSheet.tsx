@@ -254,154 +254,148 @@ export function LogMatchSheet({
       }}
     >
       <div className="sheet-inner">
-          <div className="sheet-grabber">
-            <span />
-          </div>
-
-          <div className="sheet-header">
-            <div>
-              <h2 className="sheet-title">{isEditing ? "Edit match" : "Set the teams"}</h2>
-              <div className="sheet-sub">{scoreHint}</div>
-            </div>
-            <button
-              type="button"
-              className="sheet-close"
-              aria-label="Close"
-              onClick={onClose}
-              disabled={busy}
-            >
-              ×
-            </button>
-          </div>
-
-          {error ? <div className="error sheet-error">{error}</div> : null}
-
-          <div className="court-wrap">
-            <div className="court-team-labels">
-              <span>TEAM A</span>
-              <span>TEAM B</span>
-            </div>
-            <div className="court">
-              <div className="court-outline" />
-              <div className="court-net" />
-              {SLOT_ORDER.map((key) => {
-                const id = slots[key];
-                const attendee = id ? attendeeById.get(id) : null;
-                const isActive = !attendee && key === nextEmpty;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`court-slot${attendee ? " filled" : " empty"}${
-                      isActive ? " active" : ""
-                    }`}
-                    style={SLOT_STYLES[key]}
-                    onClick={() => attendee && clearSlot(key)}
-                    aria-label={
-                      attendee ? `Remove ${attendee.name} from slot ${SLOT_NUMBERS[key]}` : `Slot ${SLOT_NUMBERS[key]} empty`
-                    }
-                    disabled={!attendee || busy}
-                  >
-                    {attendee ? (
-                      <>
-                        <Avatar name={attendee.name} size={34} />
-                        <span className="slot-name">{firstName(attendee.name)}</span>
-                      </>
-                    ) : (
-                      <span className="slot-num">{SLOT_NUMBERS[key]}</span>
-                    )}
-                  </button>
-                );
-              })}
-              <span className="court-vs">VS</span>
-            </div>
-          </div>
-
-          <div className="bench">
-            <div className="bench-label">
-              {ready ? "Sitting out" : "On the bench · tap to place"}
-            </div>
-            <div className="bench-strip">
-              {bench.length === 0 ? (
-                <div className="bench-empty">Nobody — everyone&apos;s on court</div>
-              ) : (
-                bench.map((player) => (
-                  <button
-                    key={player.id}
-                    type="button"
-                    className="bench-chip"
-                    onClick={() => placeOnBench(player.id)}
-                    disabled={ready || busy}
-                  >
-                    <Avatar name={player.name} size={22} />
-                    {firstName(player.name)}
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-
-          {ready ? (
-            <>
-              <div className="score-entry">
-                <ScoreField
-                  label="Team A"
-                  players={teamA}
-                  value={scoreA}
-                  onChange={(value) => changeScore(value, setScoreA)}
-                  onEnter={() => scoreBRef.current?.focus()}
-                  onBlur={save}
-                  leading={winner === "A"}
-                  disabled={busy}
-                  enterKeyHint="next"
-                />
-                <span className="score-dash" aria-hidden>
-                  –
-                </span>
-                <ScoreField
-                  label="Team B"
-                  players={teamB}
-                  value={scoreB}
-                  onChange={(value) => changeScore(value, setScoreB)}
-                  onEnter={() => scoreBRef.current?.blur()}
-                  onBlur={save}
-                  leading={winner === "B"}
-                  disabled={busy}
-                  enterKeyHint="done"
-                  inputRef={scoreBRef}
-                />
-              </div>
-              <button
-                type="button"
-                className="score-save"
-                onClick={save}
-                disabled={!canSave || busy}
-              >
-                {status === "saving"
-                  ? "Saving…"
-                  : winner
-                    ? `Save · Team ${winner} wins ${teamAScore}–${teamBScore}`
-                    : "Enter both scores"}
-              </button>
-            </>
-          ) : null}
-
-          {isEditing ? (
-            <button
-              type="button"
-              className={`sheet-delete${confirmingDelete ? " is-confirming" : ""}`}
-              onClick={deleteMatch}
-              disabled={busy}
-            >
-              {status === "deleting"
-                ? "Deleting…"
-                : confirmingDelete
-                  ? "Tap again to delete"
-                  : "Delete match"}
-            </button>
-          ) : null}
-
+        <div className="sheet-grabber">
+          <span />
         </div>
+
+        <div className="sheet-header">
+          <div>
+            <h2 className="sheet-title">{isEditing ? "Edit match" : "Set the teams"}</h2>
+            <div className="sheet-sub">{scoreHint}</div>
+          </div>
+          <button
+            type="button"
+            className="sheet-close"
+            aria-label="Close"
+            onClick={onClose}
+            disabled={busy}
+          >
+            ×
+          </button>
+        </div>
+
+        {error ? <div className="error sheet-error">{error}</div> : null}
+
+        <div className="court-wrap">
+          <div className="court-team-labels">
+            <span>TEAM A</span>
+            <span>TEAM B</span>
+          </div>
+          <div className="court">
+            <div className="court-outline" />
+            <div className="court-net" />
+            {SLOT_ORDER.map((key) => {
+              const id = slots[key];
+              const attendee = id ? attendeeById.get(id) : null;
+              const isActive = !attendee && key === nextEmpty;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className={`court-slot${attendee ? " filled" : " empty"}${
+                    isActive ? " active" : ""
+                  }`}
+                  style={SLOT_STYLES[key]}
+                  onClick={() => attendee && clearSlot(key)}
+                  aria-label={
+                    attendee
+                      ? `Remove ${attendee.name} from slot ${SLOT_NUMBERS[key]}`
+                      : `Slot ${SLOT_NUMBERS[key]} empty`
+                  }
+                  disabled={!attendee || busy}
+                >
+                  {attendee ? (
+                    <>
+                      <Avatar name={attendee.name} size={34} />
+                      <span className="slot-name">{firstName(attendee.name)}</span>
+                    </>
+                  ) : (
+                    <span className="slot-num">{SLOT_NUMBERS[key]}</span>
+                  )}
+                </button>
+              );
+            })}
+            <span className="court-vs">VS</span>
+          </div>
+        </div>
+
+        <div className="bench">
+          <div className="bench-label">{ready ? "Sitting out" : "On the bench · tap to place"}</div>
+          <div className="bench-strip">
+            {bench.length === 0 ? (
+              <div className="bench-empty">Nobody — everyone&apos;s on court</div>
+            ) : (
+              bench.map((player) => (
+                <button
+                  key={player.id}
+                  type="button"
+                  className="bench-chip"
+                  onClick={() => placeOnBench(player.id)}
+                  disabled={ready || busy}
+                >
+                  <Avatar name={player.name} size={22} />
+                  {firstName(player.name)}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
+        {ready ? (
+          <>
+            <div className="score-entry">
+              <ScoreField
+                label="Team A"
+                players={teamA}
+                value={scoreA}
+                onChange={(value) => changeScore(value, setScoreA)}
+                onEnter={() => scoreBRef.current?.focus()}
+                onBlur={save}
+                leading={winner === "A"}
+                disabled={busy}
+                enterKeyHint="next"
+              />
+              <span className="score-dash" aria-hidden>
+                –
+              </span>
+              <ScoreField
+                label="Team B"
+                players={teamB}
+                value={scoreB}
+                onChange={(value) => changeScore(value, setScoreB)}
+                onEnter={() => scoreBRef.current?.blur()}
+                onBlur={save}
+                leading={winner === "B"}
+                disabled={busy}
+                enterKeyHint="done"
+                inputRef={scoreBRef}
+              />
+            </div>
+            <button type="button" className="score-save" onClick={save} disabled={!canSave || busy}>
+              {status === "saving"
+                ? "Saving…"
+                : winner
+                  ? `Save · Team ${winner} wins ${teamAScore}–${teamBScore}`
+                  : "Enter both scores"}
+            </button>
+          </>
+        ) : null}
+
+        {isEditing ? (
+          <button
+            type="button"
+            className={`sheet-delete${confirmingDelete ? " is-confirming" : ""}`}
+            onClick={deleteMatch}
+            disabled={busy}
+          >
+            {status === "deleting"
+              ? "Deleting…"
+              : confirmingDelete
+                ? "Tap again to delete"
+                : "Delete match"}
+          </button>
+        ) : null}
+      </div>
     </dialog>
   );
 }

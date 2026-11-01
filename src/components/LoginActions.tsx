@@ -44,15 +44,8 @@ export function LoginActions() {
   return (
     <div className="auth-actions">
       {error ? <div className="error auth-error">{error}</div> : null}
-      <button
-        type="button"
-        className="btn dark full"
-        onClick={signIn}
-        disabled={mode !== "idle"}
-      >
-        {mode === "signin" ? (
-          <span className="button-spinner" aria-hidden="true" />
-        ) : null}
+      <button type="button" className="btn dark full" onClick={signIn} disabled={mode !== "idle"}>
+        {mode === "signin" ? <span className="button-spinner" aria-hidden="true" /> : null}
         {mode === "signin" ? "Logging in…" : "Log in"}
       </button>
       <Link className="auth-toggle" href="/register">
