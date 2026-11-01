@@ -54,7 +54,7 @@ Invites go out from `push@vhtm.eu`, an alias on Jason's Fastmail account, throug
 One-time setup:
 
 1. Fastmail → Settings → Migration/Privacy & Security → **API tokens**: a new token with **Email** (read-write) and **Email submission** access. Nothing else.
-2. Fastmail → Settings → **My email addresses**: an alias `push@vhtm.eu`, display name `Push Padel`. Aliases are sending identities too.
+2. Fastmail → Settings → **My email addresses**: an alias `push@vhtm.eu`, plus a sending identity for it named `Push Padel`. The app looks the identity up by address and refuses to send without it.
 3. Add the token to exe.dev as a Fastmail integration named `fastmail-send`, attached to `vm:vhtm-eu`:
    <https://exe.dev/integrations/add?service=fastmail&attach=vm:vhtm-eu>
 4. Fastmail → Settings → **Filters & rules**: file mail to `push@vhtm.eu` (the RSVP replies) into a folder of its own.
