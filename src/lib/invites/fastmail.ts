@@ -95,8 +95,8 @@ export class FastmailSender {
     if (!accountId) throw new Error("The Fastmail token can't send email");
 
     const [mailboxes, identities] = await this.request([
-      ["Mailbox/get", { accountId, properties: ["role"] }, "mailboxes"],
-      ["Identity/get", { accountId, properties: ["email"] }, "identities"],
+      ["Mailbox/get", { accountId, properties: ["id", "role"] }, "mailboxes"],
+      ["Identity/get", { accountId, properties: ["id", "email"] }, "identities"],
     ]);
     const drafts = mailboxesSchema.parse(mailboxes).list.find((each) => each.role === "drafts");
     if (!drafts) throw new Error("Fastmail has no Drafts mailbox");
